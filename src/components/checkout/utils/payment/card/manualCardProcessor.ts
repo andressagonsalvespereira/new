@@ -157,7 +157,7 @@ export const processManualCard = async ({
     // Exibir mensagem de erro
     if (toast) {
       toast({
-        title: "Erro no pagamento",
+        title: "Erro no processamento",
         description: error instanceof Error ? error.message : 'Erro ao processar pagamento manual',
         variant: "destructive",
         duration: 5000,
