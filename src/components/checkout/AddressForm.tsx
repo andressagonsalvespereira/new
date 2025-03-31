@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import AddressInput from './AddressInput';
@@ -32,6 +31,7 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showShippingOptions, setShowShippingOptions] = useState(false);
   const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
+  const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
 
   const formatCEP = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -54,7 +54,6 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           setCity(data.localidade || '');
           setState(data.uf || '');
           
-          // Clear previous errors for these fields
           const newErrors = {...errors};
           delete newErrors.street;
           delete newErrors.neighborhood;
@@ -62,9 +61,20 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           delete newErrors.state;
           setErrors(newErrors);
           
-          // Show shipping options after valid CEP
           setShowShippingOptions(true);
           setSelectedShipping('free');
+          
+          const today = new Date();
+          const deliveryDate = new Date(today);
+          deliveryDate.setDate(today.getDate() + 7);
+          
+          const formattedDate = deliveryDate.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          
+          setDeliveryEstimate(`Chegará em ${formattedDate}`);
         } else {
           setErrors(prev => ({...prev, cep: 'CEP não encontrado'}));
           setShowShippingOptions(false);
@@ -158,6 +168,7 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           <AddressShippingOptions
             selectedShipping={selectedShipping}
             onSelectShipping={selectShippingOption}
+            deliveryEstimate={deliveryEstimate}
           />
         )}
         
