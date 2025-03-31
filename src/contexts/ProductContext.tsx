@@ -6,13 +6,7 @@ import {
   ProductContextType, 
   ProductProviderProps 
 } from '@/contexts/product/productContextTypes';
-import { 
-  loadProducts,
-  createProduct as createProductUtil,
-  updateProduct as updateProductUtil,
-  deleteProduct as deleteProductUtil,
-  getProductById as getProductByIdUtil
-} from '@/contexts/product/productUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
@@ -29,8 +23,15 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const loadedProducts = await loadProducts();
-      setProducts(loadedProducts);
+      // Get products from Supabase
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      setProducts(data as Product[]);
       setLoading(false);
     } catch (err) {
       console.error('Error loading products:', err);
@@ -46,8 +47,17 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const addProduct = async (productData: CreateProductInput): Promise<Product> => {
     try {
-      const newProduct = createProductUtil(productData);
-      setProducts(prev => [...prev, newProduct]);
+      // Add product to Supabase
+      const { data, error } = await supabase
+        .from('products')
+        .insert([productData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      const newProduct = data as Product;
+      setProducts(prev => [newProduct, ...prev]);
       
       toast({
         title: "Sucesso",
@@ -68,11 +78,21 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const editProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
     try {
-      const updatedProduct = await updateProductUtil(id, productData);
+      // Update product in Supabase
+      const { data, error } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      const updatedProduct = data as Product;
       
       setProducts(prev => 
         prev.map(prod => 
-          prod.id === id ? { ...prod, ...updatedProduct } : prod
+          prod.id === id ? updatedProduct : prod
         )
       );
       
@@ -95,7 +115,13 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const removeProduct = async (id: string): Promise<void> => {
     try {
-      await deleteProductUtil(id);
+      // Delete product from Supabase
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
       
       setProducts(prev => prev.filter(prod => prod.id !== id));
       
@@ -114,10 +140,17 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     }
   };
 
-  // Updated to resolve types properly for async operation
   const getProductById = async (id: string): Promise<Product | undefined> => {
     try {
-      return await getProductByIdUtil(id);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      return data as Product;
     } catch (err) {
       console.error('Error getting product by ID:', err);
       toast({

@@ -1,124 +1,149 @@
 
 import React from 'react';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Copy, Edit, Package, Trash2 } from 'lucide-react';
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
+import { Edit, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { Product } from '@/types/product';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductTableProps {
   products: Product[];
-  formatCurrency: (value: number) => string;
-  handleEditClick: (product: Product) => void;
-  handleDeleteProduct: (id: string) => void;
-  copyCheckoutLink: (productId: string) => void;
+  loading: boolean;
+  error: string | null;
+  onEdit: (product: Product) => void;
+  onDelete: (id: string) => void;
 }
 
-const ProductTable = ({
-  products,
-  formatCurrency,
-  handleEditClick,
-  handleDeleteProduct,
-  copyCheckoutLink
-}: ProductTableProps) => {
+const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTableProps) => {
+  const { toast } = useToast();
+  
+  const copyCheckoutLink = (productId: string) => {
+    const baseUrl = window.location.origin;
+    const checkoutUrl = `${baseUrl}/quick-checkout/${productId}`;
+    
+    navigator.clipboard.writeText(checkoutUrl)
+      .then(() => {
+        toast({
+          title: "Link copiado",
+          description: "Link de checkout rápido copiado para a área de transferência",
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao copiar link:', err);
+        toast({
+          title: "Erro",
+          description: "Não foi possível copiar o link",
+          variant: "destructive",
+        });
+      });
+  };
+
+  const openCheckoutLink = (productId: string) => {
+    const baseUrl = window.location.origin;
+    const checkoutUrl = `${baseUrl}/quick-checkout/${productId}`;
+    window.open(checkoutUrl, '_blank');
+  };
+
+  if (loading) {
+    return <p className="text-center py-4">Carregando produtos...</p>;
+  }
+
+  if (error) {
+    return <p className="text-center py-4 text-red-600">Erro ao carregar produtos: {error}</p>;
+  }
+
+  if (products.length === 0) {
+    return <p className="text-center py-4 text-gray-500">Nenhum produto cadastrado</p>;
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Price</TableHead>
-          <TableHead className="hidden md:table-cell">Description</TableHead>
-          <TableHead className="hidden md:table-cell">Type</TableHead>
-          <TableHead className="hidden md:table-cell">Image</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {products.map((product) => (
-          <TableRow key={product.id} className="hover:bg-gray-50">
-            <TableCell className="font-medium">{product.name}</TableCell>
-            <TableCell>{formatCurrency(product.price)}</TableCell>
-            <TableCell className="hidden md:table-cell max-w-xs truncate">
-              {product.description || '-'}
-            </TableCell>
-            <TableCell className="hidden md:table-cell">
-              {product.isDigital ? "Digital" : "Physical"}
-            </TableCell>
-            <TableCell className="hidden md:table-cell">
-              {product.imageUrl ? (
-                <img 
-                  src={product.imageUrl} 
-                  alt={product.name} 
-                  className="w-10 h-10 object-cover rounded"
-                />
-              ) : (
-                <Package className="w-6 h-6 text-gray-400" />
-              )}
-            </TableCell>
-            <TableCell>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => handleEditClick(product)}
-                >
-                  <span className="sr-only">Edit</span>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <span className="sr-only">Delete</span>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Product</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete "{product.name}"? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                        onClick={() => handleDeleteProduct(product.id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="h-8 w-8 p-0 border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                  onClick={() => copyCheckoutLink(product.id)}
-                >
-                  <span className="sr-only">Copy Checkout Link</span>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-        {products.length === 0 && (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-              No products found. Add your first product to get started.
-            </TableCell>
+            <TableHead>Nome</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Preço</TableHead>
+            <TableHead>Imagem</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
-        )}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {products.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell className="font-medium">{product.name}</TableCell>
+              <TableCell className="max-w-xs truncate">{product.description}</TableCell>
+              <TableCell>R$ {product.price.toFixed(2)}</TableCell>
+              <TableCell>
+                {product.imageUrl ? (
+                  <div className="h-10 w-10 overflow-hidden rounded-md">
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.name} 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-10 w-10 bg-gray-200 flex items-center justify-center rounded-md">
+                    <span className="text-xs text-gray-500">No image</span>
+                  </div>
+                )}
+              </TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 text-xs rounded-full ${product.isDigital ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                  {product.isDigital ? 'Digital' : 'Físico'}
+                </span>
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyCheckoutLink(product.id)}
+                    title="Copiar link de checkout rápido"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openCheckoutLink(product.id)}
+                    title="Abrir checkout rápido"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => onEdit(product)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onDelete(product.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Excluir
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 
