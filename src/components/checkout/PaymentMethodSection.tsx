@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -28,7 +29,7 @@ interface PaymentMethodSectionProps {
     status: 'pending' | 'confirmed',
     cardDetails?: CardDetails,
     pixDetails?: PixDetails
-  ) => Promise<Order | void>;
+  ) => Promise<Order | void>;  // Updated to accept Order or void
   productDetails?: ProductDetailsType;
   customerData?: any;
   isProcessing?: boolean;
@@ -43,12 +44,12 @@ const PaymentMethodSection = ({
   isProcessing = false
 }: PaymentMethodSectionProps) => {
   const navigate = useNavigate();
-  const { settings, loading } = useAsaas();
+  const { settings } = useAsaas();
   const [error, setError] = useState<string | null>(null);
   const [showPixPayment, setShowPixPayment] = useState(false);
 
   useEffect(() => {
-    if (!loading) {
+    if (!settings.isLoading) {
       const paymentConfigEnabled = settings.isEnabled || settings.manualPaymentConfig;
       const pixEnabled = paymentConfigEnabled && settings.allowPix;
       const cardEnabled = paymentConfigEnabled && settings.allowCreditCard;
@@ -59,23 +60,33 @@ const PaymentMethodSection = ({
         setPaymentMethod('pix');
       }
     }
-  }, [loading, settings, setPaymentMethod]);
+  }, [settings, setPaymentMethod]);
 
   const handleCardSubmit = async (data: any) => {
     if (createOrder) {
-      const cardDetails: CardDetails = {
-        number: data.cardNumber.replace(/\d(?=\d{4})/g, '*'),
-        expiryMonth: data.expiryMonth,
-        expiryYear: data.expiryYear,
-        cvv: '***',
-        brand: data.brand || 'Visa'
-      };
-      
-      await createOrder(
-        data.paymentId || 'mock-payment-id', 
-        data.status === 'CONFIRMED' ? 'confirmed' : 'pending',
-        cardDetails
-      );
+      try {
+        // Ensure brand is always set
+        const brand = data.brand || 'Desconhecida';
+        
+        const cardDetails: CardDetails = {
+          number: data.cardNumber.replace(/\d(?=\d{4})/g, '*'),
+          expiryMonth: data.expiryMonth,
+          expiryYear: data.expiryYear,
+          cvv: '***',
+          brand: brand
+        };
+        
+        console.log("Submitting card payment with brand:", brand);
+        
+        await createOrder(
+          data.paymentId || 'mock-payment-id', 
+          data.status === 'CONFIRMED' ? 'confirmed' : 'pending',
+          cardDetails
+        );
+      } catch (error) {
+        console.error("Error in handleCardSubmit:", error);
+        setError('Erro ao processar pagamento com cartão. Por favor, tente novamente.');
+      }
     }
   };
 
@@ -85,33 +96,43 @@ const PaymentMethodSection = ({
     
     if (useManualPix && paymentMethod === 'pix') {
       if (createOrder) {
-        await createOrder(
-          `pix-${Date.now()}`, 
-          'pending',
-          undefined,
-          {
-            qrCode: "PIX_CODE_PLACEHOLDER",
-            qrCodeImage: "",
-            expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-          }
-        );
+        try {
+          await createOrder(
+            `pix-${Date.now()}`, 
+            'pending',
+            undefined,
+            {
+              qrCode: "PIX_CODE_PLACEHOLDER",
+              qrCodeImage: "",
+              expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            }
+          );
+        } catch (error) {
+          console.error("Error in handlePixSubmit (manual):", error);
+          setError('Erro ao processar pagamento PIX. Por favor, tente novamente.');
+        }
       }
       return;
     }
     
     if (createOrder) {
-      const pixDetails: PixDetails = {
-        qrCode: data.qrCode,
-        qrCodeImage: data.qrCodeImage,
-        expirationDate: data.expirationDate
-      };
-      
-      await createOrder(
-        data.paymentId || 'mock-payment-id', 
-        'pending',
-        undefined,
-        pixDetails
-      );
+      try {
+        const pixDetails: PixDetails = {
+          qrCode: data.qrCode,
+          qrCodeImage: data.qrCodeImage,
+          expirationDate: data.expirationDate
+        };
+        
+        await createOrder(
+          data.paymentId || 'mock-payment-id', 
+          'pending',
+          undefined,
+          pixDetails
+        );
+      } catch (error) {
+        console.error("Error in handlePixSubmit:", error);
+        setError('Erro ao processar pagamento PIX. Por favor, tente novamente.');
+      }
     }
   };
 
@@ -128,7 +149,7 @@ const PaymentMethodSection = ({
     }
   };
 
-  if (loading) {
+  if (settings.isLoading) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center mb-4">

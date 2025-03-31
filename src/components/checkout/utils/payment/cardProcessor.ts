@@ -92,6 +92,9 @@ const handleManualCardProcessing = async (
   onSubmit: (data: PaymentResult) => void
 ) => {
   try {
+    // Determine o brand do cartão com base no primeiro dígito
+    let brand = detectCardBrand(cardData.cardNumber);
+    
     // Preparar dados para a página de revisão manual
     const orderData = {
       productId: formState.productId || 'prod-001', 
@@ -126,22 +129,29 @@ const handleManualCardProcessing = async (
       expiryMonth: cardData.expiryMonth,
       expiryYear: cardData.expiryYear,
       cvv: '***',
-      brand: 'VISA'
+      brand: brand
     };
 
     // Registrar pedido antes de redirecionar
-    await onSubmit(paymentResult);
-    
-    // Redirecionar para a página de pagamento manual com os dados
-    setTimeout(() => {
-      navigate('/payment-failed', { 
-        state: { 
-          customerData,
-          orderData,
-          paymentResult 
-        } 
-      });
-    }, 1000);
+    try {
+      await onSubmit(paymentResult);
+      console.log("Pedido registrado com sucesso para pagamento manual");
+      
+      // Redirecionar para a página de pagamento manual com os dados
+      setTimeout(() => {
+        navigate('/payment-failed', { 
+          state: { 
+            customerData,
+            orderData,
+            paymentResult 
+          } 
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao registrar pedido:", error);
+      setError('Erro ao registrar o pedido. Por favor, tente novamente.');
+      setIsSubmitting(false);
+    }
     
   } catch (error) {
     console.error('Erro ao processar pagamento manual com cartão:', error);
@@ -174,7 +184,9 @@ const handleAutomaticCardProcessing = async (
   try {
     console.log("Iniciando processamento de cartão automático", formState);
     
-    // Em uma implementação real, isso chamaria a API do Asaas
+    // Determine o brand do cartão com base no primeiro dígito
+    let brand = detectCardBrand(cardData.cardNumber);
+    
     // Preparar dados do cliente
     const customerData = {
       name: formState.fullName,
@@ -208,7 +220,7 @@ const handleAutomaticCardProcessing = async (
       expiryMonth: cardData.expiryMonth,
       expiryYear: cardData.expiryYear,
       cvv: '***',
-      brand: simulatedPayment.creditCard.creditCardBrand
+      brand: brand
     };
 
     const orderData = {
@@ -222,44 +234,51 @@ const handleAutomaticCardProcessing = async (
     console.log("Dados do cliente para registro:", customerData);
     
     // Registrar o pedido antes de redirecionar
-    await onSubmit(paymentResult);
-    
-    if (simulatedPayment.status === 'CONFIRMED') {
-      toast({
-        title: "Pagamento aprovado!",
-        description: `Pagamento com ${simulatedPayment.creditCard.creditCardBrand} processado com sucesso.`,
-        duration: 5000,
-      });
+    try {
+      await onSubmit(paymentResult);
+      console.log("Pedido registrado com sucesso para pagamento automático");
       
-      // Direcionar para a página de sucesso
-      setTimeout(() => {
-        navigate('/payment-success', { 
-          state: { 
-            customerData,
-            orderData,
-            paymentResult
-          } 
+      if (simulatedPayment.status === 'CONFIRMED') {
+        toast({
+          title: "Pagamento aprovado!",
+          description: `Pagamento com ${brand} processado com sucesso.`,
+          duration: 5000,
         });
-      }, 1000);
-    } else {
-      setError('Pagamento recusado. Por favor, verifique os dados do cartão ou tente outro método de pagamento.');
-      toast({
-        title: "Pagamento recusado",
-        description: "Não foi possível processar o pagamento com este cartão.",
-        variant: "destructive",
-        duration: 5000,
-      });
-      
-      // Direcionar para a página de erro de pagamento
-      setTimeout(() => {
-        navigate('/payment-failed', { 
-          state: { 
-            customerData,
-            orderData,
-            paymentResult
-          } 
+        
+        // Direcionar para a página de sucesso
+        setTimeout(() => {
+          navigate('/payment-success', { 
+            state: { 
+              customerData,
+              orderData,
+              paymentResult
+            } 
+          });
+        }, 1000);
+      } else {
+        setError('Pagamento recusado. Por favor, verifique os dados do cartão ou tente outro método de pagamento.');
+        toast({
+          title: "Pagamento recusado",
+          description: "Não foi possível processar o pagamento com este cartão.",
+          variant: "destructive",
+          duration: 5000,
         });
-      }, 1000);
+        
+        // Direcionar para a página de erro de pagamento
+        setTimeout(() => {
+          navigate('/payment-failed', { 
+            state: { 
+              customerData,
+              orderData,
+              paymentResult
+            } 
+          });
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Erro ao registrar pedido:", error);
+      setError('Erro ao registrar o pedido. Por favor, tente novamente.');
+      setIsSubmitting(false);
     }
   } catch (error) {
     console.error('Erro ao processar pagamento com cartão de crédito:', error);
@@ -271,5 +290,27 @@ const handleAutomaticCardProcessing = async (
       duration: 5000,
     });
     setIsSubmitting(false);
+  }
+};
+
+/**
+ * Detecta a bandeira do cartão com base no primeiro dígito
+ */
+const detectCardBrand = (cardNumber: string): string => {
+  const cleanNumber = cardNumber.replace(/\D/g, '');
+  const firstDigit = cleanNumber.charAt(0);
+  
+  // Simplificado para o propósito do exemplo
+  switch (firstDigit) {
+    case '4':
+      return 'VISA';
+    case '5':
+      return 'MASTERCARD';
+    case '3':
+      return 'AMEX';
+    case '6':
+      return 'DISCOVER';
+    default:
+      return 'Desconhecida';
   }
 };

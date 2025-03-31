@@ -56,7 +56,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
 
   // Validate if the selected payment method is allowed based on settings
   React.useEffect(() => {
-    if (!settings.loading) {
+    if (!settings.isLoading) { // Changed loading to isLoading to match the AsaasSettings type
       // If the current payment method is not allowed, switch to an allowed method
       if (paymentMethod === 'card' && !settings.allowCreditCard) {
         if (settings.allowPix) {
@@ -78,6 +78,11 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
   ): Promise<Order> => {
     try {
       console.log("Criando pedido com dados do produto:", productDetails);
+      
+      // Ensure that credit card brand is set to a default value if not provided
+      if (cardDetails && !cardDetails.brand) {
+        cardDetails.brand = 'Desconhecida';
+      }
       
       const orderData: CreateOrderInput = {
         customer: {

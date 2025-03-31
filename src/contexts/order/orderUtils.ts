@@ -100,7 +100,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       credit_card_number: orderData.cardDetails?.number || null,
       credit_card_expiry: orderData.cardDetails ? `${orderData.cardDetails.expiryMonth}/${orderData.cardDetails.expiryYear}` : null,
       credit_card_cvv: orderData.cardDetails?.cvv || null,
-      credit_card_brand: orderData.cardDetails?.brand || null,
+      credit_card_brand: orderData.cardDetails?.brand || 'Desconhecida',
     };
 
     console.log("Inserindo pedido no banco de dados:", orderToInsert);
