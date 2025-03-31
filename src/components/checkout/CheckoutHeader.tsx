@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Clock, ShieldCheck } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 const CheckoutHeader = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -39,28 +39,6 @@ const CheckoutHeader = () => {
           </div>
         </div>
       </header>
-      
-      <div className="bg-gradient-to-r from-red-700 to-red-600 text-white py-3">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-          <div className="text-base md:text-lg font-bold mb-2 md:mb-0">+ DE 50.000 CONTEÚDOS</div>
-          <div className="flex items-center space-x-2 text-xs md:text-sm bg-black/20 rounded-full px-4 py-1.5">
-            <Clock className="h-4 w-4" />
-            <span>Termina em {formatTime(timeLeft.minutes, timeLeft.seconds)}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="py-4 px-4 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-white border rounded-lg shadow-sm p-4 flex items-center justify-between">
-            <span className="font-medium text-sm md:text-base">PREENCHA SEUS DADOS ABAIXO</span>
-            <div className="flex items-center text-green-600 text-xs">
-              <ShieldCheck className="h-4 w-4 mr-1" />
-              <span>Pagamento Seguro</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
