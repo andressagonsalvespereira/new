@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { CreditCard, QrCode, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CreditCard, QrCode, AlertCircle, CheckCircle2, Truck } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import PixPayment from '@/components/checkout/PixPayment';
 import CustomerInfoForm, { CustomerData } from '@/components/checkout/CustomerInfoForm';
@@ -117,7 +118,7 @@ const Checkout = () => {
 
       {/* Main content */}
       <main className="flex-grow py-8 px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {isSuccess ? (
             <Card className="border-green-200 shadow-md">
               <CardHeader className="bg-green-50 border-b border-green-100">
@@ -228,34 +229,37 @@ const Checkout = () => {
                       <h2 className="font-medium text-lg">Forma de Pagamento</h2>
                     </div>
                     
-                    <Tabs 
-                      defaultValue="card" 
-                      className="w-full"
-                      onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
-                    >
-                      <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="card" className="flex items-center">
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          <span>Cartão de Crédito</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="pix" className="flex items-center">
-                          <QrCode className="mr-2 h-4 w-4" />
-                          <span>PIX</span>
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="card">
-                        <div className="mb-6">
-                          <CheckoutForm onSubmit={() => {}} />
+                    <div className="mb-6">
+                      <RadioGroup
+                        defaultValue="card"
+                        className="flex flex-col space-y-3 mb-4"
+                        onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
+                      >
+                        <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+                          <RadioGroupItem value="card" id="card" />
+                          <Label htmlFor="card" className="flex items-center cursor-pointer">
+                            <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                            <span>Cartão de Crédito</span>
+                          </Label>
                         </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="pix">
-                        <div className="mb-6">
-                          <PixPayment onSubmit={() => {}} />
+                        
+                        <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+                          <RadioGroupItem value="pix" id="pix" />
+                          <Label htmlFor="pix" className="flex items-center cursor-pointer">
+                            <QrCode className="h-5 w-5 mr-2 text-green-600" />
+                            <span>PIX</span>
+                          </Label>
                         </div>
-                      </TabsContent>
-                    </Tabs>
+                      </RadioGroup>
+                    
+                      {paymentMethod === 'card' && (
+                        <CheckoutForm onSubmit={() => {}} />
+                      )}
+                      
+                      {paymentMethod === 'pix' && (
+                        <PixPayment onSubmit={() => {}} />
+                      )}
+                    </div>
 
                     <div className="mt-8">
                       <Button 
