@@ -22,7 +22,7 @@ const OrderSummarySection = ({ productDetails, handlePayment, isProcessing }: Or
       <div className="flex items-center mb-4">
         <div className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">4</div>
         <h2 className="font-medium">Resumo da Compra</h2>
-        <div className="ml-auto text-sm font-medium">Total: <span className="text-red-600">R$ {productDetails.price.toFixed(2)}</span></div>
+        <div className="ml-auto text-sm font-medium">Total: <span className="text-black font-bold">R$ {productDetails.price.toFixed(2)}</span></div>
       </div>
       
       <div className="px-2">
@@ -34,7 +34,7 @@ const OrderSummarySection = ({ productDetails, handlePayment, isProcessing }: Or
             <div className="flex-1">
               <h3 className="font-medium">{productDetails.name}</h3>
               <p className="text-sm text-gray-600">{productDetails.description}</p>
-              <p className="text-red-600 font-bold">R$ {productDetails.price.toFixed(2)}</p>
+              <p className="text-black font-bold">R$ {productDetails.price.toFixed(2)}</p>
             </div>
           </div>
         </div>

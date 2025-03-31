@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CircleAlert, Loader2, FileDigit } from 'lucide-react';
 import AddressFields from '@/components/checkout/address/AddressFields';
@@ -83,14 +82,6 @@ const AddressSection = ({
           isSearchingCep={isSearchingCep}
         />
         
-        {selectedShipping && (
-          <AddressShippingOptions
-            selectedShipping={selectedShipping}
-            onSelectShipping={setSelectedShipping}
-            deliveryEstimate={deliveryEstimate}
-          />
-        )}
-        
         <AddressFields
           street={street}
           setStreet={setStreet}
@@ -107,6 +98,14 @@ const AddressSection = ({
           formErrors={formErrors}
           isSearchingCep={isSearchingCep}
         />
+        
+        {selectedShipping && (
+          <AddressShippingOptions
+            selectedShipping={selectedShipping}
+            onSelectShipping={setSelectedShipping}
+            deliveryEstimate={deliveryEstimate}
+          />
+        )}
       </div>
     </div>
   );

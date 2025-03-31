@@ -14,7 +14,7 @@ const AddressShippingOptions = ({
   deliveryEstimate
 }: AddressShippingOptionsProps) => {
   return (
-    <div className="bg-green-50 border border-green-100 rounded-md p-4 my-4">
+    <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-3">
       <h3 className="font-medium text-green-800 mb-3 flex items-center">
         <Truck className="h-5 w-5 mr-2" />
         Opções de Entrega

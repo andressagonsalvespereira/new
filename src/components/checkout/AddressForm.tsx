@@ -128,6 +128,26 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
     }
   };
 
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNumber(e.target.value);
+    if (e.target.value.trim() && street && neighborhood && city && state) {
+      setShowShippingOptions(true);
+      setSelectedShipping('free');
+      
+      const today = new Date();
+      const deliveryDate = new Date(today);
+      deliveryDate.setDate(today.getDate() + 7);
+      
+      const formattedDate = deliveryDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      setDeliveryEstimate(`Chegará em ${formattedDate}`);
+    }
+  };
+
   const selectShippingOption = (option: string) => {
     setSelectedShipping(option);
   };
@@ -135,7 +155,7 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
   return (
     <div className={`transition-all duration-300 ${isCompleted ? 'opacity-70' : ''}`}>
       <div className="bg-black text-white p-3 mb-4 flex items-center">
-        <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
+        <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-green-600 text-white mr-2">
           2
         </span>
         <h2 className="font-medium text-lg">Endereço de Cobrança</h2>
@@ -150,19 +170,11 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           disabled={isCompleted}
         />
         
-        {showShippingOptions && (
-          <AddressShippingOptions
-            selectedShipping={selectedShipping}
-            onSelectShipping={selectShippingOption}
-            deliveryEstimate={deliveryEstimate}
-          />
-        )}
-        
         <AddressFormFields 
           street={street}
           setStreet={setStreet}
           number={number}
-          setNumber={setNumber}
+          setNumber={handleNumberChange}
           complement={complement}
           setComplement={setComplement}
           neighborhood={neighborhood}
@@ -174,6 +186,14 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           errors={errors}
           disabled={isCompleted}
         />
+        
+        {showShippingOptions && (
+          <AddressShippingOptions
+            selectedShipping={selectedShipping}
+            onSelectShipping={selectShippingOption}
+            deliveryEstimate={deliveryEstimate}
+          />
+        )}
         
         {!isCompleted && (
           <Button 
