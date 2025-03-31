@@ -89,15 +89,35 @@ const PersonalInfoSection = ({
             <label htmlFor="phone" className="block text-sm mb-1">Celular</label>
             <div className="flex flex-wrap sm:flex-nowrap gap-2">
               <Select defaultValue="55">
-                <SelectTrigger className="w-16 h-9 border-gray-300 flex-shrink-0 text-xs px-1">
-                  <div className="flex items-center">
-                    <span className="text-xs">BR +55</span>
+                <SelectTrigger className="w-20 h-9 border-gray-300 flex-shrink-0 text-xs px-2">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-xs inline-block w-4 h-3 bg-green-500 relative overflow-hidden" style={{ 
+                      borderRadius: '1px',
+                      boxShadow: '0 0 1px rgba(0,0,0,0.2)'
+                    }}>
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="w-3 h-3 bg-yellow-400 transform rotate-45 translate-x-0 translate-y-0" style={{
+                          clipPath: 'polygon(50% 50%, 0% 0%, 100% 0%, 100% 100%, 0% 100%)'
+                        }}></span>
+                      </span>
+                    </span>
+                    <span>+55</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="55">
-                    <div className="flex items-center text-xs">
-                      <span>BR +55</span>
+                    <div className="flex items-center space-x-1 text-xs">
+                      <span className="text-xs inline-block w-4 h-3 bg-green-500 relative overflow-hidden" style={{ 
+                        borderRadius: '1px',
+                        boxShadow: '0 0 1px rgba(0,0,0,0.2)'
+                      }}>
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <span className="w-3 h-3 bg-yellow-400 transform rotate-45 translate-x-0 translate-y-0" style={{
+                            clipPath: 'polygon(50% 50%, 0% 0%, 100% 0%, 100% 100%, 0% 100%)'
+                          }}></span>
+                        </span>
+                      </span>
+                      <span>+55</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
