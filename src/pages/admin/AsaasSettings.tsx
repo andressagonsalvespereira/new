@@ -22,11 +22,14 @@ const AsaasSettings: React.FC = () => {
   const handleSaveSettings = async () => {
     try {
       await updateSettings({
+        isEnabled: true,
+        apiKey: sandboxMode ? sandboxApiKey : productionApiKey,
         sandboxApiKey,
         productionApiKey,
         sandboxMode,
         allowCreditCard,
         allowPix,
+        manualCreditCard: manualCardProcessing,
         manualCardProcessing
       });
 
@@ -46,7 +49,7 @@ const AsaasSettings: React.FC = () => {
 
   // Function to handle switch changes
   const handleSwitchChange = useCallback(
-    (setter: (value: boolean) => void) => () => {
+    (setter: React.Dispatch<React.SetStateAction<boolean>>) => () => {
       setter((prev) => !prev);
     },
     []

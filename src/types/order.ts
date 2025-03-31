@@ -1,3 +1,4 @@
+
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD';
 export type PaymentStatus = 'Aguardando' | 'Pago' | 'Cancelado' | 'Pendente';
 
@@ -12,6 +13,8 @@ export interface Order {
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
   timestamp?: string;
+  orderDate?: string;
+  paymentId?: string;
 }
 
 export interface CustomerInfo {
@@ -55,4 +58,5 @@ export interface CreateOrderInput {
   paymentStatus: PaymentStatus;
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
+  paymentId?: string;
 }

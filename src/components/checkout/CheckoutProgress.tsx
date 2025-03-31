@@ -79,7 +79,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         productPrice: productDetails.price,
         paymentMethod: paymentMethod === 'card' ? 'CREDIT_CARD' as PaymentMethod : 'PIX' as PaymentMethod,
         paymentStatus: status === 'pending' ? 'Aguardando' as PaymentStatus : 'Pago' as PaymentStatus,
-        paymentId,
+        paymentId: paymentId,
         cardDetails,
         pixDetails
       };

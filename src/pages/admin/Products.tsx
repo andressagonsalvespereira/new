@@ -7,14 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/contexts/ProductContext';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-}
+import { Product } from '@/types/product';
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,6 +49,7 @@ const Products: React.FC = () => {
         description: newProductDescription,
         price: newProductPrice,
         imageUrl: newProductImageUrl,
+        isDigital: false // Default value for isDigital
       });
 
       setProducts([...products, newProduct]);
@@ -98,6 +92,7 @@ const Products: React.FC = () => {
         description: editedProductDescription,
         price: editedProductPrice,
         imageUrl: editedProductImageUrl,
+        isDigital: products.find(p => p.id === editingProductId)?.isDigital || false
       });
 
       const updatedProducts = products.map(product =>

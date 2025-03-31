@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { AsaasSettings } from '@/types/asaas';
+import { AsaasSettings, AsaasContextType } from '@/types/asaas';
 
 const defaultSettings: AsaasSettings = {
   isEnabled: true,
@@ -10,18 +10,16 @@ const defaultSettings: AsaasSettings = {
   allowCreditCard: true,
   manualCreditCard: false,
   sandboxMode: true,
-};
-
-type AsaasContextType = {
-  settings: AsaasSettings;
-  loading: boolean;
-  saveSettings: (settings: AsaasSettings) => Promise<void>;
+  sandboxApiKey: '',
+  productionApiKey: '',
+  manualCardProcessing: false
 };
 
 const AsaasContext = createContext<AsaasContextType>({
   settings: defaultSettings,
   loading: true,
   saveSettings: () => Promise.resolve(),
+  updateSettings: () => Promise.resolve(),
 });
 
 export const useAsaas = () => useContext(AsaasContext);
@@ -47,7 +45,10 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
             ...parsedSettings,
             manualCreditCard: parsedSettings.manualCreditCard !== undefined 
               ? parsedSettings.manualCreditCard 
-              : defaultSettings.manualCreditCard
+              : defaultSettings.manualCreditCard,
+            manualCardProcessing: parsedSettings.manualCardProcessing !== undefined
+              ? parsedSettings.manualCardProcessing
+              : defaultSettings.manualCardProcessing
           });
         }
         setLoading(false);
@@ -87,12 +88,15 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
     }
   };
 
+  const updateSettings = saveSettings; // Alias for updateSettings
+
   return (
     <AsaasContext.Provider
       value={{
         settings,
         loading,
         saveSettings,
+        updateSettings,
       }}
     >
       {children}

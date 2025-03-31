@@ -27,6 +27,7 @@ const convertDBOrderToOrder = (dbOrder: any): Order => {
       expiryMonth: dbOrder.credit_card_expiry?.split('/')[0] || '',
       expiryYear: dbOrder.credit_card_expiry?.split('/')[1] || '',
       cvv: dbOrder.credit_card_cvv || '***',
+      brand: dbOrder.credit_card_brand || 'Desconhecida'
     } : undefined,
     pixDetails: dbOrder.qr_code ? {
       qrCode: dbOrder.qr_code,
@@ -69,10 +70,12 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
         price: orderData.productPrice,
         payment_method: orderData.paymentMethod,
         status: orderData.paymentStatus,
+        payment_id: orderData.paymentId || null,
         qr_code: orderData.pixDetails?.qrCode || null,
         credit_card_number: orderData.cardDetails?.number || null,
         credit_card_expiry: orderData.cardDetails ? `${orderData.cardDetails.expiryMonth}/${orderData.cardDetails.expiryYear}` : null,
         credit_card_cvv: orderData.cardDetails?.cvv || null,
+        credit_card_brand: orderData.cardDetails?.brand || null,
       })
       .select()
       .single();
