@@ -38,6 +38,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
           settings: settings || {
             isEnabled: false,
             manualCardProcessing: true,
+            manualCreditCard: false, // Added this required property
             apiKey: '',
             allowPix: true,
             allowCreditCard: true,

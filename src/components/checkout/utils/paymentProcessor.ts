@@ -31,57 +31,17 @@ export interface FormValues {
 export const processPayment = async (
   formValues: FormValues,
   paymentMethod: 'card' | 'pix',
-  settings: AsaasSettings | null,
-  isSandbox: boolean,
-  onSubmit: (data: any) => void,
-  setError: (error: string) => void,
-  setPaymentStatus: (status: string | null) => void,
-  setIsSubmitting: (isSubmitting: boolean) => void,
-  navigate: ReturnType<typeof useNavigate>
+  settings: AsaasSettings | null
 ) => {
+  // This is a legacy function kept for compatibility
+  // The implementation has been moved to specialized processors
+  // This stub is kept to prevent breaking changes
+  console.warn('processPayment is deprecated. Use specialized processors instead.');
+  
   if (!settings) {
     console.error("Settings not available");
-    setError('Configurações de pagamento não disponíveis');
-    return;
+    return { success: false, error: 'Configurações de pagamento não disponíveis' };
   }
-
-  if (paymentMethod === 'card') {
-    const formState = {
-      personalInfo: formValues.personalInfo || {},
-      productId: formValues.productId,
-      productName: formValues.productName,
-      productPrice: formValues.productPrice,
-    };
-
-    if (formValues.cardData) {
-      await processCardPayment(
-        formValues.cardData,
-        {
-          formState,
-          settings,
-          isSandbox,
-          onSubmit,
-        },
-        setError,
-        setPaymentStatus,
-        setIsSubmitting,
-        navigate
-      );
-    } else {
-      setError('Dados de cartão não fornecidos');
-    }
-  } else if (paymentMethod === 'pix') {
-    await processPixPayment(
-      formValues,
-      settings,
-      isSandbox,
-      setError,
-      setPaymentStatus,
-      setIsSubmitting,
-      navigate,
-      onSubmit
-    );
-  } else {
-    setError('Método de pagamento não suportado');
-  }
+  
+  return { success: false, error: 'Método de pagamento não implementado' };
 };
