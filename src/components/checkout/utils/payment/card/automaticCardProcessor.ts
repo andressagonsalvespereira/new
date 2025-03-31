@@ -1,4 +1,3 @@
-
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { AsaasSettings } from '@/types/asaas';
@@ -6,7 +5,7 @@ import { CardFormData } from '../../../payment-methods/CardForm';
 import { PaymentResult } from '../types';
 import asaasApiService from '@/services/asaasService';
 import { randomId } from '../common/paymentUtils';
-import { handleManualCardProcessing } from './manualCardProcessor';
+import { processManualCard } from './manualCardProcessor';
 
 export const handleAutomaticCardProcessing = async (
   cardData: CardFormData,
@@ -26,16 +25,17 @@ export const handleAutomaticCardProcessing = async (
   
   if (!asaasApiKey) {
     console.error("Missing Asaas API key. Falling back to manual processing");
-    return handleManualCardProcessing(
+    return processManualCard({
       cardData,
       formState,
-      navigate,
+      settings,
+      setPaymentStatus,
       setIsSubmitting,
       setError,
+      navigate,
       toast,
-      onSubmit,
-      brand
-    );
+      onSubmit
+    });
   }
 
   try {
@@ -126,16 +126,17 @@ export const handleAutomaticCardProcessing = async (
     
     // If API error occurs, fall back to manual processing
     console.log("API error occurred. Falling back to manual processing");
-    return handleManualCardProcessing(
+    return processManualCard({
       cardData,
       formState,
-      navigate,
+      settings,
+      setPaymentStatus,
       setIsSubmitting,
       setError,
+      navigate,
       toast,
-      onSubmit,
-      brand
-    );
+      onSubmit
+    });
   } finally {
     setIsSubmitting(false);
   }
