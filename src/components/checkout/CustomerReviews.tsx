@@ -1,8 +1,22 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { formatDistance } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const CustomerReviews = () => {
+  // Generate random timestamps for each review to make it look more authentic
+  const timestamps = useMemo(() => {
+    const now = new Date();
+    
+    // Generate random times within the last 48 hours
+    return [
+      new Date(now.getTime() - Math.floor(Math.random() * 60) * 60000), // Random minutes ago (up to 1 hour)
+      new Date(now.getTime() - (Math.floor(Math.random() * 24) + 1) * 3600000), // Random hours ago (1-24 hours)
+      new Date(now.getTime() - (Math.floor(Math.random() * 48) + 24) * 3600000), // Random time between 1-2 days ago
+    ];
+  }, []);
+
   return (
     <div className="border rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
@@ -22,7 +36,12 @@ const CustomerReviews = () => {
           </div>
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
-              <p className="font-medium">Reinaldo martins da silva</p>
+              <div className="flex flex-col">
+                <p className="font-medium">Reinaldo martins da silva</p>
+                <span className="text-xs text-gray-500">
+                  {formatDistance(timestamps[0], new Date(), { addSuffix: true, locale: ptBR })}
+                </span>
+              </div>
               <div className="flex items-center mt-1 sm:mt-0">
                 <span className="text-sm text-gray-500 mr-2">Foi útil?</span>
                 <button className="mr-1 p-1" aria-label="Não foi útil">
@@ -57,7 +76,12 @@ const CustomerReviews = () => {
           </div>
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
-              <p className="font-medium">juliana nascimento</p>
+              <div className="flex flex-col">
+                <p className="font-medium">juliana nascimento</p>
+                <span className="text-xs text-gray-500">
+                  {formatDistance(timestamps[1], new Date(), { addSuffix: true, locale: ptBR })}
+                </span>
+              </div>
               <div className="flex items-center mt-1 sm:mt-0">
                 <span className="text-sm text-gray-500 mr-2">Foi útil?</span>
                 <button className="mr-1 p-1" aria-label="Não foi útil">
@@ -92,7 +116,12 @@ const CustomerReviews = () => {
           </div>
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
-              <p className="font-medium">Rafaela pires</p>
+              <div className="flex flex-col">
+                <p className="font-medium">Rafaela pires</p>
+                <span className="text-xs text-gray-500">
+                  {formatDistance(timestamps[2], new Date(), { addSuffix: true, locale: ptBR })}
+                </span>
+              </div>
               <div className="flex items-center mt-1 sm:mt-0">
                 <span className="text-sm text-gray-500 mr-2">Foi útil?</span>
                 <button className="mr-1 p-1" aria-label="Não foi útil">
