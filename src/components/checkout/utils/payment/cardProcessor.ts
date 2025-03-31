@@ -2,13 +2,10 @@
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { CardFormData } from '../../payment-methods/CardForm';
-import { validateCardForm } from '../cardValidation';
-import { PaymentProcessorProps, PaymentResult } from './types';
-import { detectCardBrand } from './cardDetection';
-import { handleAutomaticCardProcessing, handleManualCardProcessing } from './card';
+import { PaymentProcessorProps } from './types';
 
 /**
- * Processa pagamento com cartão de crédito
+ * Processes a card payment - this file is kept for backward compatibility
  */
 export const processCardPayment = async (
   cardData: CardFormData,
@@ -19,74 +16,17 @@ export const processCardPayment = async (
   navigate: ReturnType<typeof useNavigate>,
   toast?: ReturnType<typeof useToast>['toast']
 ) => {
-  const { formState, settings, isSandbox, onSubmit } = props;
+  // Import this dynamically to avoid circular dependencies
+  const { processCardPayment: newProcessor } = await import('./card/cardProcessor');
   
-  // Validação do cartão
-  const validationErrors = validateCardForm(
-    cardData.cardName,
-    cardData.cardNumber,
-    cardData.expiryMonth,
-    cardData.expiryYear,
-    cardData.cvv
-  );
-  
-  if (validationErrors) {
-    // Exibir o primeiro erro encontrado
-    const firstError = Object.values(validationErrors)[0];
-    setError(firstError || 'Verifique os dados do cartão');
-    return;
-  }
-  
-  setError('');
-  setIsSubmitting(true);
-  
-  try {
-    // Detect card brand early
-    const brand = detectCardBrand(cardData.cardNumber);
-    console.log("Card brand detected:", brand);
-    
-    // Verificar se o processamento manual de cartão está ativado ou se Asaas está desabilitado
-    if (settings?.manualCardProcessing || !settings?.isEnabled) {
-      console.log("Using manual card processing due to settings configuration:", 
-        { manualCardProcessing: settings?.manualCardProcessing, isEnabled: settings?.isEnabled });
-      
-      await handleManualCardProcessing(
-        cardData,
-        formState,
-        navigate,
-        setIsSubmitting,
-        setError,
-        toast,
-        onSubmit,
-        brand
-      );
-      return;
-    }
-    
-    await handleAutomaticCardProcessing(
-      cardData,
-      formState,
-      settings,
-      isSandbox,
-      setPaymentStatus,
-      setIsSubmitting,
-      setError,
-      navigate,
-      toast,
-      onSubmit,
-      brand
-    );
-  } catch (error) {
-    console.error('Erro geral ao processar pagamento:', error);
-    setError('Erro ao processar pagamento. Por favor, tente novamente.');
-    if (toast) {
-      toast({
-        title: "Erro no processamento",
-        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
-    setIsSubmitting(false);
-  }
+  // Call the refactored implementation with the same parameters
+  return newProcessor({
+    cardData,
+    props,
+    setError,
+    setPaymentStatus,
+    setIsSubmitting,
+    navigate,
+    toast
+  });
 };
