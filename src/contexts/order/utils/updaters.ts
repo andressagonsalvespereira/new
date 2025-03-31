@@ -1,0 +1,34 @@
+
+import { Order, PaymentStatus } from '@/types/order';
+import { supabase } from '@/integrations/supabase/client';
+import { convertDBOrderToOrder } from './converters';
+
+// Update order status
+export const updateOrderStatusData = async (
+  orders: Order[], 
+  id: string, 
+  status: PaymentStatus
+): Promise<{ updatedOrder: Order; updatedOrders: Order[] }> => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', parseInt(id, 10))
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Error updating order status: ${error.message}`);
+    }
+
+    const updatedOrder = convertDBOrderToOrder(data);
+    const updatedOrders = orders.map(order => 
+      order.id === id ? updatedOrder : order
+    );
+
+    return { updatedOrder, updatedOrders };
+  } catch (error) {
+    console.error(`Failed to update order status for order ${id}:`, error);
+    throw error;
+  }
+};

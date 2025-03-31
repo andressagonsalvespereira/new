@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Order, CreateOrderInput, PaymentMethod } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +10,7 @@ import {
   updateOrderStatusData,
   deleteOrderData,
   deleteAllOrdersByPaymentMethodData
-} from './orderUtils';
+} from './utils';
 
 export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const { toast } = useToast();
