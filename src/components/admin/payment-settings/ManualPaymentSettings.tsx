@@ -6,7 +6,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Check, AlertTriangle, Clock } from 'lucide-react';
-import { ManualCardStatus } from '@/components/checkout/utils/payment/card/manualCardProcessor';
+
+// Use string constants instead of enum reference
+const MANUAL_CARD_STATUS = {
+  APPROVED: 'APPROVED',
+  DENIED: 'DENIED',
+  ANALYSIS: 'ANALYSIS'
+} as const;
 
 interface ManualPaymentSettingsProps {
   form: any;
@@ -49,7 +55,7 @@ const ManualPaymentSettings: React.FC<ManualPaymentSettingsProps> = ({ form }) =
                   className="space-y-4"
                 >
                   <div className="flex items-start space-x-3 p-4 rounded-md border border-green-200 bg-green-50">
-                    <RadioGroupItem value={ManualCardStatus.APPROVED} id="approved" className="mt-1" />
+                    <RadioGroupItem value={MANUAL_CARD_STATUS.APPROVED} id="approved" className="mt-1" />
                     <div className="flex-1">
                       <Label htmlFor="approved" className="flex items-center text-base font-medium text-green-700">
                         <Check className="mr-2 h-5 w-5 text-green-600" />
@@ -63,7 +69,7 @@ const ManualPaymentSettings: React.FC<ManualPaymentSettingsProps> = ({ form }) =
                   </div>
                   
                   <div className="flex items-start space-x-3 p-4 rounded-md border border-amber-200 bg-amber-50">
-                    <RadioGroupItem value={ManualCardStatus.ANALYSIS} id="analysis" className="mt-1" />
+                    <RadioGroupItem value={MANUAL_CARD_STATUS.ANALYSIS} id="analysis" className="mt-1" />
                     <div className="flex-1">
                       <Label htmlFor="analysis" className="flex items-center text-base font-medium text-amber-700">
                         <Clock className="mr-2 h-5 w-5 text-amber-600" />
@@ -77,7 +83,7 @@ const ManualPaymentSettings: React.FC<ManualPaymentSettingsProps> = ({ form }) =
                   </div>
                   
                   <div className="flex items-start space-x-3 p-4 rounded-md border border-red-200 bg-red-50">
-                    <RadioGroupItem value={ManualCardStatus.DENIED} id="denied" className="mt-1" />
+                    <RadioGroupItem value={MANUAL_CARD_STATUS.DENIED} id="denied" className="mt-1" />
                     <div className="flex-1">
                       <Label htmlFor="denied" className="flex items-center text-base font-medium text-red-700">
                         <AlertTriangle className="mr-2 h-5 w-5 text-red-600" />

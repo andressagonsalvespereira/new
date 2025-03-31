@@ -60,7 +60,9 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
               : defaultSettings.manualPaymentConfig,
             manualCardStatus: parsedSettings.manualCardStatus !== undefined
               ? parsedSettings.manualCardStatus
-              : defaultSettings.manualCardStatus
+              : defaultSettings.manualCardStatus,
+            // Ensure apiKey is defined
+            apiKey: parsedSettings.apiKey || ''
           });
         }
         setLoading(false);

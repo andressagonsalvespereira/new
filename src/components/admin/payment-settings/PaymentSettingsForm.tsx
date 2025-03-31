@@ -9,8 +9,8 @@ import AsaasIntegrationCard from './AsaasIntegrationCard';
 import PaymentMethodsCard from './PaymentMethodsCard';
 import ApiKeysCard from './ApiKeysCard';
 import ManualPaymentSettings from './ManualPaymentSettings';
-import { ManualCardStatus } from '@/components/checkout/utils/payment/card/manualCardProcessor';
 
+// Import the string constants rather than the enum to avoid type errors
 const PaymentSettingsSchema = z.object({
   isEnabled: z.boolean(),
   manualCardProcessing: z.boolean(),
@@ -32,7 +32,7 @@ const PaymentSettingsForm = () => {
   const [formState, setFormState] = useState({
     isEnabled: false,
     manualCardProcessing: false,
-    manualCardStatus: ManualCardStatus.ANALYSIS,
+    manualCardStatus: 'ANALYSIS' as 'APPROVED' | 'DENIED' | 'ANALYSIS',
     manualCreditCard: false,
     allowPix: true,
     allowCreditCard: true,
@@ -48,7 +48,7 @@ const PaymentSettingsForm = () => {
     defaultValues: {
       isEnabled: false,
       manualCardProcessing: false,
-      manualCardStatus: ManualCardStatus.ANALYSIS as 'ANALYSIS' | 'APPROVED' | 'DENIED',
+      manualCardStatus: 'ANALYSIS' as 'APPROVED' | 'DENIED' | 'ANALYSIS',
       manualCreditCard: false,
       allowPix: true,
       allowCreditCard: true,
@@ -65,7 +65,7 @@ const PaymentSettingsForm = () => {
       form.reset({
         isEnabled: settings.isEnabled,
         manualCardProcessing: settings.manualCardProcessing || false,
-        manualCardStatus: settings.manualCardStatus || ManualCardStatus.ANALYSIS,
+        manualCardStatus: settings.manualCardStatus || 'ANALYSIS',
         manualCreditCard: settings.manualCreditCard,
         allowPix: settings.allowPix,
         allowCreditCard: settings.allowCreditCard,
@@ -80,7 +80,7 @@ const PaymentSettingsForm = () => {
       setFormState({
         isEnabled: settings.isEnabled,
         manualCardProcessing: settings.manualCardProcessing || false,
-        manualCardStatus: settings.manualCardStatus || ManualCardStatus.ANALYSIS,
+        manualCardStatus: settings.manualCardStatus || 'ANALYSIS',
         manualCreditCard: settings.manualCreditCard,
         allowPix: settings.allowPix,
         allowCreditCard: settings.allowCreditCard,
@@ -104,8 +104,14 @@ const PaymentSettingsForm = () => {
   const onSubmit = async (data: z.infer<typeof PaymentSettingsSchema>) => {
     setIsSaving(true);
     try {
+      // Calculate the apiKey based on sandbox mode
+      const apiKey = data.sandboxMode 
+        ? data.sandboxApiKey || ''
+        : data.productionApiKey || '';
+        
       await updateSettings({
         isEnabled: data.isEnabled,
+        apiKey: apiKey, // Add the required apiKey property
         manualCardProcessing: data.manualCardProcessing,
         manualCardStatus: data.manualCardStatus,
         manualCreditCard: data.manualCreditCard,
@@ -116,7 +122,6 @@ const PaymentSettingsForm = () => {
         productionApiKey: data.productionApiKey,
         manualPixPage: data.manualPixPage,
         manualPaymentConfig: data.manualPaymentConfig,
-        apiKey: data.sandboxMode ? data.sandboxApiKey : data.productionApiKey,
       });
       
       toast({
