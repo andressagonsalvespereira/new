@@ -9,13 +9,14 @@ import {
   PaymentSettingsFormValues, 
   formValuesToAsaasSettings, 
   asaasSettingsToFormValues 
-} from '../utils/formUtils';
+} from '../../utils/formUtils';
+import { AsaasSettings } from '@/types/asaas';
 
 export const usePaymentSettingsForm = () => {
   const { toast } = useToast();
   const { settings, updateSettings, loading } = useAsaas();
   const [isSaving, setIsSaving] = useState(false);
-  const [formState, setFormState] = useState<PaymentSettingsFormValues>({
+  const [formState, setFormState] = useState<AsaasSettings>({
     isEnabled: false,
     manualCardProcessing: false,
     manualCardStatus: 'ANALYSIS',
@@ -52,14 +53,14 @@ export const usePaymentSettingsForm = () => {
     if (settings && !loading) {
       const formValues = asaasSettingsToFormValues(settings);
       form.reset(formValues);
-      setFormState(formValues);
+      setFormState(settings);
     }
   }, [settings, loading, form]);
 
   // Update formState when the form values change
   useEffect(() => {
     const subscription = form.watch((value) => {
-      setFormState(value as PaymentSettingsFormValues);
+      setFormState(formValuesToAsaasSettings(value as PaymentSettingsFormValues));
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -72,10 +73,12 @@ export const usePaymentSettingsForm = () => {
         ? data.sandboxApiKey || ''
         : data.productionApiKey || '';
         
-      await updateSettings(formValuesToAsaasSettings({
+      const settingsToUpdate = formValuesToAsaasSettings({
         ...data,
         apiKey
-      }));
+      });
+      
+      await updateSettings(settingsToUpdate);
       
       toast({
         title: "Configurações salvas",
@@ -94,10 +97,10 @@ export const usePaymentSettingsForm = () => {
   };
 
   const updateFormState = (
-    updater: (prev: PaymentSettingsFormValues) => PaymentSettingsFormValues
+    updater: (prev: AsaasSettings) => AsaasSettings
   ) => {
     const newFormState = updater(formState);
-    form.reset(newFormState);
+    form.reset(asaasSettingsToFormValues(newFormState));
   };
 
   return {

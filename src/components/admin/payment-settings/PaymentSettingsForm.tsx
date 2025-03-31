@@ -7,6 +7,7 @@ import PaymentMethodsCard from './PaymentMethodsCard';
 import ApiKeysCard from './ApiKeysCard';
 import ManualPaymentSettings from './ManualPaymentSettings';
 import { usePaymentSettingsForm } from './hooks/usePaymentSettingsForm';
+import { AsaasSettings } from '@/types/asaas';
 
 const PaymentSettingsForm = () => {
   const { form, formState, loading, isSaving, onSubmit, updateFormState } = usePaymentSettingsForm();
@@ -19,20 +20,20 @@ const PaymentSettingsForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <AsaasIntegrationCard 
-          formState={formState} 
+          formState={formState as AsaasSettings} 
           loading={loading}
-          onUpdateFormState={updateFormState}
+          onUpdateFormState={updateFormState as (updater: (prev: AsaasSettings) => AsaasSettings) => void}
         />
         
         <PaymentMethodsCard 
-          formState={formState} 
+          formState={formState as AsaasSettings} 
           loading={loading}
-          onUpdateFormState={updateFormState}
+          onUpdateFormState={updateFormState as (updater: (prev: AsaasSettings) => AsaasSettings) => void}
         />
         
         <ApiKeysCard 
-          formState={formState}
-          onUpdateFormState={updateFormState}
+          formState={formState as AsaasSettings}
+          onUpdateFormState={updateFormState as (updater: (prev: AsaasSettings) => AsaasSettings) => void}
         />
         
         <ManualPaymentSettings form={form} />

@@ -281,8 +281,11 @@ export type Database = {
           asaas_enabled: boolean | null
           created_at: string | null
           id: number
+          manual_card_processing: boolean | null
           manual_card_status: string | null
           manual_credit_card: boolean | null
+          manual_payment_config: boolean | null
+          manual_pix_page: boolean | null
           sandbox_mode: boolean | null
           updated_at: string | null
         }
@@ -292,8 +295,11 @@ export type Database = {
           asaas_enabled?: boolean | null
           created_at?: string | null
           id?: number
+          manual_card_processing?: boolean | null
           manual_card_status?: string | null
           manual_credit_card?: boolean | null
+          manual_payment_config?: boolean | null
+          manual_pix_page?: boolean | null
           sandbox_mode?: boolean | null
           updated_at?: string | null
         }
@@ -303,8 +309,11 @@ export type Database = {
           asaas_enabled?: boolean | null
           created_at?: string | null
           id?: number
+          manual_card_processing?: boolean | null
           manual_card_status?: string | null
           manual_credit_card?: boolean | null
+          manual_payment_config?: boolean | null
+          manual_pix_page?: boolean | null
           sandbox_mode?: boolean | null
           updated_at?: string | null
         }
