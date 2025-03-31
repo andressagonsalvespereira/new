@@ -90,15 +90,15 @@ const PersonalInfoSection = ({
             <div className="flex flex-wrap sm:flex-nowrap gap-2">
               <Select defaultValue="55">
                 <SelectTrigger className="w-24 h-9 border-gray-300 flex-shrink-0 text-xs px-2">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-base mr-1">🇧🇷</span>
+                  <div className="flex items-center">
+                    <span className="mr-1">🇧🇷</span>
                     <span>+55</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="55">
-                    <div className="flex items-center space-x-1 text-xs">
-                      <span className="text-base mr-1">🇧🇷</span>
+                    <div className="flex items-center text-xs">
+                      <span className="mr-1">🇧🇷</span>
                       <span>+55</span>
                     </div>
                   </SelectItem>
