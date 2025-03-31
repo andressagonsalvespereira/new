@@ -1,4 +1,3 @@
-
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD';
 export type PaymentStatus = 'Aguardando' | 'Pago' | 'Recusado' | 'Reembolsado' | 'Cancelado' | 'Aguardando Análise Manual' | 'Aguardando Confirmação Manual';
 
@@ -57,4 +56,20 @@ export interface CreateOrderInput {
   paymentId?: string;
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
+}
+
+export interface AsaasPayment {
+  id: number;
+  orderId: number;
+  paymentId: string;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  qrCode?: string;
+  qrCodeImage?: string;
+}
+
+export interface AsaasConfig {
+  id: number;
+  sandboxApiKey?: string | null;
+  productionApiKey?: string | null;
 }

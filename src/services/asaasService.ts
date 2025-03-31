@@ -1,15 +1,7 @@
-
 import axios from 'axios';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface AsaasSettings {
-  isEnabled: boolean;
-  apiKey: string;
-  allowPix: boolean;
-  allowCreditCard: boolean;
-  manualCreditCard: boolean;
-  sandboxMode: boolean;
-}
+import { AsaasSettings } from '@/types/asaas';
+import { Order } from '@/types/order';
 
 export interface AsaasConfig {
   sandboxApiKey: string | null;

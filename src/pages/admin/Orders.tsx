@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard, Eye, Info, Loader2, QrCode } from 'lucide-react';
-import { Order } from '@/types/order';
+import { Order, PaymentMethod, PaymentStatus } from '@/types/order';
 
 const OrderStatusBadge = ({ status }: { status: Order['paymentStatus'] }) => {
   const statusConfig = {
@@ -205,8 +204,8 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  const pixOrders = getOrdersByPaymentMethod('pix');
-  const cardOrders = getOrdersByPaymentMethod('card');
+  const pixOrders = getOrdersByPaymentMethod('PIX');
+  const cardOrders = getOrdersByPaymentMethod('CREDIT_CARD');
 
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);

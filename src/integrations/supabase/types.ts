@@ -9,6 +9,74 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      asaas_config: {
+        Row: {
+          created_at: string | null
+          id: number
+          production_api_key: string | null
+          sandbox_api_key: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          production_api_key?: string | null
+          sandbox_api_key?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          production_api_key?: string | null
+          sandbox_api_key?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      asaas_payments: {
+        Row: {
+          created_at: string | null
+          id: number
+          method: string | null
+          order_id: number | null
+          payment_id: string
+          qr_code: string | null
+          qr_code_image: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          method?: string | null
+          order_id?: number | null
+          payment_id: string
+          qr_code?: string | null
+          qr_code_image?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          method?: string | null
+          order_id?: number | null
+          payment_id?: string
+          qr_code?: string | null
+          qr_code_image?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string | null
