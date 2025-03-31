@@ -16,9 +16,15 @@ const Payments = () => {
         <p className="text-muted-foreground">Create a new payment transaction</p>
       </div>
       
-      <div className="mb-6">
-        <Link to="/checkout/product-demo">
+      <div className="mb-6 space-y-2">
+        <Link to="/checkout/assinatura-mensal-cineflick-card">
           <Button className="flex items-center">
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Acessar Página de Checkout (CineFlick)
+          </Button>
+        </Link>
+        <Link to="/checkout/product-demo">
+          <Button variant="outline" className="flex items-center">
             <ExternalLink className="mr-2 h-4 w-4" />
             Acessar Página de Checkout (Demo)
           </Button>

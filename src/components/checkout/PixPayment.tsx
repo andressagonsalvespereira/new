@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { QrCode, Copy, Check, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -53,20 +53,24 @@ const PixPayment = ({ onSubmit }: PixPaymentProps) => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <QrCode className="mr-2 h-5 w-5" />
-          Pagamento via PIX
-        </CardTitle>
-        <CardDescription>
-          Gere um código PIX para realizar o pagamento instantâneo
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center">
+    <Card className="border-gray-200">
+      <CardContent className="pt-6 flex flex-col items-center">
         {!pixGenerated ? (
           <>
-            <div className="w-48 h-48 bg-gray-100 flex items-center justify-center mb-4 rounded-lg border border-gray-200">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 w-full mb-6">
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
+                <div>
+                  <p className="text-blue-700 font-medium">Como funciona o pagamento via PIX?</p>
+                  <p className="text-sm text-blue-600">
+                    Ao gerar o código PIX, você pode escaneá-lo com o aplicativo do seu banco ou copiar a chave PIX
+                    e colar no seu aplicativo bancário. O pagamento é instantâneo e seguro.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="w-48 h-48 bg-gray-100 flex items-center justify-center mb-4 rounded-lg border border-dashed border-gray-300">
               <QrCode className="h-16 w-16 text-gray-400" />
             </div>
             <p className="text-center text-sm text-gray-500 mb-6 max-w-md">
@@ -76,56 +80,52 @@ const PixPayment = ({ onSubmit }: PixPaymentProps) => {
             <Button
               onClick={handleGenerateQRCode}
               disabled={isGenerating}
-              className="w-full max-w-xs"
+              className="w-full max-w-xs bg-blue-600 hover:bg-blue-700 text-white h-12"
             >
               {isGenerating ? 'Gerando código...' : 'Gerar Código PIX'}
             </Button>
           </>
         ) : (
           <>
-            <div className="w-48 h-48 bg-white flex items-center justify-center mb-4 rounded-lg border-2 border-dashed border-gray-300 relative">
+            <div className="w-64 h-64 bg-white flex items-center justify-center mb-4 rounded-lg border-2 border-dashed border-gray-300 relative p-4">
               {/* This would be an actual QR code in production */}
-              <QrCode className="h-24 w-24 text-black" />
-              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 hidden">
-                <div className="text-xs text-center p-2 bg-black text-white rounded">
-                  QR code real seria exibido aqui
-                </div>
-              </div>
+              <QrCode className="h-32 w-32 text-black" />
             </div>
             
-            <Alert variant="default" className="mb-4 max-w-md">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Este QR code é apenas para demonstração. Em um ambiente real, ele seria gerado pelo gateway de pagamento.
+            <div className="bg-gray-50 p-4 rounded-md border border-gray-200 w-full max-w-md mb-6">
+              <p className="text-sm text-gray-600 mb-2">Chave PIX:</p>
+              <div className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
+                <span className="text-sm font-mono text-gray-800 truncate mr-2">
+                  {pixKey}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 px-2 border-gray-300" 
+                  onClick={handleCopyPixKey}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Você tem 30 minutos para concluir o pagamento com esta chave
+              </p>
+            </div>
+            
+            <Alert variant="default" className="mb-6 max-w-md bg-yellow-50 border-yellow-200">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-700">
+                Após o pagamento, enviaremos um email com a confirmação. Aguarde alguns instantes.
               </AlertDescription>
             </Alert>
             
-            <div className="bg-gray-50 p-3 rounded-md border border-gray-200 w-full max-w-md mb-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Chave PIX:</span>
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-500 mr-2 font-mono">{pixKey.substring(0, 12)}...</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 px-2" 
-                    onClick={handleCopyPixKey}
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center w-full max-w-md">
-              <div>
-                <p className="font-medium">Total:</p>
-                <p className="text-2xl font-bold">R$120,00</p>
-              </div>
-              <Button onClick={handleGenerateQRCode} variant="outline">
-                Gerar Novo Código
-              </Button>
-            </div>
+            <Button 
+              onClick={handleGenerateQRCode} 
+              variant="outline" 
+              className="w-full max-w-md border-gray-300"
+            >
+              Gerar Novo Código
+            </Button>
           </>
         )}
       </CardContent>
