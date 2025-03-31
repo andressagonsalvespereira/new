@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { CreditCard, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { CardSchema } from '@/components/checkout/utils/cardValidation';
+import { detectCardBrand } from '@/components/checkout/utils/payment/cardDetection';
+import { Progress } from '@/components/ui/progress';
 
 export interface CardFormData {
   cardName: string;
@@ -29,8 +31,9 @@ const CardForm: React.FC<CardFormProps> = ({
   buttonText = "Pagar com Cartão"
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cardBrand, setCardBrand] = useState<string>('');
   
-  const { register, handleSubmit, formState } = useForm<CardFormData>({
+  const { register, handleSubmit, formState, watch } = useForm<CardFormData>({
     defaultValues: {
       cardName: '',
       cardNumber: '',
@@ -39,6 +42,18 @@ const CardForm: React.FC<CardFormProps> = ({
       cvv: ''
     }
   });
+
+  // Watch for changes in the card number to detect the brand
+  const cardNumber = watch('cardNumber');
+
+  useEffect(() => {
+    if (cardNumber && cardNumber.length >= 4) {
+      const brand = detectCardBrand(cardNumber);
+      setCardBrand(brand);
+    } else {
+      setCardBrand('');
+    }
+  }, [cardNumber]);
 
   const validateForm = (data: CardFormData) => {
     try {
@@ -79,7 +94,14 @@ const CardForm: React.FC<CardFormProps> = ({
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="cardNumber">Número do cartão</Label>
+        <Label htmlFor="cardNumber" className="flex items-center justify-between">
+          <span>Número do cartão</span>
+          {cardBrand && (
+            <span className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-1 rounded">
+              {cardBrand}
+            </span>
+          )}
+        </Label>
         <Input
           id="cardNumber"
           placeholder="0000 0000 0000 0000"
@@ -135,13 +157,16 @@ const CardForm: React.FC<CardFormProps> = ({
         disabled={loading || isSubmitting}
       >
         {loading || isSubmitting ? (
-          <span className="flex items-center">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Processando...
-          </span>
+          <div className="w-full">
+            <div className="flex items-center justify-center mb-2">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <span>Processando pagamento...</span>
+            <Progress value={65} className="h-1 mt-2" />
+          </div>
         ) : (
           <span className="flex items-center">
             <CreditCard className="mr-2 h-5 w-5" />
