@@ -23,6 +23,13 @@ const defaultSettings: AsaasSettings = {
   manualCardStatus: 'ANALYSIS'
 };
 
+// Função utilitária para normalizar o status do cartão
+const normalizeCardStatus = (status: string | null | undefined): 'APPROVED' | 'DENIED' | 'ANALYSIS' => {
+  if (status === 'APPROVED') return 'APPROVED';
+  if (status === 'DENIED') return 'DENIED';
+  return 'ANALYSIS'; // valor padrão
+};
+
 // Get Asaas settings from Supabase or localStorage
 export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   try {
@@ -59,10 +66,10 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
         sandboxMode: settingsData.sandbox_mode || true,
         sandboxApiKey: asaasConfigData?.sandbox_api_key || '',
         productionApiKey: asaasConfigData?.production_api_key || '',
-        manualCardProcessing: false,
-        manualPixPage: false,
-        manualPaymentConfig: false,
-        manualCardStatus: settingsData.manual_card_status || 'ANALYSIS'
+        manualCardProcessing: settingsData.manual_card_processing || false,
+        manualPixPage: settingsData.manual_pix_page || false,
+        manualPaymentConfig: settingsData.manual_payment_config || false,
+        manualCardStatus: normalizeCardStatus(settingsData.manual_card_status)
       };
 
       // Define a chave da API com base no modo sandbox
@@ -76,7 +83,12 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
     // Fallback para localStorage se Supabase falhar
     const savedSettings = localStorage.getItem(ASAAS_SETTINGS_KEY);
     if (savedSettings) {
-      return JSON.parse(savedSettings);
+      const parsed = JSON.parse(savedSettings);
+      return {
+        ...defaultSettings,
+        ...parsed,
+        manualCardStatus: normalizeCardStatus(parsed.manualCardStatus)
+      };
     }
     return defaultSettings;
   } catch (error) {
@@ -88,16 +100,25 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
 // Save Asaas settings to Supabase and localStorage
 export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> => {
   try {
+    // Ensure cardStatus is normalized
+    const normalizedSettings = {
+      ...settings,
+      manualCardStatus: normalizeCardStatus(settings.manualCardStatus)
+    };
+    
     // Salva no Supabase
     const { error: settingsError } = await supabase
       .from('settings')
       .update({
-        asaas_enabled: settings.isEnabled,
-        allow_pix: settings.allowPix,
-        allow_credit_card: settings.allowCreditCard,
-        manual_credit_card: settings.manualCreditCard,
-        sandbox_mode: settings.sandboxMode,
-        manual_card_status: settings.manualCardStatus
+        asaas_enabled: normalizedSettings.isEnabled,
+        allow_pix: normalizedSettings.allowPix,
+        allow_credit_card: normalizedSettings.allowCreditCard,
+        manual_credit_card: normalizedSettings.manualCreditCard,
+        sandbox_mode: normalizedSettings.sandboxMode,
+        manual_card_status: normalizedSettings.manualCardStatus,
+        manual_card_processing: normalizedSettings.manualCardProcessing,
+        manual_pix_page: normalizedSettings.manualPixPage,
+        manual_payment_config: normalizedSettings.manualPaymentConfig
       })
       .eq('id', 1);
 
@@ -109,8 +130,8 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
     const { error: apiKeysError } = await supabase
       .from('asaas_config')
       .update({
-        sandbox_api_key: settings.sandboxApiKey,
-        production_api_key: settings.productionApiKey
+        sandbox_api_key: normalizedSettings.sandboxApiKey,
+        production_api_key: normalizedSettings.productionApiKey
       })
       .eq('id', 1);
 
@@ -119,7 +140,7 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
     }
 
     // Também salva no localStorage como backup
-    localStorage.setItem(ASAAS_SETTINGS_KEY, JSON.stringify(settings));
+    localStorage.setItem(ASAAS_SETTINGS_KEY, JSON.stringify(normalizedSettings));
   } catch (error) {
     console.error('Error saving Asaas settings:', error);
     // Salva no localStorage como fallback

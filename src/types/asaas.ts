@@ -8,10 +8,10 @@ export interface AsaasSettings {
   sandboxMode: boolean;
   sandboxApiKey?: string;
   productionApiKey?: string;
-  manualCardProcessing?: boolean;
-  manualPixPage?: boolean;
-  manualPaymentConfig?: boolean;
-  manualCardStatus?: 'APPROVED' | 'DENIED' | 'ANALYSIS';
+  manualCardProcessing: boolean;
+  manualPixPage: boolean;
+  manualPaymentConfig: boolean;
+  manualCardStatus: 'APPROVED' | 'DENIED' | 'ANALYSIS';
   // Add isSandbox for compatibility
   isSandbox?: boolean;
   // Add isLoading property

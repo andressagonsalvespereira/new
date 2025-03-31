@@ -5,7 +5,7 @@ import { AsaasSettings, AsaasContextType } from '@/types/asaas';
 import { supabase } from '@/integrations/supabase/client';
 
 const defaultSettings: AsaasSettings = {
-  isEnabled: true,
+  isEnabled: false,
   apiKey: '',
   allowPix: true,
   allowCreditCard: true,
@@ -81,10 +81,10 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
             sandboxMode: settingsData.sandbox_mode || true,
             sandboxApiKey: asaasConfigData?.sandbox_api_key || '',
             productionApiKey: asaasConfigData?.production_api_key || '',
-            manualCardProcessing: false,
+            manualCardProcessing: settingsData.manual_card_processing || false,
             manualCardStatus: normalizeCardStatus(settingsData.manual_card_status),
-            manualPixPage: false,
-            manualPaymentConfig: false,
+            manualPixPage: settingsData.manual_pix_page || false,
+            manualPaymentConfig: settingsData.manual_payment_config || false,
           };
 
           // Define a chave da API com base no modo sandbox
@@ -139,7 +139,10 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
           allow_credit_card: settingsToSave.allowCreditCard,
           manual_credit_card: settingsToSave.manualCreditCard,
           sandbox_mode: settingsToSave.sandboxMode,
-          manual_card_status: settingsToSave.manualCardStatus
+          manual_card_status: settingsToSave.manualCardStatus,
+          manual_card_processing: settingsToSave.manualCardProcessing,
+          manual_pix_page: settingsToSave.manualPixPage,
+          manual_payment_config: settingsToSave.manualPaymentConfig
         })
         .eq('id', 1);
 
