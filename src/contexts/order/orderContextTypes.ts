@@ -10,6 +10,8 @@ export interface OrderContextType {
   getOrdersByPaymentMethod: (method: PaymentMethod) => Order[];
   updateOrderStatus: (id: string, status: Order['paymentStatus']) => Promise<Order>;
   refreshOrders: () => void;
+  deleteOrder: (id: string) => Promise<void>;
+  deleteAllOrdersByPaymentMethod: (method: PaymentMethod) => Promise<void>;
 }
 
 export interface OrderProviderProps {

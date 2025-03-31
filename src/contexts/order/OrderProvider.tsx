@@ -8,7 +8,9 @@ import {
   loadOrders,
   createOrder, 
   filterOrdersByPaymentMethod, 
-  updateOrderStatusData 
+  updateOrderStatusData,
+  deleteOrderData,
+  deleteAllOrdersByPaymentMethodData
 } from './orderUtils';
 
 export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
@@ -96,6 +98,42 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteOrder = async (id: string): Promise<void> => {
+    try {
+      await deleteOrderData(id);
+      
+      // Update local state to remove the deleted order
+      setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
+      
+    } catch (err) {
+      console.error('Error deleting order:', err);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir o pedido",
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const deleteAllOrdersByPaymentMethod = async (method: PaymentMethod): Promise<void> => {
+    try {
+      await deleteAllOrdersByPaymentMethodData(method);
+      
+      // Update local state to remove all orders with the specified payment method
+      setOrders(prevOrders => prevOrders.filter(order => order.paymentMethod !== method));
+      
+    } catch (err) {
+      console.error('Error deleting orders by payment method:', err);
+      toast({
+        title: "Erro",
+        description: `Falha ao excluir os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'}`,
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   const refreshOrders = () => {
     console.log("Atualizando lista de pedidos...");
     fetchOrders();
@@ -109,7 +147,9 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       addOrder, 
       getOrdersByPaymentMethod, 
       updateOrderStatus,
-      refreshOrders
+      refreshOrders,
+      deleteOrder,
+      deleteAllOrdersByPaymentMethod
     }}>
       {children}
     </OrderContext.Provider>

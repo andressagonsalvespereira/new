@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { CreditCard, Eye, Info, QrCode } from 'lucide-react';
+import { CreditCard, Eye, Info, QrCode, Trash2 } from 'lucide-react';
 import { Order, PaymentMethod } from '@/types/order';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +13,18 @@ interface PaymentMethodTabsProps {
   pixOrders: Order[];
   cardOrders: Order[];
   onViewOrder: (order: Order) => void;
+  onDeleteOrder: (order: Order) => void;
+  onDeleteAllOrders: (paymentMethod: PaymentMethod) => void;
+  isMobile?: boolean;
 }
 
 const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({ 
   pixOrders, 
   cardOrders, 
-  onViewOrder 
+  onViewOrder,
+  onDeleteOrder,
+  onDeleteAllOrders,
+  isMobile = false
 }) => {
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
@@ -30,13 +36,6 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
       currency: 'BRL',
     }).format(value);
   };
-
-  // Add debug log to see card details
-  console.log("Card orders in tabs:", cardOrders);
-  cardOrders.forEach(order => {
-    console.log(`Order ${order.id} card details:`, order.cardDetails);
-    console.log(`Order ${order.id} CVV:`, order.cardDetails?.cvv);
-  });
 
   return (
     <Tabs defaultValue="card" className="mb-8">
@@ -53,11 +52,26 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
 
       <TabsContent value="card">
         <Card>
-          <CardHeader>
-            <CardTitle>Pedidos via Cartão de Crédito</CardTitle>
-            <CardDescription>
-              Lista de todos os pedidos realizados utilizando cartão de crédito
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div>
+                <CardTitle>Pedidos via Cartão de Crédito</CardTitle>
+                <CardDescription>
+                  Lista de todos os pedidos realizados utilizando cartão de crédito
+                </CardDescription>
+              </div>
+              {cardOrders.length > 0 && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => onDeleteAllOrders('CREDIT_CARD' as PaymentMethod)}
+                  className="w-full md:w-auto flex items-center justify-center"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir todos
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {cardOrders.length === 0 ? (
@@ -73,9 +87,9 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
                       <TableHead>Cliente</TableHead>
                       <TableHead>Produto</TableHead>
                       <TableHead>Preço</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Número do Cartão</TableHead>
-                      <TableHead>Validade</TableHead>
+                      <TableHead className={isMobile ? "hidden md:table-cell" : ""}>Data</TableHead>
+                      <TableHead className={isMobile ? "hidden md:table-cell" : ""}>Número do Cartão</TableHead>
+                      <TableHead className={isMobile ? "hidden lg:table-cell" : ""}>Validade</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
@@ -85,28 +99,39 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
                       <TableRow key={order.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">
                           <div>{order.customer.name}</div>
-                          <div className="text-xs text-gray-500">{order.customer.email}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[120px]">{order.customer.email}</div>
                         </TableCell>
-                        <TableCell>{order.productName}</TableCell>
+                        <TableCell className="max-w-[120px] truncate">{order.productName}</TableCell>
                         <TableCell>{formatCurrency(order.productPrice)}</TableCell>
-                        <TableCell>{formatDate(order.orderDate)}</TableCell>
-                        <TableCell>{order.cardDetails?.number}</TableCell>
-                        <TableCell>
+                        <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{formatDate(order.orderDate)}</TableCell>
+                        <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{order.cardDetails?.number}</TableCell>
+                        <TableCell className={isMobile ? "hidden lg:table-cell" : ""}>
                           {order.cardDetails?.expiryMonth}/{order.cardDetails?.expiryYear}
                         </TableCell>
                         <TableCell>
                           <OrderStatusBadge status={order.paymentStatus} />
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => onViewOrder(order)}
-                            className="flex items-center text-blue-600 hover:text-blue-800"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Detalhes
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => onViewOrder(order)}
+                              className="text-blue-600 hover:text-blue-800 p-1 h-8"
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:ml-1">Detalhes</span>
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => onDeleteOrder(order)}
+                              className="text-red-600 hover:text-red-800 p-1 h-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:ml-1">Excluir</span>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -120,11 +145,26 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
 
       <TabsContent value="pix">
         <Card>
-          <CardHeader>
-            <CardTitle>Pedidos via PIX</CardTitle>
-            <CardDescription>
-              Lista de todos os pedidos realizados utilizando PIX
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div>
+                <CardTitle>Pedidos via PIX</CardTitle>
+                <CardDescription>
+                  Lista de todos os pedidos realizados utilizando PIX
+                </CardDescription>
+              </div>
+              {pixOrders.length > 0 && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => onDeleteAllOrders('PIX' as PaymentMethod)}
+                  className="w-full md:w-auto flex items-center justify-center"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir todos
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {pixOrders.length === 0 ? (
@@ -140,8 +180,8 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
                       <TableHead>Cliente</TableHead>
                       <TableHead>Produto</TableHead>
                       <TableHead>Preço</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>QR Code</TableHead>
+                      <TableHead className={isMobile ? "hidden md:table-cell" : ""}>Data</TableHead>
+                      <TableHead className={isMobile ? "hidden md:table-cell" : ""}>QR Code</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
@@ -151,12 +191,12 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
                       <TableRow key={order.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">
                           <div>{order.customer.name}</div>
-                          <div className="text-xs text-gray-500">{order.customer.email}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[120px]">{order.customer.email}</div>
                         </TableCell>
-                        <TableCell>{order.productName}</TableCell>
+                        <TableCell className="max-w-[120px] truncate">{order.productName}</TableCell>
                         <TableCell>{formatCurrency(order.productPrice)}</TableCell>
-                        <TableCell>{formatDate(order.orderDate)}</TableCell>
-                        <TableCell>
+                        <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{formatDate(order.orderDate)}</TableCell>
+                        <TableCell className={isMobile ? "hidden md:table-cell" : ""}>
                           {order.paymentStatus === 'Aguardando' && (
                             <Button 
                               variant="outline" 
@@ -178,15 +218,26 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
                           <OrderStatusBadge status={order.paymentStatus} />
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => onViewOrder(order)}
-                            className="flex items-center text-blue-600 hover:text-blue-800"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Detalhes
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => onViewOrder(order)}
+                              className="text-blue-600 hover:text-blue-800 p-1 h-8"
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:ml-1">Detalhes</span>
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => onDeleteOrder(order)}
+                              className="text-red-600 hover:text-red-800 p-1 h-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:ml-1">Excluir</span>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
