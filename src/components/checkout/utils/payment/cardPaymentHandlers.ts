@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AsaasSettings } from '@/types/asaas';
 import { CardFormData } from '../../payment-methods/CardForm';
 import { PaymentResult } from './types';
-import { randomId } from '../strings';
+import { randomId } from '../../utils/strings';
 import asaasApiService from '@/services/asaasService';
 
 export const handleAutomaticCardProcessing = async (
@@ -45,7 +45,6 @@ export const handleAutomaticCardProcessing = async (
           cpfCnpj: formState.personalInfo.cpf,
           postalCode: formState.personalInfo.postalCode,
           addressNumber: formState.personalInfo.addressNumber,
-          addressComplement: formState.personalInfo.addressComplement,
           phone: formState.personalInfo.phone
         }
       }
