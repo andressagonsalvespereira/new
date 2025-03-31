@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { Product, CreateProductInput } from '@/types/product';
@@ -19,6 +19,10 @@ export const useProductManagement = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [formData, setFormData] = useState<CreateProductInput>(initialFormState);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const { toast } = useToast();
   const { 
@@ -31,6 +35,11 @@ export const useProductManagement = () => {
     refreshProducts,
     isOffline
   } = useProducts();
+
+  // Reset to first page when products change (e.g., after add/delete)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [products.length]);
 
   const resetForm = useCallback(() => {
     setFormData(initialFormState);
@@ -140,6 +149,10 @@ export const useProductManagement = () => {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return {
     isAddDialogOpen,
     setIsAddDialogOpen,
@@ -162,6 +175,10 @@ export const useProductManagement = () => {
     handleUpdateProduct,
     handleDeleteProduct,
     refreshProducts,
-    resetForm
+    resetForm,
+    // Pagination
+    currentPage,
+    pageSize,
+    handlePageChange
   };
 };

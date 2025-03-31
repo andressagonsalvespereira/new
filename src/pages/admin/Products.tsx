@@ -30,6 +30,10 @@ const Products: React.FC = () => {
     handleDeleteClick,
     handleUpdateProduct,
     handleDeleteProduct,
+    // Pagination props
+    currentPage,
+    pageSize,
+    handlePageChange
   } = useProductManagement();
   
   // Added key to console log to check if component mounts multiple times
@@ -50,6 +54,10 @@ const Products: React.FC = () => {
               error={error}
               onEdit={handleEditClick}
               onDelete={handleDeleteClick}
+              onAddProduct={() => setIsAddDialogOpen(true)}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
             />
           </CardContent>
         </Card>

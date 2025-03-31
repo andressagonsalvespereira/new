@@ -13,9 +13,23 @@ interface ProductTableProps {
   error: string | null;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onAddProduct: () => void;
+  currentPage: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
 }
 
-const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTableProps) => {
+const ProductTable = ({ 
+  products, 
+  loading, 
+  error, 
+  onEdit, 
+  onDelete,
+  onAddProduct,
+  currentPage,
+  pageSize,
+  onPageChange
+}: ProductTableProps) => {
   const { retryFetchProducts, isOffline } = useProducts();
   
   if (loading) {
@@ -33,7 +47,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
   }
 
   if (products.length === 0) {
-    return <EmptyProductState />;
+    return <EmptyProductState onAddProduct={onAddProduct} />;
   }
 
   return (
@@ -42,6 +56,9 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
       onEdit={onEdit}
       onDelete={onDelete}
       isOffline={isOffline}
+      currentPage={currentPage}
+      pageSize={pageSize}
+      onPageChange={onPageChange}
     />
   );
 };
