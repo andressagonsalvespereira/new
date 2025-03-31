@@ -1,7 +1,10 @@
+
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import AddressInput from './AddressInput';
+import AddressFinder from './address/AddressFinder';
+import AddressFormFields from './address/AddressFormFields';
 import AddressShippingOptions from './AddressShippingOptions';
+import { Button } from '@/components/ui/button';
 
 interface AddressFormProps {
   onSubmit: (data: AddressData) => void;
@@ -100,25 +103,11 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
       newErrors.cep = 'CEP inválido';
     }
     
-    if (!street.trim()) {
-      newErrors.street = 'Rua é obrigatória';
-    }
-    
-    if (!number.trim()) {
-      newErrors.number = 'Número é obrigatório';
-    }
-    
-    if (!neighborhood.trim()) {
-      newErrors.neighborhood = 'Bairro é obrigatório';
-    }
-    
-    if (!city.trim()) {
-      newErrors.city = 'Cidade é obrigatória';
-    }
-    
-    if (!state.trim()) {
-      newErrors.state = 'Estado é obrigatório';
-    }
+    if (!street.trim()) newErrors.street = 'Rua é obrigatória';
+    if (!number.trim()) newErrors.number = 'Número é obrigatório';
+    if (!neighborhood.trim()) newErrors.neighborhood = 'Bairro é obrigatório';
+    if (!city.trim()) newErrors.city = 'Cidade é obrigatória';
+    if (!state.trim()) newErrors.state = 'Estado é obrigatório';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -153,15 +142,12 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
       </div>
       
       <div className="p-4 bg-white rounded-md mb-6 space-y-4">
-        <AddressInput
-          id="cep"
-          label="CEP"
-          value={cep}
-          onChange={handleCepChange}
-          placeholder="00000-000"
-          error={errors.cep}
-          disabled={isCompleted}
+        <AddressFinder 
+          cep={cep} 
+          onChange={handleCepChange} 
+          error={errors.cep} 
           isLoading={isLoading}
+          disabled={isCompleted}
         />
         
         {showShippingOptions && (
@@ -172,76 +158,30 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           />
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AddressInput
-            id="street"
-            label="Rua"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-            placeholder="Rua/Avenida"
-            error={errors.street}
-            disabled={isCompleted}
-          />
-          
-          <AddressInput
-            id="number"
-            label="Número"
-            value={number}
-            onChange={(e) => setNumber(e.target.value)}
-            placeholder="123"
-            error={errors.number}
-            disabled={isCompleted}
-          />
-        </div>
-        
-        <AddressInput
-          id="complement"
-          label="Complemento (opcional)"
-          value={complement}
-          onChange={(e) => setComplement(e.target.value)}
-          placeholder="Apto, Bloco, etc"
+        <AddressFormFields 
+          street={street}
+          setStreet={setStreet}
+          number={number}
+          setNumber={setNumber}
+          complement={complement}
+          setComplement={setComplement}
+          neighborhood={neighborhood}
+          setNeighborhood={setNeighborhood}
+          city={city}
+          setCity={setCity}
+          state={state}
+          setState={setState}
+          errors={errors}
           disabled={isCompleted}
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <AddressInput
-            id="neighborhood"
-            label="Bairro"
-            value={neighborhood}
-            onChange={(e) => setNeighborhood(e.target.value)}
-            placeholder="Bairro"
-            error={errors.neighborhood}
-            disabled={isCompleted}
-          />
-          
-          <AddressInput
-            id="city"
-            label="Cidade"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Cidade"
-            error={errors.city}
-            disabled={isCompleted}
-          />
-          
-          <AddressInput
-            id="state"
-            label="Estado"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            placeholder="UF"
-            error={errors.state}
-            disabled={isCompleted}
-          />
-        </div>
-        
         {!isCompleted && (
-          <button 
+          <Button 
             onClick={handleContinue}
             className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Continuar
-          </button>
+          </Button>
         )}
       </div>
     </div>
