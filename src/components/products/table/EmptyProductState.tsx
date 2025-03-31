@@ -10,13 +10,13 @@ interface EmptyProductStateProps {
 const EmptyProductState = ({ onAddProduct }: EmptyProductStateProps) => {
   return (
     <div className="text-center py-10 bg-gray-50 rounded-lg">
-      <p className="text-gray-500 mb-4">No products found</p>
-      <p className="text-sm text-gray-400 mb-4">Click "Add Product" to get started</p>
+      <p className="text-gray-500 mb-4">Nenhum produto encontrado</p>
+      <p className="text-sm text-gray-400 mb-4">Clique em "Adicionar Produto" para começar</p>
       
       {onAddProduct && (
-        <Button onClick={onAddProduct} size="sm" className="mt-2">
+        <Button onClick={onAddProduct} size="sm" className="bg-green-600 hover:bg-green-700 text-white mt-2">
           <Plus className="h-4 w-4 mr-2" />
-          Add Product
+          Adicionar Produto
         </Button>
       )}
     </div>

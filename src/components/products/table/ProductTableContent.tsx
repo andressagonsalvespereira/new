@@ -42,12 +42,12 @@ const ProductTableContent = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Image</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>Nome</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Preço</TableHead>
+            <TableHead>Imagem</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,12 +65,12 @@ const ProductTableContent = ({
       {/* Display message when current page has no results but there are products */}
       {paginatedProducts.length === 0 && products.length > 0 && (
         <div className="py-8 text-center text-gray-500">
-          No products found on this page. 
+          Nenhum produto encontrado nesta página. 
           <button 
             onClick={() => onPageChange(1)} 
             className="ml-2 text-blue-500 hover:underline"
           >
-            Go to first page
+            Ir para a primeira página
           </button>
         </div>
       )}

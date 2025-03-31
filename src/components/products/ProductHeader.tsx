@@ -10,7 +10,7 @@ interface ProductHeaderProps {
 
 const ProductHeader = ({ onAddProduct }: ProductHeaderProps) => {
   return (
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
       <CardTitle className="text-2xl font-bold">Gerenciar Produtos</CardTitle>
       <Button 
         onClick={onAddProduct} 

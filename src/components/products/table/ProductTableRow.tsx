@@ -31,13 +31,13 @@ const ProductTableRow = ({ product, onEdit, onDelete }: ProductTableRowProps) =>
           </div>
         ) : (
           <div className="h-10 w-10 bg-gray-200 flex items-center justify-center rounded-md">
-            <span className="text-xs text-gray-500">No image</span>
+            <span className="text-xs text-gray-500">Sem imagem</span>
           </div>
         )}
       </TableCell>
       <TableCell>
         <span className={`px-2 py-1 text-xs rounded-full ${product.isDigital ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-          {product.isDigital ? 'Digital' : 'Physical'}
+          {product.isDigital ? 'Digital' : 'Físico'}
         </span>
       </TableCell>
       <TableCell className="text-right">

@@ -21,15 +21,15 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
     navigator.clipboard.writeText(checkoutUrl)
       .then(() => {
         toast({
-          title: "Link copied",
-          description: "Quick checkout link copied to clipboard",
+          title: "Link copiado",
+          description: "Link de checkout rápido copiado para a área de transferência",
         });
       })
       .catch(err => {
         console.error('Error copying link:', err);
         toast({
-          title: "Error",
-          description: "Could not copy link",
+          title: "Erro",
+          description: "Não foi possível copiar o link",
           variant: "destructive",
         });
       });
@@ -47,7 +47,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
         variant="outline"
         size="sm"
         onClick={() => copyCheckoutLink(product.id)}
-        title="Copy quick checkout link"
+        title="Copiar link de checkout rápido"
       >
         <Copy className="h-4 w-4" />
       </Button>
@@ -55,7 +55,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
         variant="outline"
         size="sm"
         onClick={() => openCheckoutLink(product.id)}
-        title="Open quick checkout"
+        title="Abrir checkout rápido"
       >
         <ExternalLink className="h-4 w-4" />
       </Button>
@@ -66,7 +66,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
         className="bg-blue-600 hover:bg-blue-700 text-white"
       >
         <Edit className="h-4 w-4 mr-1" />
-        Edit
+        Editar
       </Button>
       <Button
         variant="destructive"
@@ -74,7 +74,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
         onClick={() => onDelete(product)}
       >
         <Trash2 className="h-4 w-4 mr-1" />
-        Delete
+        Excluir
       </Button>
     </div>
   );
