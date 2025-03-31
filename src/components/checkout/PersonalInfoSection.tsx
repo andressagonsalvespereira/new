@@ -89,17 +89,15 @@ const PersonalInfoSection = ({
             <label htmlFor="phone" className="block text-sm mb-1">Celular</label>
             <div className="flex flex-wrap sm:flex-nowrap gap-2">
               <Select defaultValue="55">
-                <SelectTrigger className="w-24 h-9 border-gray-300 flex-shrink-0 flex items-center">
+                <SelectTrigger className="w-16 h-9 border-gray-300 flex-shrink-0 text-xs px-1">
                   <div className="flex items-center">
-                    <span className="mr-1 text-2xl">🇧🇷</span>
-                    <SelectValue placeholder="+55" />
+                    <span className="text-xs">BR +55</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="55">
-                    <div className="flex items-center">
-                      <span className="mr-2 text-2xl">🇧🇷</span>
-                      +55
+                    <div className="flex items-center text-xs">
+                      <span>BR +55</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -121,4 +119,3 @@ const PersonalInfoSection = ({
 };
 
 export default PersonalInfoSection;
-
