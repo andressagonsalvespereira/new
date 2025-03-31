@@ -1,20 +1,37 @@
-import React, { useMemo } from 'react';
-import { useRouter } from 'next/router';
+
+import React, { useMemo, useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { useProducts } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2 } from 'lucide-react';
-import Image from 'next/image';
+import { Product } from '@/types/product';
 
 const Checkout: React.FC = () => {
-  const router = useRouter();
-  const { productId } = router.query;
+  const { productId } = useParams();
   const { getProductById } = useProducts();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const selectedProduct = useMemo(() => {
-    if (!productId || typeof productId !== 'string') return null;
-    return getProductById(productId);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const product = await getProductById(productId);
+        setSelectedProduct(product || null);
+      } catch (error) {
+        console.error('Erro ao buscar produto:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProduct();
   }, [productId, getProductById]);
 
   // Ajustando como acessamos as propriedades do produto que agora usam nomenclatura em português
@@ -29,6 +46,14 @@ const Checkout: React.FC = () => {
       isDigital: selectedProduct.digital // mudado de isDigital para digital
     };
   }, [selectedProduct]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Carregando...
+      </div>
+    );
+  }
 
   if (!productDetails) {
     return (
@@ -63,12 +88,10 @@ const Checkout: React.FC = () => {
             <div className="flex w-2/5">
               <div className="w-20">
                 {productDetails.imageUrl && (
-                  <Image
+                  <img
                     src={productDetails.imageUrl}
                     alt={productDetails.name}
-                    width={100}
-                    height={100}
-                    style={{ objectFit: 'contain' }}
+                    className="object-contain w-20 h-20"
                   />
                 )}
               </div>
@@ -89,6 +112,7 @@ const Checkout: React.FC = () => {
                 className="mx-2 border text-center w-8"
                 type="text"
                 value="1"
+                readOnly
               />
 
               <svg className="fill-current text-gray-600 w-3 cursor-pointer">
@@ -103,8 +127,8 @@ const Checkout: React.FC = () => {
             </span>
           </div>
 
-          <a
-            href="#"
+          <Link
+            to="/"
             className="flex font-semibold text-indigo-600 text-sm mt-10"
           >
             <svg
@@ -114,16 +138,16 @@ const Checkout: React.FC = () => {
               <path d="M134.059 296H436c6.627 0 12-5.373 12-12v-56c0-6.627-5.373-12-12-12H134.059v-46.059c0-21.382-25.851-32.09-40.971-16.971L7.029 239.029c-9.373 9.373-9.373 24.569 0 33.941l86.059 86.059c15.119 15.119 40.971 4.411 40.971-16.971V296z" />
             </svg>
             Continuar Comprando
-          </a>
+          </Link>
         </div>
 
         <div id="summary" className="w-1/4 px-8 py-10">
           <h1 className="font-semibold text-2xl border-b pb-8">
-            Order Summary
+            Resumo do Pedido
           </h1>
           <div className="flex justify-between mt-10 mb-5">
             <span className="font-semibold text-sm uppercase">
-              Items {1}
+              Itens {1}
             </span>
             <span className="font-semibold text-sm">
               R$ {productDetails.price.toFixed(2)}
@@ -156,7 +180,7 @@ const Checkout: React.FC = () => {
           </button>
           <div className="border-t mt-8">
             <div className="flex font-semibold justify-between py-6 text-sm uppercase">
-              <span>Total cost</span>
+              <span>Custo total</span>
               <span>R$ {(productDetails.price + 5).toFixed(2)}</span>
             </div>
             <button className="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">
