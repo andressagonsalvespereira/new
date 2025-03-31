@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import AdminLayout from '@/components/layout/AdminLayout';
 import ProductTable from '@/components/products/ProductTable';
@@ -38,11 +38,23 @@ const Products: React.FC = () => {
     handlePageChange
   } = useGerenciamentoProdutos();
   
-  // Added key to console log to check if component mounts multiple times
-  React.useEffect(() => {
-    console.log('Página de produtos montada');
-    return () => console.log('Página de produtos desmontada');
+  // Logging para depuração
+  useEffect(() => {
+    console.log('Página de Produtos montada, estado inicial:', { 
+      productsCount: products.length,
+      loading, 
+      error 
+    });
+    
+    return () => {
+      console.log('Página de Produtos desmontada');
+    };
   }, []);
+  
+  // Log para monitorar mudanças no estado de carregamento
+  useEffect(() => {
+    console.log('Estado de carregamento atualizado:', { loading, error, productsCount: products.length });
+  }, [loading, error, products.length]);
   
   return (
     <AdminLayout>

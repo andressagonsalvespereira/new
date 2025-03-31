@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
 import { Product } from '@/types/product';
 import { useProductForm } from './useProductForm';
@@ -8,6 +8,9 @@ import { useProductPagination } from './useProductPagination';
 import { useProductOperations } from './useProductOperations';
 
 export const useGerenciamentoProdutos = () => {
+  // Ref para controlar se o componente já foi montado
+  const isMountedRef = useRef(false);
+  
   // Obtém os produtos e estado do contexto
   const { 
     products: produtos, 
@@ -52,6 +55,17 @@ export const useGerenciamentoProdutos = () => {
     handleRemoverProduto,
     atualizarProdutos
   } = useProductOperations();
+
+  // Log de debug para monitorar montagem/desmontagem
+  useEffect(() => {
+    console.log('Hook useGerenciamentoProdutos montado, isMounted:', isMountedRef.current);
+    isMountedRef.current = true;
+    
+    return () => {
+      console.log('Hook useGerenciamentoProdutos desmontado');
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Lidar com o clique no botão editar
   const handleEditarClique = (produto: Product) => {

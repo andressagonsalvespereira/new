@@ -11,23 +11,20 @@ export const useProductFetching = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [networkError, setNetworkError] = useState(false);
-  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const fetchAttemptedRef = useRef(false);
 
   const fetchProducts = useCallback(async (): Promise<void> => {
-    // Prevent multiple fetch attempts when already loading
-    if (loading && hasAttemptedFetch) return;
-    
     // Evitar múltiplas chamadas da mesma função
     if (fetchAttemptedRef.current) return;
     
+    console.log('Iniciando busca de produtos');
     fetchAttemptedRef.current = true;
     setLoading(true);
     setError(null);
-    setHasAttemptedFetch(true);
     
     try {
       const formattedProducts = await buscarProdutosAPI();
+      console.log('Produtos carregados com sucesso:', formattedProducts.length);
       setProducts(formattedProducts);
       
       // Sync local storage with latest data
@@ -57,28 +54,26 @@ export const useProductFetching = () => {
       }
     } finally {
       setLoading(false);
-      // Permitir novas tentativas de carregamento apenas através do retryFetchProducts
-      fetchAttemptedRef.current = true;
     }
-  }, [toast, loading]);
+  }, [toast]);
 
   // Add a retry mechanism with force refresh
   const retryFetchProducts = useCallback(async (): Promise<void> => {
+    console.log('Tentando buscar produtos novamente');
     setNetworkError(false);
-    setHasAttemptedFetch(false);
     fetchAttemptedRef.current = false;
     return fetchProducts();
   }, [fetchProducts]);
 
   useEffect(() => {
-    // Prevenir chamadas duplicadas
+    console.log('useEffect de fetchProducts executado');
     if (!fetchAttemptedRef.current) {
       fetchProducts();
     }
     
     // Cleanup function
     return () => {
-      fetchAttemptedRef.current = false;
+      console.log('Limpeza do useEffect de fetchProducts');
     };
   }, [fetchProducts]);
 

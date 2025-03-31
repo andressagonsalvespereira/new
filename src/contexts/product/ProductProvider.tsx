@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { ProductContext } from './ProductContext';
 import { ProductProviderProps } from './productContextTypes';
 import { useProductFetching } from './hooks/useProductFetching';
@@ -21,11 +21,12 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     retryFetchProducts
   } = useProductFetching();
 
-  const productOperationsProps = {
+  // Memoizar as props para o hook useProductOperations
+  const productOperationsProps = useMemo(() => ({
     products,
     setProducts,
     isOffline
-  };
+  }), [products, setProducts, isOffline]);
 
   const {
     addProduct,
