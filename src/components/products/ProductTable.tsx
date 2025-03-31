@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -13,6 +13,7 @@ import { Edit, Trash2, Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/contexts/ProductContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProductTableProps {
   products: Product[];
@@ -25,6 +26,23 @@ interface ProductTableProps {
 const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTableProps) => {
   const { toast } = useToast();
   const { retryFetchProducts, isOffline } = useProducts();
+  const [loadingTimeExceeded, setLoadingTimeExceeded] = useState(false);
+  
+  useEffect(() => {
+    // Set a timeout to show an error message if loading takes too long
+    let timeoutId: number;
+    
+    if (loading) {
+      setLoadingTimeExceeded(false);
+      timeoutId = window.setTimeout(() => {
+        setLoadingTimeExceeded(true);
+      }, 10000); // Show error after 10 seconds of loading
+    }
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [loading]);
   
   const copyCheckoutLink = (productId: string) => {
     const baseUrl = window.location.origin;
@@ -59,6 +77,20 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="h-12 w-12 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent animate-spin"></div>
           <p className="text-center text-gray-500">Carregando produtos...</p>
+          
+          {loadingTimeExceeded && (
+            <div className="mt-4 text-center">
+              <p className="text-amber-600 mb-2">O carregamento está demorando mais que o esperado.</p>
+              <Button 
+                variant="outline" 
+                onClick={retryFetchProducts}
+                className="bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Tentar novamente
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );

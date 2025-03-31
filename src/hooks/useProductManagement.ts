@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { Product, CreateProductInput } from '@/types/product';

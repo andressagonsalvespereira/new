@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Product, CreateProductInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -28,19 +27,20 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [networkError, setNetworkError] = useState(false);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
+    // Prevent multiple fetch attempts when already loading
+    if (loading && hasAttemptedFetch) return;
+    
     setLoading(true);
     setError(null);
+    setHasAttemptedFetch(true);
+    
     try {
       const formattedProducts = await fetchProductsFromAPI();
       
       setProducts(formattedProducts);
-      setLoading(false);
       setNetworkError(false);
     } catch (err) {
       console.error('Error loading products:', err);
@@ -64,10 +64,14 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
           variant: "destructive",
         });
       }
-      
+    } finally {
       setLoading(false);
     }
-  };
+  }, [toast, loading, hasAttemptedFetch]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const addProduct = async (productData: CreateProductInput): Promise<Product> => {
     try {
@@ -217,9 +221,10 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     }
   };
 
-  // Add a retry mechanism
+  // Add a retry mechanism with force refresh
   const retryFetchProducts = () => {
     setNetworkError(false);
+    setHasAttemptedFetch(false);
     fetchProducts();
   };
 
@@ -232,7 +237,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       editProduct, 
       removeProduct,
       getProductById,
-      refreshProducts: fetchProducts,
+      refreshProducts: retryFetchProducts, // Use retryFetchProducts for refreshing
       updateProduct: editProduct,
       deleteProduct: removeProduct,
       retryFetchProducts,

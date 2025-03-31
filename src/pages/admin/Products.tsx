@@ -32,10 +32,9 @@ const Products: React.FC = () => {
     refreshProducts
   } = useProductManagement();
 
-  useEffect(() => {
-    refreshProducts();
-  }, [refreshProducts]);
-
+  // We no longer call refreshProducts in the useEffect because it's already 
+  // called in the ProductProvider initialization
+  
   return (
     <AdminLayout>
       <div className="container py-6">
