@@ -1,59 +1,61 @@
 
 import React from 'react';
-import { Truck, Package, CheckCircle2, CalendarClock } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { CheckCircle } from 'lucide-react';
 
 interface AddressShippingOptionsProps {
   selectedShipping: string | null;
   onSelectShipping: (option: string) => void;
   deliveryEstimate: string | null;
+  isDigitalProduct?: boolean;
 }
 
-const AddressShippingOptions = ({ 
-  selectedShipping, 
+const AddressShippingOptions = ({
+  selectedShipping,
   onSelectShipping,
-  deliveryEstimate
+  deliveryEstimate,
+  isDigitalProduct = false
 }: AddressShippingOptionsProps) => {
-  const isMobile = useIsMobile();
   
-  // Don't render anything if no shipping option is selected
-  if (!selectedShipping) return null;
-
+  if (isDigitalProduct) {
+    return (
+      <div className="mt-4 p-4 border border-green-100 bg-green-50 rounded-lg">
+        <div className="flex items-center">
+          <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+          <span className="text-green-700 font-medium">Entrega via Email</span>
+        </div>
+        <p className="mt-2 text-sm text-green-600">
+          Você receberá os dados de acesso em seu email cadastrado imediatamente após a confirmação do pagamento.
+        </p>
+      </div>
+    );
+  }
+  
   return (
-    <div className="bg-white border border-green-100 rounded-md p-3 mt-4 shadow-sm">
-      <h3 className="font-medium text-green-800 mb-2 flex items-center">
-        <Truck className="h-5 w-5 mr-2 text-green-600" />
-        Opções de Entrega
-      </h3>
+    <div className="mt-4">
+      <div className="text-sm font-medium mb-2">Opções de Entrega</div>
       
-      <div 
-        className={`border rounded-md p-3 flex flex-col cursor-pointer transition-all ${
-          selectedShipping === 'free' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-        }`}
-        onClick={() => onSelectShipping('free')}
-      >
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center">
-            <div className={`rounded-full border flex-shrink-0 w-5 h-5 flex items-center justify-center mr-2 ${
-              selectedShipping === 'free' ? 'border-green-500 bg-green-500' : 'border-gray-400'
-            }`}>
-              {selectedShipping === 'free' && <CheckCircle2 className="h-4 w-4 text-white" />}
-            </div>
-            <span className="font-medium text-gray-800">Frete Grátis</span>
+      <div className="space-y-2">
+        <div 
+          className={`p-3 border rounded-lg cursor-pointer flex items-center justify-between ${
+            selectedShipping === 'standard' 
+              ? 'border-green-500 bg-green-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => onSelectShipping('standard')}
+        >
+          <div>
+            <div className="font-medium">Frete</div>
+            {deliveryEstimate && 
+              <div className="text-sm text-gray-500">
+                Entrega estimada: {deliveryEstimate}
+              </div>
+            }
           </div>
-          
-          <div className="text-green-600 font-bold flex items-center">
-            <span className="text-xs line-through text-gray-400 mr-1">R$ 15,00</span>
-            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">GRÁTIS</span>
+          <div className="flex items-center text-green-500 font-medium">
+            <CheckCircle className="h-4 w-4 mr-1" />
+            Grátis
           </div>
         </div>
-        
-        {deliveryEstimate && (
-          <div className="text-sm text-green-600 flex items-center mt-1 font-medium pl-7">
-            <CalendarClock className="h-4 w-4 mr-1 text-green-500" />
-            <span className="text-sm">{deliveryEstimate}</span>
-          </div>
-        )}
       </div>
     </div>
   );

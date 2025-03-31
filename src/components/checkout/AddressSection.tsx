@@ -63,6 +63,14 @@ const AddressSection = ({
         </div>
         
         <CustomerReviews />
+        
+        {/* Show digital delivery message */}
+        <AddressShippingOptions
+          selectedShipping={selectedShipping}
+          onSelectShipping={setSelectedShipping}
+          deliveryEstimate={deliveryEstimate}
+          isDigitalProduct={true}
+        />
       </div>
     );
   }
@@ -105,6 +113,7 @@ const AddressSection = ({
             selectedShipping={selectedShipping}
             onSelectShipping={setSelectedShipping}
             deliveryEstimate={deliveryEstimate}
+            isDigitalProduct={false}
           />
         )}
       </div>
