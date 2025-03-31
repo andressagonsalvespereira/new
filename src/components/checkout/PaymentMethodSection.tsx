@@ -22,10 +22,10 @@ const PaymentMethodSection = ({ paymentMethod, setPaymentMethod }: PaymentMethod
       <div>
         <RadioGroup
           defaultValue="card"
-          className="flex flex-col space-y-3 mb-4"
+          className="flex flex-row space-x-3 mb-4"
           onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
         >
-          <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+          <div className="flex-1 flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
             <RadioGroupItem value="card" id="card" />
             <Label htmlFor="card" className="flex items-center cursor-pointer">
               <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
@@ -33,7 +33,7 @@ const PaymentMethodSection = ({ paymentMethod, setPaymentMethod }: PaymentMethod
             </Label>
           </div>
           
-          <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+          <div className="flex-1 flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
             <RadioGroupItem value="pix" id="pix" />
             <Label htmlFor="pix" className="flex items-center cursor-pointer">
               <QrCode className="h-5 w-5 mr-2 text-green-600" />
