@@ -4,6 +4,7 @@ import { CircleAlert, Loader2, FileDigit } from 'lucide-react';
 import AddressFields from '@/components/checkout/address/AddressFields';
 import CepInput from '@/components/checkout/address/CepInput';
 import AddressShippingOptions from '@/components/checkout/AddressShippingOptions';
+import CustomerReviews from '@/components/checkout/CustomerReviews';
 
 interface AddressSectionProps {
   cep: string;
@@ -61,11 +62,17 @@ const AddressSection = ({
           <h2 className="font-medium text-lg">Endereço de Entrega</h2>
         </div>
         
-        <div className="p-4 bg-gray-50 rounded flex items-center">
+        <div className="p-4 bg-gray-50 rounded mb-4 flex items-center">
           <FileDigit className="h-5 w-5 text-green-600 mr-2" />
           <p className="text-gray-700">
             Este é um produto digital. Não é necessário informar endereço de entrega.
           </p>
+        </div>
+        
+        {/* Novo componente de depoimentos para produtos digitais */}
+        <div className="mt-4">
+          <h3 className="font-medium text-lg mb-2">Depoimentos</h3>
+          <CustomerReviews />
         </div>
       </div>
     );
