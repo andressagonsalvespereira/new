@@ -89,11 +89,13 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           id: number
+          payment_id: string | null
           payment_method: string | null
           price: number
           product_id: number | null
           product_name: string
           qr_code: string | null
+          qr_code_image: string | null
           status: string | null
           updated_at: string | null
         }
@@ -108,11 +110,13 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           id?: number
+          payment_id?: string | null
           payment_method?: string | null
           price: number
           product_id?: number | null
           product_name: string
           qr_code?: string | null
+          qr_code_image?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -127,11 +131,13 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           id?: number
+          payment_id?: string | null
           payment_method?: string | null
           price?: number
           product_id?: number | null
           product_name?: string
           qr_code?: string | null
+          qr_code_image?: string | null
           status?: string | null
           updated_at?: string | null
         }
