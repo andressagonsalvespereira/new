@@ -20,6 +20,7 @@ const formSchema = z.object({
   button_color: z.string().min(1, "A cor do botão é obrigatória"),
   button_text_color: z.string().min(1, "A cor do texto do botão é obrigatória"),
   heading_color: z.string().min(1, "A cor dos títulos é obrigatória"),
+  button_text: z.string().min(1, "O texto do botão é obrigatório"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -36,6 +37,7 @@ const CheckoutCustomizationForm: React.FC = () => {
       button_color: customization?.button_color || '#3b82f6',
       button_text_color: customization?.button_text_color || '#ffffff',
       heading_color: customization?.heading_color || '#000000',
+      button_text: customization?.button_text || 'Finalizar Pagamento',
     },
   });
 
@@ -49,6 +51,7 @@ const CheckoutCustomizationForm: React.FC = () => {
         button_color: customization.button_color,
         button_text_color: customization.button_text_color,
         heading_color: customization.heading_color,
+        button_text: customization.button_text || 'Finalizar Pagamento',
       });
     }
   }, [customization, form]);
@@ -94,6 +97,23 @@ const CheckoutCustomizationForm: React.FC = () => {
                       </FormControl>
                       <FormDescription>
                         Esta mensagem será exibida no topo da página de checkout.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="button_text"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Texto dos Botões</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite o texto para os botões" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Este texto será exibido nos botões de finalização de compra.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -188,7 +208,7 @@ const CheckoutCustomizationForm: React.FC = () => {
                           color: form.watch('button_text_color')
                         }}
                       >
-                        Finalizar Compra
+                        {form.watch('button_text') || 'Finalizar Compra'}
                       </button>
                     </div>
                   </div>

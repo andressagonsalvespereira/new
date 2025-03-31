@@ -11,6 +11,7 @@ interface CheckoutCustomization {
   button_color: string;
   button_text_color: string;
   heading_color: string;
+  button_text: string; // Added button_text property
 }
 
 interface CheckoutCustomizationContextType {
@@ -57,6 +58,11 @@ export const CheckoutCustomizationProvider: React.FC<CheckoutCustomizationProvid
 
       if (fetchError) {
         throw fetchError;
+      }
+
+      // If button_text is not present in the data, set a default value
+      if (!data.button_text) {
+        data.button_text = 'Finalizar Pagamento';
       }
 
       setCustomization(data as CheckoutCustomization);
