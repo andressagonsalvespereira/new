@@ -1,95 +1,192 @@
 
 import { Product, CreateProductInput, UpdateProductInput } from '@/types/product';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 
-// Initial demo products
-export const initialProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Assinatura CineFlick Mensal',
-    price: 29.9,
-    description: 'Assinatura mensal do serviço de streaming CineFlick com acesso a mais de 500 filmes.',
-    imageUrl: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&q=80&w=200&h=200',
-    isDigital: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Curso de Fotografia Avançada',
-    price: 247.99,
-    description: 'Curso online completo de fotografia avançada com 60 horas de vídeo-aulas.',
-    imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=200&h=200',
-    isDigital: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+// Carrega produtos do Supabase
+export const loadProducts = async (): Promise<Product[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Erro ao carregar produtos:', error);
+      throw error;
+    }
+    
+    // Mapear os dados do banco para o formato da aplicação
+    return data.map(item => ({
+      id: item.id.toString(),
+      name: item.name,
+      price: Number(item.price),
+      description: item.description || undefined,
+      imageUrl: item.image_url || undefined,
+      isDigital: item.is_digital || false,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at
+    }));
+  } catch (error) {
+    console.error('Erro ao carregar produtos:', error);
+    // Se falhar, retorna um array vazio
+    return [];
   }
-];
+};
 
-// Load products from localStorage or use initial demo products
-export const loadProducts = (): Product[] => {
-  const savedProducts = localStorage.getItem('products');
-  if (savedProducts) {
-    return JSON.parse(savedProducts);
+// Salva produtos no Supabase - não é mais necessário, pois o Supabase já persiste os dados
+export const saveProducts = async (): Promise<void> => {
+  // Esta função não é mais necessária, pois o Supabase já salva os dados no banco
+  return;
+};
+
+// Cria um novo produto
+export const createProduct = async (productData: CreateProductInput): Promise<Product> => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        name: productData.name,
+        price: productData.price,
+        description: productData.description,
+        image_url: productData.imageUrl,
+        is_digital: productData.isDigital
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erro ao criar produto:', error);
+      throw error;
+    }
+    
+    return {
+      id: data.id.toString(),
+      name: data.name,
+      price: Number(data.price),
+      description: data.description || undefined,
+      imageUrl: data.image_url || undefined,
+      isDigital: data.is_digital || false,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  } catch (error) {
+    console.error('Erro ao criar produto:', error);
+    throw error;
   }
-  
-  // Use initial demo products if nothing in localStorage
-  localStorage.setItem('products', JSON.stringify(initialProducts));
-  return initialProducts;
 };
 
-// Save products to localStorage
-export const saveProducts = (products: Product[]): void => {
-  localStorage.setItem('products', JSON.stringify(products));
-};
-
-// Create a new product
-export const createProduct = (productData: CreateProductInput): Product => {
-  const newProduct: Product = {
-    id: uuidv4(),
-    ...productData,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-  
-  return newProduct;
-};
-
-// Update an existing product
-export const updateProductData = (
+// Atualiza um produto existente
+export const updateProductData = async (
   products: Product[], 
   productData: UpdateProductInput
-): { updatedProduct: Product; updatedProducts: Product[] } => {
-  const productIndex = products.findIndex(p => p.id === productData.id);
-  
-  if (productIndex === -1) {
-    throw new Error('Product not found');
+): Promise<{ updatedProduct: Product; updatedProducts: Product[] }> => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        name: productData.name,
+        price: productData.price,
+        description: productData.description,
+        image_url: productData.imageUrl,
+        is_digital: productData.isDigital
+      })
+      .eq('id', productData.id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erro ao atualizar produto:', error);
+      throw error;
+    }
+    
+    const updatedProduct: Product = {
+      id: data.id.toString(),
+      name: data.name,
+      price: Number(data.price),
+      description: data.description || undefined,
+      imageUrl: data.image_url || undefined,
+      isDigital: data.is_digital || false,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+    
+    // Atualiza o produto na lista local
+    const productIndex = products.findIndex(p => p.id === productData.id);
+    const updatedProducts = [...products];
+    if (productIndex >= 0) {
+      updatedProducts[productIndex] = updatedProduct;
+    }
+    
+    return { updatedProduct, updatedProducts };
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    throw error;
   }
-  
-  const updatedProduct: Product = {
-    ...products[productIndex],
-    ...productData,
-    updatedAt: new Date().toISOString()
-  };
-  
-  const updatedProducts = [...products];
-  updatedProducts[productIndex] = updatedProduct;
-  
-  return { updatedProduct, updatedProducts };
 };
 
-// Delete a product
-export const deleteProductData = (
+// Exclui um produto
+export const deleteProductData = async (
   products: Product[], 
   id: string
-): Product[] => {
-  return products.filter(product => product.id !== id);
+): Promise<Product[]> => {
+  try {
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao excluir produto:', error);
+      throw error;
+    }
+    
+    // Remove o produto da lista local
+    return products.filter(product => product.id !== id);
+  } catch (error) {
+    console.error('Erro ao excluir produto:', error);
+    throw error;
+  }
 };
 
-// Find a product by ID
-export const findProductById = (
+// Encontra um produto pelo ID
+export const findProductById = async (
   products: Product[], 
   id: string
-): Product | undefined => {
-  return products.find(product => product.id === id);
+): Promise<Product | undefined> => {
+  try {
+    // Primeiro verifica se o produto está na lista local
+    const localProduct = products.find(product => product.id === id);
+    if (localProduct) return localProduct;
+    
+    // Se não estiver na lista local, busca do Supabase
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Produto não encontrado
+        return undefined;
+      }
+      console.error('Erro ao buscar produto:', error);
+      throw error;
+    }
+    
+    return {
+      id: data.id.toString(),
+      name: data.name,
+      price: Number(data.price),
+      description: data.description || undefined,
+      imageUrl: data.image_url || undefined,
+      isDigital: data.is_digital || false,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  } catch (error) {
+    console.error('Erro ao buscar produto:', error);
+    return undefined;
+  }
 };

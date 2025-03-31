@@ -8,7 +8,6 @@ import {
 } from './product/productContextTypes';
 import { 
   loadProducts, 
-  saveProducts, 
   createProduct, 
   updateProductData, 
   deleteProductData, 
@@ -30,18 +29,15 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const loadedProducts = loadProducts();
+      const loadedProducts = await loadProducts();
       setProducts(loadedProducts);
       setLoading(false);
     } catch (err) {
       console.error('Error loading products:', err);
       setError('Failed to load products');
       toast({
-        title: "Error",
-        description: "Failed to load products",
+        title: "Erro",
+        description: "Falha ao carregar produtos",
         variant: "destructive",
       });
       setLoading(false);
@@ -50,26 +46,20 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const addProduct = async (productData: CreateProductInput): Promise<Product> => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newProduct = createProduct(productData);
-      const updatedProducts = [...products, newProduct];
-      
-      setProducts(updatedProducts);
-      saveProducts(updatedProducts);
+      const newProduct = await createProduct(productData);
+      setProducts(prev => [...prev, newProduct]);
       
       toast({
-        title: "Success",
-        description: "Product added successfully",
+        title: "Sucesso",
+        description: "Produto adicionado com sucesso",
       });
       
       return newProduct;
     } catch (err) {
       console.error('Error adding product:', err);
       toast({
-        title: "Error",
-        description: "Failed to add product",
+        title: "Erro",
+        description: "Falha ao adicionar produto",
         variant: "destructive",
       });
       throw err;
@@ -78,25 +68,21 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const updateProduct = async (productData: UpdateProductInput): Promise<Product> => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const { updatedProduct, updatedProducts } = updateProductData(products, productData);
+      const { updatedProduct, updatedProducts } = await updateProductData(products, productData);
       
       setProducts(updatedProducts);
-      saveProducts(updatedProducts);
       
       toast({
-        title: "Success",
-        description: "Product updated successfully",
+        title: "Sucesso",
+        description: "Produto atualizado com sucesso",
       });
       
       return updatedProduct;
     } catch (err) {
       console.error('Error updating product:', err);
       toast({
-        title: "Error",
-        description: "Failed to update product",
+        title: "Erro",
+        description: "Falha ao atualizar produto",
         variant: "destructive",
       });
       throw err;
@@ -105,31 +91,27 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const deleteProduct = async (id: string): Promise<boolean> => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const updatedProducts = deleteProductData(products, id);
+      const updatedProducts = await deleteProductData(products, id);
       setProducts(updatedProducts);
-      saveProducts(updatedProducts);
       
       toast({
-        title: "Success",
-        description: "Product deleted successfully",
+        title: "Sucesso",
+        description: "Produto excluído com sucesso",
       });
       
       return true;
     } catch (err) {
       console.error('Error deleting product:', err);
       toast({
-        title: "Error",
-        description: "Failed to delete product",
+        title: "Erro",
+        description: "Falha ao excluir produto",
         variant: "destructive",
       });
       return false;
     }
   };
 
-  const getProduct = (id: string): Product | undefined => {
+  const getProduct = async (id: string): Promise<Product | undefined> => {
     return findProductById(products, id);
   };
 

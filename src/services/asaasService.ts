@@ -1,7 +1,78 @@
-
 import axios from 'axios';
+import { supabase } from '@/integrations/supabase/client';
 
-// Type definitions for Asaas API requests and responses
+export interface AsaasSettings {
+  isEnabled: boolean;
+  apiKey: string;
+  allowPix: boolean;
+  allowCreditCard: boolean;
+  manualCreditCard: boolean;
+  sandboxMode: boolean;
+}
+
+const DEFAULT_SETTINGS: AsaasSettings = {
+  isEnabled: false,
+  apiKey: '',
+  allowPix: true,
+  allowCreditCard: true,
+  manualCreditCard: false,
+  sandboxMode: true
+};
+
+// Obtém as configurações do Asaas do Supabase
+export const getAsaasSettings = async (): Promise<AsaasSettings> => {
+  try {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('*')
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao obter configurações do Asaas:', error);
+      return DEFAULT_SETTINGS;
+    }
+    
+    return {
+      isEnabled: data.asaas_enabled || false,
+      apiKey: '', // A API key deve ser armazenada em uma variável de ambiente no backend
+      allowPix: data.allow_pix || true,
+      allowCreditCard: data.allow_credit_card || true,
+      manualCreditCard: data.manual_credit_card || false,
+      sandboxMode: data.sandbox_mode || true
+    };
+  } catch (error) {
+    console.error('Erro ao obter configurações do Asaas:', error);
+    return DEFAULT_SETTINGS;
+  }
+};
+
+// Salva as configurações do Asaas no Supabase
+export const saveAsaasSettings = async (settings: Partial<AsaasSettings>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('settings')
+      .update({
+        asaas_enabled: settings.isEnabled,
+        sandbox_mode: settings.sandboxMode,
+        allow_pix: settings.allowPix,
+        allow_credit_card: settings.allowCreditCard,
+        manual_credit_card: settings.manualCreditCard
+      })
+      .eq('id', 1);
+    
+    if (error) {
+      console.error('Erro ao salvar configurações do Asaas:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar configurações do Asaas:', error);
+    return false;
+  }
+};
+
 export interface AsaasCustomer {
   name: string;
   email: string;

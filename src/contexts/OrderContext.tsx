@@ -7,8 +7,7 @@ import {
   OrderProviderProps 
 } from './order/orderContextTypes';
 import { 
-  loadOrders, 
-  saveOrders, 
+  loadOrders,
   createOrder, 
   filterOrdersByPaymentMethod, 
   updateOrderStatusData 
@@ -29,10 +28,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const loadedOrders = loadOrders();
+      const loadedOrders = await loadOrders();
       setOrders(loadedOrders);
       setLoading(false);
     } catch (err) {
@@ -49,14 +45,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const addOrder = async (orderData: CreateOrderInput): Promise<Order> => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newOrder = createOrder(orderData);
-      const updatedOrders = [...orders, newOrder];
-      
-      setOrders(updatedOrders);
-      saveOrders(updatedOrders);
+      const newOrder = await createOrder(orderData);
+      setOrders(prev => [...prev, newOrder]);
       
       toast({
         title: "Sucesso",
@@ -84,13 +74,9 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     status: Order['paymentStatus']
   ): Promise<Order> => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const { updatedOrder, updatedOrders } = updateOrderStatusData(orders, id, status);
+      const { updatedOrder, updatedOrders } = await updateOrderStatusData(orders, id, status);
       
       setOrders(updatedOrders);
-      saveOrders(updatedOrders);
       
       toast({
         title: "Sucesso",

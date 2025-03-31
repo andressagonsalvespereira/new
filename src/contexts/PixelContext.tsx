@@ -29,22 +29,30 @@ export const PixelProvider: React.FC<PixelProviderProps> = ({ children }) => {
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [pixelSettings, setPixelSettings] = React.useState<PixelSettings | null>(null);
 
-  // Initialize pixels on first load
+  // Inicializa pixels no primeiro carregamento
   useEffect(() => {
-    const settings = getPixelSettings();
-    setPixelSettings(settings);
+    const fetchSettings = async () => {
+      try {
+        const settings = await getPixelSettings();
+        setPixelSettings(settings);
+        
+        // Verifica se temos configurações e se algum pixel está habilitado
+        if (settings && (
+          (settings.google.enabled && settings.google.tagId) || 
+          (settings.facebook.enabled && settings.facebook.pixelId)
+        )) {
+          await initializePixels();
+          setIsInitialized(true);
+        }
+      } catch (error) {
+        console.error('Erro ao inicializar pixels:', error);
+      }
+    };
     
-    // Check if we have settings and if any pixel is enabled
-    if (settings && (
-      (settings.google.enabled && settings.google.tagId) || 
-      (settings.facebook.enabled && settings.facebook.pixelId)
-    )) {
-      initializePixels();
-      setIsInitialized(true);
-    }
+    fetchSettings();
   }, []);
 
-  // Track page views when the location changes
+  // Rastreia visualizações de página quando a localização muda
   useEffect(() => {
     if (isInitialized) {
       trackPageView(location.pathname);

@@ -9,7 +9,182 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          created_at: string | null
+          credit_card_cvv: string | null
+          credit_card_expiry: string | null
+          credit_card_number: string | null
+          customer_cpf: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: number
+          payment_method: string | null
+          price: number
+          product_id: number | null
+          product_name: string
+          qr_code: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credit_card_cvv?: string | null
+          credit_card_expiry?: string | null
+          credit_card_number?: string | null
+          customer_cpf: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: number
+          payment_method?: string | null
+          price: number
+          product_id?: number | null
+          product_name: string
+          qr_code?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credit_card_cvv?: string | null
+          credit_card_expiry?: string | null
+          credit_card_number?: string | null
+          customer_cpf?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: number
+          payment_method?: string | null
+          price?: number
+          product_id?: number | null
+          product_name?: string
+          qr_code?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pixel_settings: {
+        Row: {
+          created_at: string | null
+          google_page_view: boolean | null
+          google_pixel_enabled: boolean | null
+          google_pixel_id: string | null
+          google_purchase: boolean | null
+          id: number
+          meta_add_to_cart: boolean | null
+          meta_page_view: boolean | null
+          meta_pixel_enabled: boolean | null
+          meta_pixel_id: string | null
+          meta_purchase: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          google_page_view?: boolean | null
+          google_pixel_enabled?: boolean | null
+          google_pixel_id?: string | null
+          google_purchase?: boolean | null
+          id?: number
+          meta_add_to_cart?: boolean | null
+          meta_page_view?: boolean | null
+          meta_pixel_enabled?: boolean | null
+          meta_pixel_id?: string | null
+          meta_purchase?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          google_page_view?: boolean | null
+          google_pixel_enabled?: boolean | null
+          google_pixel_id?: string | null
+          google_purchase?: boolean | null
+          id?: number
+          meta_add_to_cart?: boolean | null
+          meta_page_view?: boolean | null
+          meta_pixel_enabled?: boolean | null
+          meta_pixel_id?: string | null
+          meta_purchase?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          image_url: string | null
+          is_digital: boolean | null
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          image_url?: string | null
+          is_digital?: boolean | null
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          image_url?: string | null
+          is_digital?: boolean | null
+          name?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          allow_credit_card: boolean | null
+          allow_pix: boolean | null
+          asaas_enabled: boolean | null
+          created_at: string | null
+          id: number
+          manual_credit_card: boolean | null
+          sandbox_mode: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_credit_card?: boolean | null
+          allow_pix?: boolean | null
+          asaas_enabled?: boolean | null
+          created_at?: string | null
+          id?: number
+          manual_credit_card?: boolean | null
+          sandbox_mode?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_credit_card?: boolean | null
+          allow_pix?: boolean | null
+          asaas_enabled?: boolean | null
+          created_at?: string | null
+          id?: number
+          manual_credit_card?: boolean | null
+          sandbox_mode?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
