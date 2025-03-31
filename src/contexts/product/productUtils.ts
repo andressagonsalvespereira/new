@@ -1,6 +1,5 @@
 
 import { Product, CreateProductInput, UpdateProductInput } from '@/types/product';
-import { ToastOptions } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 
 // Initial demo products
