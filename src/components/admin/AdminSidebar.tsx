@@ -68,12 +68,6 @@ const AdminSidebar: React.FC = () => {
           isActive={isActive('/admin/dashboard')}
         />
         <SidebarItem 
-          icon={CreditCard} 
-          label="Configurações do Asaas" 
-          href="/admin/asaas-settings" 
-          isActive={isActive('/admin/asaas-settings')}
-        />
-        <SidebarItem 
           icon={Settings} 
           label="Configurações de Pagamento" 
           href="/admin/settings/payment" 

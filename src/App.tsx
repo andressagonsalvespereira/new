@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
@@ -19,7 +19,6 @@ import AdminDashboard from './pages/admin/Dashboard';
 import Orders from './pages/admin/Orders';
 import PaymentSettings from './pages/admin/PaymentSettings';
 import PixelSettings from './pages/admin/PixelSettings';
-import AsaasSettings from './pages/admin/AsaasSettings';
 import Checkout from './pages/Checkout';
 import QuickCheckout from './pages/QuickCheckout';
 import PaymentFailed from './pages/PaymentFailed';
@@ -49,7 +48,8 @@ function App() {
                   <Route path="/admin/orders" element={<Orders />} />
                   <Route path="/admin/settings/payment" element={<PaymentSettings />} />
                   <Route path="/admin/pixel-settings" element={<PixelSettings />} />
-                  <Route path="/admin/asaas-settings" element={<AsaasSettings />} />
+                  {/* Redirect old Asaas settings page to the new consolidated payment settings */}
+                  <Route path="/admin/asaas-settings" element={<Navigate to="/admin/settings/payment" replace />} />
                   <Route path="/admin/payments" element={<Payments />} />
                   
                   {/* Checkout Routes */}

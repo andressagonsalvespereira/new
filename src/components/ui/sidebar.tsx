@@ -67,7 +67,6 @@ export const Sidebar = () => {
           </p>
           <div className="space-y-1">
             <SidebarItem icon={DollarSign} label="Configurações de Pagamento" href="/admin/settings/payment" />
-            <SidebarItem icon={CreditCard} label="Configurações do Asaas" href="/admin/asaas-settings" />
             <SidebarItem icon={Tag} label="Configurações de Pixel" href="/admin/pixel-settings" />
             <SidebarItem icon={Settings} label="Configurações Gerais" href="/settings" />
           </div>
