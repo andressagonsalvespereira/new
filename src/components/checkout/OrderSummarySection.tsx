@@ -1,13 +1,10 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, ShoppingCart, Loader2 } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
 interface OrderSummarySectionProps {
   productDetails: ProductDetailsType;
-  handlePayment: () => void;
-  isProcessing: boolean;
 }
 
 interface ProductDetailsType {
@@ -18,7 +15,7 @@ interface ProductDetailsType {
   isDigital: boolean;
 }
 
-const OrderSummarySection = ({ productDetails, handlePayment, isProcessing }: OrderSummarySectionProps) => {
+const OrderSummarySection = ({ productDetails }: OrderSummarySectionProps) => {
   const shipping = productDetails.isDigital ? 0 : 10;
   const subtotal = productDetails.price;
   const total = subtotal + shipping;
@@ -64,24 +61,6 @@ const OrderSummarySection = ({ productDetails, handlePayment, isProcessing }: Or
           </div>
         </CardContent>
       </Card>
-      
-      <Button 
-        onClick={handlePayment}
-        disabled={isProcessing}
-        className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Processando...
-          </>
-        ) : (
-          <>
-            Finalizar Compra
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </>
-        )}
-      </Button>
       
       <div className="flex items-center justify-center mt-4 text-xs text-gray-500">
         <ShoppingCart className="h-3 w-3 mr-1" />

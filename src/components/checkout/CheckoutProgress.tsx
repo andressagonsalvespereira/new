@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PersonalInfoSection from '@/components/checkout/PersonalInfoSection';
 import AddressSection from '@/components/checkout/AddressSection';
@@ -85,6 +86,9 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
       };
 
       await addOrder(orderData);
+      
+      // Execute finalização da compra após processar o pagamento
+      handlePayment();
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
     }
@@ -149,12 +153,11 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         createOrder={createOrder}
         productDetails={productDetails}
         customerData={customerData}
+        isProcessing={isProcessing}
       />
       
       <OrderSummarySection 
         productDetails={productDetails}
-        handlePayment={handlePayment}
-        isProcessing={isProcessing}
       />
     </>
   );

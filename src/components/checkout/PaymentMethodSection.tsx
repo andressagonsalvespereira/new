@@ -32,6 +32,7 @@ interface PaymentMethodSectionProps {
   ) => Promise<void>;
   productDetails?: ProductDetailsType;
   customerData?: any;
+  isProcessing?: boolean;
 }
 
 const PaymentMethodSection = ({ 
@@ -39,7 +40,8 @@ const PaymentMethodSection = ({
   setPaymentMethod,
   createOrder,
   productDetails,
-  customerData
+  customerData,
+  isProcessing = false
 }: PaymentMethodSectionProps) => {
   const navigate = useNavigate();
   const { settings, loading } = useAsaas();
@@ -147,7 +149,10 @@ const PaymentMethodSection = ({
         )}
         
         {paymentMethod === 'pix' && !showPixPayment && (
-          <SimplifiedPixOption onSubmit={handlePixOptionClick} />
+          <SimplifiedPixOption 
+            onSubmit={handlePixOptionClick} 
+            isProcessing={isProcessing}
+          />
         )}
         
         {paymentMethod === 'pix' && showPixPayment && (
@@ -184,7 +189,10 @@ const PaymentMethodSection = ({
         )}
         
         {settings.allowPix && paymentMethod === 'pix' && !showPixPayment && (
-          <SimplifiedPixOption onSubmit={handlePixOptionClick} />
+          <SimplifiedPixOption 
+            onSubmit={handlePixOptionClick} 
+            isProcessing={isProcessing}
+          />
         )}
         
         {settings.allowPix && paymentMethod === 'pix' && showPixPayment && (
