@@ -7,6 +7,7 @@ import {
   ProductProviderProps 
 } from '@/contexts/product/productContextTypes';
 import { supabase } from '@/integrations/supabase/client';
+import { loadProducts as loadLocalProducts, createProduct as createLocalProduct } from '@/contexts/product/productUtils';
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
@@ -15,6 +16,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -22,14 +24,17 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const fetchProducts = async () => {
     setLoading(true);
+    setError(null);
     try {
       // Get products from Supabase
-      const { data, error } = await supabase
+      const { data, error: apiError } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (apiError) {
+        throw apiError;
+      }
       
       // Map database format to our Product type
       const formattedProducts: Product[] = data.map(item => ({
@@ -43,20 +48,49 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       
       setProducts(formattedProducts);
       setLoading(false);
+      setNetworkError(false);
     } catch (err) {
       console.error('Error loading products:', err);
       setError('Failed to load products');
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar produtos",
-        variant: "destructive",
-      });
+      
+      // If we have a network error, try to load from local storage as fallback
+      try {
+        const localProducts = loadLocalProducts();
+        setProducts(localProducts);
+        setNetworkError(true);
+        toast({
+          title: "Modo offline",
+          description: "Carregando produtos do armazenamento local devido a falha de conexão",
+          variant: "destructive",
+        });
+      } catch (localErr) {
+        console.error('Error loading local products:', localErr);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar produtos, verifique sua conexão",
+          variant: "destructive",
+        });
+      }
+      
       setLoading(false);
     }
   };
 
   const addProduct = async (productData: CreateProductInput): Promise<Product> => {
     try {
+      if (networkError) {
+        // If we're offline, create product locally
+        const newProduct = createLocalProduct(productData);
+        setProducts(prev => [newProduct, ...prev]);
+        
+        toast({
+          title: "Produto adicionado localmente",
+          description: "Produto será sincronizado quando a conexão for restaurada",
+        });
+        
+        return newProduct;
+      }
+      
       // Transform our product data to match database schema
       const dbProductData = {
         name: productData.name,
@@ -106,6 +140,30 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const editProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
     try {
+      if (networkError) {
+        // Handle offline editing
+        const existingProductIndex = products.findIndex(p => p.id === id);
+        if (existingProductIndex === -1) {
+          throw new Error(`Produto com ID ${id} não encontrado`);
+        }
+        
+        const updatedProduct = {
+          ...products[existingProductIndex],
+          ...productData,
+        };
+        
+        const newProducts = [...products];
+        newProducts[existingProductIndex] = updatedProduct;
+        setProducts(newProducts);
+        
+        toast({
+          title: "Produto atualizado localmente",
+          description: "As alterações serão sincronizadas quando a conexão for restaurada",
+        });
+        
+        return updatedProduct;
+      }
+      
       // Transform our product data to match database schema
       const dbProductData: any = {};
       
@@ -160,6 +218,17 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const removeProduct = async (id: string): Promise<void> => {
     try {
+      if (networkError) {
+        // Handle offline deletion
+        setProducts(prev => prev.filter(prod => prod.id !== id));
+        
+        toast({
+          title: "Produto removido localmente",
+          description: "A remoção será sincronizada quando a conexão for restaurada",
+        });
+        return;
+      }
+      
       // Delete product from Supabase
       const { error } = await supabase
         .from('products')
@@ -187,6 +256,15 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const getProductById = async (id: string): Promise<Product | undefined> => {
     try {
+      if (networkError) {
+        // Handle offline product lookup
+        const product = products.find(p => p.id === id);
+        if (!product) {
+          throw new Error(`Produto com ID ${id} não encontrado`);
+        }
+        return product;
+      }
+      
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -207,6 +285,12 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       };
     } catch (err) {
       console.error('Error getting product by ID:', err);
+      const cachedProduct = products.find(p => p.id === id);
+      if (cachedProduct) {
+        console.log('Returning cached product:', cachedProduct);
+        return cachedProduct;
+      }
+      
       toast({
         title: "Erro",
         description: "Falha ao buscar produto",
@@ -214,6 +298,12 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       });
       throw err;
     }
+  };
+
+  // Add a retry mechanism
+  const retryFetchProducts = () => {
+    setNetworkError(false);
+    fetchProducts();
   };
 
   return (
@@ -227,7 +317,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       getProductById,
       refreshProducts: fetchProducts,
       updateProduct: editProduct,
-      deleteProduct: removeProduct
+      deleteProduct: removeProduct,
+      retryFetchProducts,
+      isOffline: networkError
     }}>
       {children}
     </ProductContext.Provider>

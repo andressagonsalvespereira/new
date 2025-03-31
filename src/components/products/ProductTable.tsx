@@ -9,9 +9,10 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Copy, ExternalLink } from 'lucide-react';
+import { Edit, Trash2, Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
+import { useProducts } from '@/contexts/ProductContext';
 
 interface ProductTableProps {
   products: Product[];
@@ -23,6 +24,7 @@ interface ProductTableProps {
 
 const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTableProps) => {
   const { toast } = useToast();
+  const { retryFetchProducts, isOffline } = useProducts();
   
   const copyCheckoutLink = (productId: string) => {
     const baseUrl = window.location.origin;
@@ -52,19 +54,59 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
   };
 
   if (loading) {
-    return <p className="text-center py-4">Carregando produtos...</p>;
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent animate-spin"></div>
+          <p className="text-center text-gray-500">Carregando produtos...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <p className="text-center py-4 text-red-600">Erro ao carregar produtos: {error}</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="bg-red-50 p-6 rounded-lg max-w-md mx-auto">
+          <p className="text-red-600 font-medium mb-4">Erro ao carregar produtos: {error}</p>
+          <p className="text-gray-600 mb-4">Verifique sua conexão com a internet e tente novamente.</p>
+          <Button 
+            variant="default" 
+            onClick={retryFetchProducts}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Tentar novamente
+          </Button>
+          {isOffline && (
+            <p className="mt-4 text-sm text-amber-600">
+              Modo offline ativo. Alguns produtos podem estar indisponíveis ou desatualizados.
+            </p>
+          )}
+        </div>
+      </div>
+    );
   }
 
   if (products.length === 0) {
-    return <p className="text-center py-4 text-gray-500">Nenhum produto cadastrado</p>;
+    return (
+      <div className="text-center py-10 bg-gray-50 rounded-lg">
+        <p className="text-gray-500 mb-4">Nenhum produto cadastrado</p>
+        <p className="text-sm text-gray-400">Clique em "Adicionar Produto" para começar</p>
+      </div>
+    );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-md border">
+      {isOffline && (
+        <div className="bg-amber-50 p-3 border-b text-sm text-amber-800">
+          <p className="flex items-center">
+            <span className="inline-block h-2 w-2 rounded-full bg-amber-500 mr-2"></span>
+            Modo offline: Os dados podem estar desatualizados. Alterações serão salvas localmente.
+          </p>
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -90,6 +132,9 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                       alt={product.name} 
                       className="h-full w-full object-cover"
                       loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                 ) : (

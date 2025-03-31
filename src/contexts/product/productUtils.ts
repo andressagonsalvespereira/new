@@ -2,17 +2,36 @@
 import { Product, CreateProductInput } from '@/types/product';
 import { v4 as uuidv4 } from 'uuid';
 
-// Simulação de uma lista de produtos em memória
-let productsInMemory: Product[] = [];
+// Local storage key for products
+const LOCAL_STORAGE_KEY = 'cached_products';
 
-export const loadProducts = async (): Promise<Product[]> => {
-  // Em um ambiente real, isso buscaria produtos do banco de dados
-  return productsInMemory;
+// Load products from local storage
+export const loadProducts = (): Product[] => {
+  try {
+    const productsJson = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!productsJson) {
+      return [];
+    }
+    return JSON.parse(productsJson);
+  } catch (error) {
+    console.error('Error loading products from local storage:', error);
+    return [];
+  }
 };
 
+// Save products to local storage
+export const saveProducts = (products: Product[]): void => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(products));
+  } catch (error) {
+    console.error('Error saving products to local storage:', error);
+  }
+};
+
+// Create a product (local version)
 export const createProduct = (data: CreateProductInput): Product => {
   const newProduct = {
-    id: uuidv4(),
+    id: `local_${uuidv4()}`,
     name: data.name,
     description: data.description,
     price: data.price,
@@ -20,8 +39,10 @@ export const createProduct = (data: CreateProductInput): Product => {
     isDigital: data.isDigital
   };
   
-  // Adicionar à lista em memória
-  productsInMemory.push(newProduct);
+  // Add to local storage
+  const products = loadProducts();
+  products.unshift(newProduct);
+  saveProducts(products);
   
   return newProduct;
 };
@@ -37,49 +58,41 @@ export const updateExistingProduct = (product: Product, data: CreateProductInput
   };
 };
 
-export const updateProduct = async (id: string, data: Partial<Product>): Promise<Product> => {
-  // Buscar o produto existente
-  const existingProduct = productsInMemory.find(p => p.id === id);
+// Update product locally
+export const updateProduct = (id: string, data: Partial<Product>): Product | undefined => {
+  const products = loadProducts();
+  const productIndex = products.findIndex(p => p.id === id);
   
-  if (!existingProduct) {
-    throw new Error(`Produto com ID ${id} não encontrado`);
+  if (productIndex === -1) {
+    return undefined;
   }
   
-  // Atualizar o produto
   const updatedProduct = {
-    ...existingProduct,
+    ...products[productIndex],
     ...data,
-    // Garantir que campos numéricos sejam tratados corretamente
-    price: data.price !== undefined ? data.price : existingProduct.price,
   };
   
-  // Atualizar na lista em memória
-  productsInMemory = productsInMemory.map(p => 
-    p.id === id ? updatedProduct : p
-  );
+  products[productIndex] = updatedProduct;
+  saveProducts(products);
   
   return updatedProduct;
 };
 
-export const deleteProduct = async (id: string): Promise<void> => {
-  // Verificar se o produto existe
-  const productExists = productsInMemory.some(p => p.id === id);
+// Delete product locally
+export const deleteProduct = (id: string): boolean => {
+  const products = loadProducts();
+  const newProducts = products.filter(p => p.id !== id);
   
-  if (!productExists) {
-    throw new Error(`Produto com ID ${id} não encontrado`);
+  if (newProducts.length === products.length) {
+    return false;
   }
   
-  // Remover da lista em memória
-  productsInMemory = productsInMemory.filter(p => p.id !== id);
+  saveProducts(newProducts);
+  return true;
 };
 
-export const getProductById = async (id: string): Promise<Product | undefined> => {
-  // Buscar produto por ID
-  const product = productsInMemory.find(p => p.id === id);
-  
-  if (!product) {
-    return undefined;
-  }
-  
-  return product;
+// Get product by ID locally
+export const getProductById = (id: string): Product | undefined => {
+  const products = loadProducts();
+  return products.find(p => p.id === id);
 };

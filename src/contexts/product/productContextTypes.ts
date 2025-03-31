@@ -13,6 +13,8 @@ export interface ProductContextType {
   refreshProducts: () => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<Product>;
   deleteProduct: (id: string) => Promise<void>;
+  retryFetchProducts: () => void;
+  isOffline: boolean;
 }
 
 export interface ProductProviderProps {
