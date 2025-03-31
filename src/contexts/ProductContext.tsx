@@ -24,6 +24,7 @@ const initialProducts: Product[] = [
     price: 29.9,
     description: 'Assinatura mensal do serviço de streaming CineFlick com acesso a mais de 500 filmes.',
     imageUrl: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&q=80&w=200&h=200',
+    isDigital: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -33,6 +34,7 @@ const initialProducts: Product[] = [
     price: 247.99,
     description: 'Curso online completo de fotografia avançada com 60 horas de vídeo-aulas.',
     imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=200&h=200',
+    isDigital: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }

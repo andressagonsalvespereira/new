@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useProducts } from '@/contexts/ProductContext';
 import { CreateProductInput, Product, UpdateProductInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +25,7 @@ const Products = () => {
     price: 0,
     description: '',
     imageUrl: '',
+    isDigital: false,
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -32,6 +34,13 @@ const Products = () => {
     setFormData(prev => ({
       ...prev,
       [name]: name === 'price' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  const handleSwitchChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      isDigital: checked
     }));
   };
 
@@ -52,6 +61,7 @@ const Products = () => {
         price: 0,
         description: '',
         imageUrl: '',
+        isDigital: false,
       });
       setIsAddDialogOpen(false);
     } catch (error) {
@@ -66,6 +76,7 @@ const Products = () => {
       price: product.price,
       description: product.description || '',
       imageUrl: product.imageUrl || '',
+      isDigital: product.isDigital,
     });
     setIsEditDialogOpen(true);
   };
@@ -192,6 +203,19 @@ const Products = () => {
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="isDigital" className="text-right">Digital Product</Label>
+                  <div className="flex items-center space-x-2 col-span-3">
+                    <Switch
+                      id="isDigital"
+                      checked={formData.isDigital}
+                      onCheckedChange={handleSwitchChange}
+                    />
+                    <Label htmlFor="isDigital" className="cursor-pointer">
+                      {formData.isDigital ? "Digital Product" : "Physical Product"}
+                    </Label>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
@@ -212,6 +236,7 @@ const Products = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead className="hidden md:table-cell">Description</TableHead>
+                  <TableHead className="hidden md:table-cell">Type</TableHead>
                   <TableHead className="hidden md:table-cell">Image</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -223,6 +248,9 @@ const Products = () => {
                     <TableCell>{formatCurrency(product.price)}</TableCell>
                     <TableCell className="hidden md:table-cell max-w-xs truncate">
                       {product.description || '-'}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {product.isDigital ? "Digital" : "Physical"}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {product.imageUrl ? (
@@ -292,7 +320,7 @@ const Products = () => {
                 ))}
                 {products.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                       No products found. Add your first product to get started.
                     </TableCell>
                   </TableRow>
@@ -355,6 +383,19 @@ const Products = () => {
                 className="col-span-3"
                 placeholder="https://example.com/image.jpg"
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-isDigital" className="text-right">Digital Product</Label>
+              <div className="flex items-center space-x-2 col-span-3">
+                <Switch
+                  id="edit-isDigital"
+                  checked={formData.isDigital}
+                  onCheckedChange={handleSwitchChange}
+                />
+                <Label htmlFor="edit-isDigital" className="cursor-pointer">
+                  {formData.isDigital ? "Digital Product" : "Physical Product"}
+                </Label>
+              </div>
             </div>
           </div>
           <DialogFooter>
