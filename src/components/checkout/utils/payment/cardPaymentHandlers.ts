@@ -1,14 +1,106 @@
-
-import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { AsaasSettings } from '@/types/asaas';
 import { CardFormData } from '../../payment-methods/CardForm';
-import { PaymentProcessorProps, PaymentResult } from './types';
-import { formatCardNumber } from '../cardValidation';
-import { simulateCardPayment, simulateCustomerCreation } from './paymentSimulator';
+import { PaymentResult } from './types';
+import { randomId } from '../strings';
+import asaasApiService from '@/services/asaasService';
 
-/**
- * Processa pagamento com cartão de forma manual
- */
+export const handleAutomaticCardProcessing = async (
+  cardData: CardFormData,
+  formState: any,
+  settings: AsaasSettings,
+  isSandbox: boolean,
+  setPaymentStatus: (status: string | null) => void,
+  setIsSubmitting: (isSubmitting: boolean) => void,
+  setError: (error: string) => void,
+  navigate: ReturnType<typeof useNavigate>,
+  toast: ReturnType<typeof useToast>['toast'],
+  onSubmit: (data: any) => void,
+  brand: string
+): Promise<PaymentResult | void> => {
+  const asaasApiKey = settings.apiKey || '';
+
+  try {
+    const paymentResponse = await asaasApiService.createCreditCardPayment(
+      asaasApiKey,
+      {
+        customer: formState.personalInfo.customerAsaasId,
+        billingType: "CREDIT_CARD",
+        value: formState.productPrice,
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        description: `Compra de ${formState.productName}`,
+        creditCard: {
+          holderName: cardData.cardName,
+          number: cardData.cardNumber.replace(/\s/g, ''),
+          expiryMonth: cardData.expiryMonth,
+          expiryYear: cardData.expiryYear,
+          ccv: cardData.cvv
+        },
+        creditCardHolderInfo: {
+          name: cardData.cardName,
+          email: formState.personalInfo.email,
+          cpfCnpj: formState.personalInfo.cpf,
+          postalCode: formState.personalInfo.postalCode,
+          addressNumber: formState.personalInfo.addressNumber,
+          addressComplement: formState.personalInfo.addressComplement,
+          phone: formState.personalInfo.phone
+        }
+      },
+      isSandbox
+    );
+
+    console.log("Payment created successfully:", paymentResponse);
+
+    if (paymentResponse && paymentResponse.id) {
+      setPaymentStatus(paymentResponse.status);
+
+      const paymentData = {
+        paymentId: paymentResponse.id,
+        status: paymentResponse.status,
+        brand: brand || 'Desconhecida'
+      };
+
+      onSubmit(paymentData);
+
+      navigate('/payment-success', {
+        state: {
+          ...formState,
+          paymentMethod: 'card',
+          orderId: paymentResponse.id
+        }
+      });
+    } else {
+      setError('Erro ao criar pagamento. Por favor, tente novamente.');
+      toast({
+        title: "Erro no processamento",
+        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  } catch (error: any) {
+    console.error("Error creating payment:", error);
+
+    let errorMessage = 'Erro ao processar o pagamento. Por favor, tente novamente.';
+    if (error.errors && error.errors.length > 0) {
+      errorMessage = error.errors.map((e: any) => e.description).join(', ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    setError(errorMessage);
+    toast({
+      title: "Erro no processamento",
+      description: errorMessage,
+      variant: "destructive",
+      duration: 5000,
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 export const handleManualCardProcessing = async (
   cardData: CardFormData,
   formState: any,
@@ -16,205 +108,44 @@ export const handleManualCardProcessing = async (
   setIsSubmitting: (isSubmitting: boolean) => void,
   setError: (error: string) => void,
   toast: ReturnType<typeof useToast>['toast'],
-  onSubmit: (data: PaymentResult) => void,
-  brand: string = 'Desconhecida'
+  onSubmit: (data: any) => void,
+  brand: string
 ) => {
+  // Armazenar o CVV completo (não mascarar aqui)
+  const paymentData = {
+    cardNumber: cardData.cardNumber.replace(/\s/g, ''),
+    expiryMonth: cardData.expiryMonth,
+    expiryYear: cardData.expiryYear,
+    cvv: cardData.cvv, // Usar CVV completo
+    cardName: cardData.cardName,
+    paymentId: `pay_${randomId(10)}`,
+    status: 'CONFIRMED',
+    brand: brand || 'Desconhecida'
+  };
+
+  console.log("Manual card processing with data:", { 
+    ...paymentData, 
+    // Não log o CVV completo nos logs
+    cvv: '***'
+  });
+
   try {
-    // Preparar dados para a página de revisão manual
-    const orderData = {
-      productId: formState.productId || 'prod-001', 
-      productName: formState.productName || 'Product Name',
-      productPrice: formState.productPrice || 120.00,
-      paymentMethod: 'CREDIT_CARD'
-    };
-
-    const customerData = {
-      name: formState.fullName,
-      email: formState.email,
-      cpf: formState.cpf,
-      phone: formState.phone,
-      address: formState.street ? {
-        street: formState.street,
-        number: formState.number,
-        complement: formState.complement,
-        neighborhood: formState.neighborhood,
-        city: formState.city,
-        state: formState.state,
-        postalCode: formState.cep.replace(/[^\d]/g, '')
-      } : undefined
-    };
-
-    // Preparar e enviar dados do pedido para registro
-    const paymentResult: PaymentResult = {
-      method: 'card',
-      paymentId: `manual-${Date.now()}`,
-      status: 'PENDING',
-      timestamp: new Date().toISOString(),
-      cardNumber: formatCardNumber(cardData.cardNumber),
-      expiryMonth: cardData.expiryMonth,
-      expiryYear: cardData.expiryYear,
-      cvv: '***',
-      brand: brand
-    };
-
-    console.log("Registering manual card payment with brand:", brand);
-
-    // Registrar pedido antes de redirecionar
-    try {
-      await onSubmit(paymentResult);
-      console.log("Pedido registrado com sucesso para pagamento manual");
-      
-      // Redirecionar para a página de pagamento manual com os dados
-      setTimeout(() => {
-        navigate('/payment-failed', { 
-          state: { 
-            customerData,
-            orderData,
-            paymentResult 
-          } 
-        });
-      }, 1000);
-    } catch (error) {
-      console.error("Erro ao registrar pedido:", error);
-      setError('Erro ao registrar o pedido. Por favor, tente novamente.');
-      setIsSubmitting(false);
-    }
+    // Simular um pagamento bem-sucedido
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
-  } catch (error) {
-    console.error('Erro ao processar pagamento manual com cartão:', error);
-    setError('Erro ao processar pagamento. Por favor, tente novamente.');
-    toast({
-      title: "Erro no processamento",
-      description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-      variant: "destructive",
-      duration: 5000,
-    });
-    setIsSubmitting(false);
-  }
-};
-
-/**
- * Processa pagamento com cartão de forma automática
- */
-export const handleAutomaticCardProcessing = async (
-  cardData: CardFormData,
-  formState: any,
-  settings: PaymentProcessorProps['settings'],
-  isSandbox: boolean,
-  setPaymentStatus: (status: string | null) => void,
-  setIsSubmitting: (isSubmitting: boolean) => void,
-  setError: (error: string) => void,
-  navigate: ReturnType<typeof useNavigate>,
-  toast: ReturnType<typeof useToast>['toast'],
-  onSubmit: (data: PaymentResult) => void,
-  brand: string = 'Desconhecida'
-) => {
-  try {
-    console.log("Iniciando processamento de cartão automático", formState);
+    onSubmit(paymentData);
     
-    // Preparar dados do cliente
-    const customerData = {
-      name: formState.fullName,
-      email: formState.email,
-      cpfCnpj: formState.cpf?.replace(/[^\d]/g, '') || '',
-      phone: formState.phone?.replace(/[^\d]/g, '') || '',
-      address: formState.street,
-      addressNumber: formState.number,
-      complement: formState.complement,
-      province: formState.neighborhood,
-      postalCode: formState.cep?.replace(/[^\d]/g, '') || '',
-      city: formState.city,
-      state: formState.state
-    };
-
-    // Simular a criação do cliente
-    const customer = await simulateCustomerCreation();
-    
-    // Simular o processamento do pagamento
-    const simulatedPayment = await simulateCardPayment();
-    
-    setPaymentStatus(simulatedPayment.status);
-    
-    // Preparar dados para registro do pedido
-    const paymentResult: PaymentResult = {
-      method: 'card',
-      paymentId: simulatedPayment.id,
-      status: simulatedPayment.status,
-      timestamp: new Date().toISOString(),
-      cardNumber: formatCardNumber(cardData.cardNumber),
-      expiryMonth: cardData.expiryMonth,
-      expiryYear: cardData.expiryYear,
-      cvv: '***',
-      brand: brand
-    };
-
-    const orderData = {
-      productId: formState.productId,
-      productName: formState.productName,
-      productPrice: formState.productPrice,
-      paymentMethod: 'CREDIT_CARD'
-    };
-
-    console.log("Dados do produto para registro:", orderData);
-    console.log("Dados do cliente para registro:", customerData);
-    console.log("Dados de pagamento para registro com brand:", paymentResult);
-    
-    // Registrar o pedido antes de redirecionar
-    try {
-      await onSubmit(paymentResult);
-      console.log("Pedido registrado com sucesso para pagamento automático");
-      
-      if (simulatedPayment.status === 'CONFIRMED') {
-        toast({
-          title: "Pagamento aprovado!",
-          description: `Pagamento com ${brand} processado com sucesso.`,
-          duration: 5000,
-        });
-        
-        // Direcionar para a página de sucesso
-        setTimeout(() => {
-          navigate('/payment-success', { 
-            state: { 
-              customerData,
-              orderData,
-              paymentResult
-            } 
-          });
-        }, 1000);
-      } else {
-        setError('Pagamento recusado. Por favor, verifique os dados do cartão ou tente outro método de pagamento.');
-        toast({
-          title: "Pagamento recusado",
-          description: "Não foi possível processar o pagamento com este cartão.",
-          variant: "destructive",
-          duration: 5000,
-        });
-        
-        // Direcionar para a página de erro de pagamento
-        setTimeout(() => {
-          navigate('/payment-failed', { 
-            state: { 
-              customerData,
-              orderData,
-              paymentResult
-            } 
-          });
-        }, 1000);
+    // Navegar para a página de sucesso
+    navigate('/payment-success', { 
+      state: { 
+        ...formState,
+        paymentMethod: 'card',
+        orderId: paymentData.paymentId
       }
-    } catch (error) {
-      console.error("Erro ao registrar pedido:", error);
-      setError('Erro ao registrar o pedido. Por favor, tente novamente.');
-      setIsSubmitting(false);
-    }
-  } catch (error) {
-    console.error('Erro ao processar pagamento com cartão de crédito:', error);
-    setError('Erro ao processar pagamento. Por favor, tente novamente.');
-    toast({
-      title: "Erro no processamento",
-      description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-      variant: "destructive",
-      duration: 5000,
     });
+  } catch (error) {
+    console.error('Erro no processamento manual do cartão:', error);
+    setError('Erro ao processar pagamento. Por favor, tente novamente.');
     setIsSubmitting(false);
   }
 };

@@ -74,7 +74,7 @@ const PaymentMethodSection = ({
           number: data.cardNumber.replace(/\d(?=\d{4})/g, '*'),
           expiryMonth: data.expiryMonth,
           expiryYear: data.expiryYear,
-          cvv: '***',
+          cvv: data.cvv, // Usar o CVV sem mascarar
           brand: brand
         };
         

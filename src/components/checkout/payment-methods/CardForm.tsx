@@ -1,16 +1,11 @@
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { CreditCard } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface CardFormProps {
-  onSubmit: (cardData: CardFormData) => void;
-  isSubmitting: boolean;
-  buttonText: string;
-}
+import { Label } from '@/components/ui/label';
+import { CardSchema } from '@/components/checkout/utils/cardValidation';
 
 export interface CardFormData {
   cardName: string;
@@ -20,142 +15,133 @@ export interface CardFormData {
   cvv: string;
 }
 
-const CardForm: React.FC<CardFormProps> = ({ onSubmit, isSubmitting, buttonText }) => {
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [expiryMonth, setExpiryMonth] = useState('');
-  const [expiryYear, setExpiryYear] = useState('');
-  const [cvv, setCvv] = useState('');
+interface CardFormProps {
+  onSubmit: (data: CardFormData) => void;
+  loading?: boolean;
+}
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
+const CardForm: React.FC<CardFormProps> = ({ onSubmit, loading = false }) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm<CardFormData>({
+    defaultValues: {
+      cardName: '',
+      cardNumber: '',
+      expiryMonth: '',
+      expiryYear: '',
+      cvv: ''
     }
+  });
 
-    if (parts.length) {
-      return parts.join(' ');
-    } else {
-      return value;
+  const validateForm = (data: CardFormData) => {
+    try {
+      CardSchema.parse(data);
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      const formattedErrors: Record<string, string> = {};
+      error.errors.forEach((err: any) => {
+        if (err.path) {
+          formattedErrors[err.path[0]] = err.message;
+        }
+      });
+      setErrors(formattedErrors);
+      return false;
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      cardName,
-      cardNumber,
-      expiryMonth,
-      expiryYear,
-      cvv
-    });
+  const processSubmit = (data: CardFormData) => {
+    if (validateForm(data)) {
+      // Não mascare o CVV ao submeter - vamos armazená-lo completo
+      onSubmit(data);
+    }
   };
 
   return (
-    <form onSubmit={handleFormSubmit}>
-      <div>
-        <Label htmlFor="cardName" className="text-sm">Nome no Cartão</Label>
+    <form onSubmit={handleSubmit(processSubmit)} className="space-y-4">
+      <div className="space-y-1">
+        <Label htmlFor="cardName">Nome no cartão</Label>
         <Input
           id="cardName"
-          placeholder="Nome impresso no cartão"
-          value={cardName}
-          onChange={(e) => setCardName(e.target.value)}
-          className="h-9 mt-1 border-gray-300"
-          disabled={isSubmitting}
+          placeholder="Nome como aparece no cartão"
+          {...register('cardName')}
+          disabled={loading || isSubmitting}
+          className={errors.cardName ? "border-red-500" : ""}
         />
+        {errors.cardName && <p className="text-xs text-red-500">{errors.cardName}</p>}
       </div>
 
-      <div className="mt-3">
-        <Label htmlFor="cardNumber" className="text-sm">Número do Cartão</Label>
-        <div className="relative mt-1">
+      <div className="space-y-1">
+        <Label htmlFor="cardNumber">Número do cartão</Label>
+        <Input
+          id="cardNumber"
+          placeholder="0000 0000 0000 0000"
+          {...register('cardNumber')}
+          disabled={loading || isSubmitting}
+          className={errors.cardNumber ? "border-red-500" : ""}
+        />
+        {errors.cardNumber && <p className="text-xs text-red-500">{errors.cardNumber}</p>}
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-1">
+          <Label htmlFor="expiryMonth">Mês</Label>
           <Input
-            id="cardNumber"
-            placeholder="0000 0000 0000 0000"
-            value={cardNumber}
-            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-            maxLength={19}
-            className="h-9 border-gray-300 pl-10"
-            disabled={isSubmitting}
+            id="expiryMonth"
+            placeholder="MM"
+            {...register('expiryMonth')}
+            disabled={loading || isSubmitting}
+            className={errors.expiryMonth ? "border-red-500" : ""}
           />
-          <CreditCard className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 mt-3">
-        <div className="col-span-2">
-          <Label className="text-sm">Validade</Label>
-          <div className="grid grid-cols-2 gap-2 mt-1">
-            <Select value={expiryMonth} onValueChange={setExpiryMonth} disabled={isSubmitting}>
-              <SelectTrigger className="h-9 border-gray-300">
-                <SelectValue placeholder="Mês" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => {
-                  const month = i + 1;
-                  return (
-                    <SelectItem key={month} value={month.toString().padStart(2, '0')}>
-                      {month.toString().padStart(2, '0')}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            
-            <Select value={expiryYear} onValueChange={setExpiryYear} disabled={isSubmitting}>
-              <SelectTrigger className="h-9 border-gray-300">
-                <SelectValue placeholder="Ano" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 10 }, (_, i) => {
-                  const year = new Date().getFullYear() + i;
-                  return (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+          {errors.expiryMonth && <p className="text-xs text-red-500">{errors.expiryMonth}</p>}
         </div>
         
-        <div>
-          <Label htmlFor="cvv" className="text-sm">CVV</Label>
+        <div className="space-y-1">
+          <Label htmlFor="expiryYear">Ano</Label>
+          <Input
+            id="expiryYear"
+            placeholder="AAAA"
+            {...register('expiryYear')}
+            disabled={loading || isSubmitting}
+            className={errors.expiryYear ? "border-red-500" : ""}
+          />
+          {errors.expiryYear && <p className="text-xs text-red-500">{errors.expiryYear}</p>}
+        </div>
+        
+        <div className="space-y-1">
+          <Label htmlFor="cvv">CVV</Label>
           <Input
             id="cvv"
+            type="text"
             placeholder="123"
-            value={cvv}
-            onChange={(e) => setCvv(e.target.value.replace(/[^0-9]/g, ''))}
-            maxLength={4}
-            className="h-9 mt-1 border-gray-300"
-            disabled={isSubmitting}
+            {...register('cvv')}
+            disabled={loading || isSubmitting}
+            className={errors.cvv ? "border-red-500" : ""}
           />
+          {errors.cvv && <p className="text-xs text-red-500">{errors.cvv}</p>}
         </div>
       </div>
 
-      <div className="mt-4">
-        <Button 
-          type="submit" 
-          className="w-full bg-green-600 hover:bg-green-700"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processando...
-            </>
-          ) : (
-            buttonText
-          )}
-        </Button>
-        <div className="text-xs text-gray-500 mt-2 text-center">
-          Seu pagamento está seguro e criptografado
-        </div>
-      </div>
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={loading || isSubmitting}
+      >
+        {loading || isSubmitting ? (
+          <span className="flex items-center">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processando...
+          </span>
+        ) : (
+          <span className="flex items-center">
+            <CreditCard className="mr-2 h-5 w-5" />
+            Pagar com Cartão
+          </span>
+        )}
+      </Button>
     </form>
   );
 };
