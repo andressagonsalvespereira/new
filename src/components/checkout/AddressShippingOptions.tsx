@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Truck, Package, CheckCircle2 } from 'lucide-react';
+import { Truck, Package, CheckCircle2, CalendarClock } from 'lucide-react';
 
 interface AddressShippingOptionsProps {
   selectedShipping: string | null;
@@ -34,6 +34,10 @@ const AddressShippingOptions = ({
           <div className="text-sm text-gray-600 flex items-center">
             <Package className="h-4 w-4 mr-1 text-gray-500" />
             Prazo de entrega: 5-10 dias úteis
+          </div>
+          <div className="text-sm text-gray-600 flex items-center mt-1">
+            <CalendarClock className="h-4 w-4 mr-1 text-gray-500" />
+            Chegará em até 10 dias úteis
           </div>
         </div>
         <div className="text-green-600 font-bold">
