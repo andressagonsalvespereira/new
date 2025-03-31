@@ -1,13 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Check, Copy, Loader2, QrCode } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { processPixPayment } from './utils/payment/pixProcessor';
-import { PaymentResult } from './utils/payment/types';
+import React from 'react';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
+import { usePixPayment } from './pix-payment/usePixPayment';
+import PixQrCode from './pix-payment/PixQrCode';
+import PixCopyCode from './pix-payment/PixCopyCode';
+import PixInformation from './pix-payment/PixInformation';
+import LoadingState from './pix-payment/LoadingState';
+import ErrorState from './pix-payment/ErrorState';
 
 interface PixPaymentProps {
   onSubmit: (data: any) => void;
@@ -15,108 +14,11 @@ interface PixPaymentProps {
 }
 
 const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pixData, setPixData] = useState<{
-    qrCode: string;
-    qrCodeImage: string;
-    expirationDate: string;
-    paymentId: string;
-  } | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [pixPaymentSent, setPixPaymentSent] = useState(false);
+  // Use our custom hook for PIX payment logic
+  const { isLoading, error, pixData } = usePixPayment({ onSubmit, isSandbox });
+  
+  // Get customization for button styling
   const { customization } = useCheckoutCustomization();
-
-  // Gerar QR Code PIX
-  useEffect(() => {
-    const generatePixQrCode = async () => {
-      if (!pixData) {
-        setIsLoading(true);
-        
-        // Processar pagamento PIX
-        await processPixPayment(
-          {
-            formState: {}, // formState não é usado no processamento PIX simulado
-            settings: {
-              isEnabled: true,
-              apiKey: '',
-              allowPix: true,
-              allowCreditCard: true,
-              manualCreditCard: false,
-              sandboxMode: isSandbox
-            },
-            isSandbox,
-            onSubmit: (data) => {
-              // Store data temporarily but don't submit yet
-              console.log("PIX data generated:", data);
-            }
-          },
-          (paymentData: PaymentResult) => {
-            // Extrair dados do PIX do resultado
-            setPixData({
-              qrCode: paymentData.qrCode as string,
-              qrCodeImage: paymentData.qrCodeImage as string,
-              expirationDate: paymentData.expirationDate as string,
-              paymentId: paymentData.paymentId
-            });
-          },
-          (errorMessage: string) => {
-            setError(errorMessage);
-            toast({
-              title: "Erro no processamento",
-              description: errorMessage,
-              variant: "destructive",
-              duration: 5000,
-            });
-          }
-        );
-        
-        setIsLoading(false);
-      }
-    };
-    
-    generatePixQrCode();
-  }, [isSandbox, onSubmit, toast, pixData]);
-
-  // Submit the PIX data to create the order when data is ready
-  useEffect(() => {
-    if (pixData && !pixPaymentSent) {
-      const submitPixPayment = async () => {
-        try {
-          console.log("Submitting PIX payment data to create order:", pixData);
-          await onSubmit({
-            paymentId: pixData.paymentId,
-            qrCode: pixData.qrCode,
-            qrCodeImage: pixData.qrCodeImage,
-            expirationDate: pixData.expirationDate,
-            status: 'PENDING'
-          });
-          setPixPaymentSent(true);
-          console.log("PIX payment successfully submitted");
-        } catch (error) {
-          console.error("Error submitting PIX payment:", error);
-          setError("Erro ao finalizar pagamento PIX. O QR Code foi gerado, mas houve um problema ao registrar o pedido.");
-        }
-      };
-      
-      submitPixPayment();
-    }
-  }, [pixData, onSubmit, pixPaymentSent]);
-
-  const copyToClipboard = () => {
-    if (pixData?.qrCode) {
-      navigator.clipboard.writeText(pixData.qrCode);
-      setCopied(true);
-      toast({
-        title: "Código copiado",
-        description: "O código PIX foi copiado para a área de transferência",
-        duration: 3000,
-      });
-      
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   // Get button styles from customization
   const buttonStyle = {
@@ -124,24 +26,17 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
     color: customization?.button_text_color || '#ffffff'
   };
 
+  // Render loading state
   if (isLoading) {
-    return (
-      <div className="p-8 text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-        <p>Gerando QR Code PIX...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
+  // Render error state
   if (error) {
-    return (
-      <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
+    return <ErrorState errorMessage={error} />;
   }
 
+  // If no PIX data available yet, return nothing
   if (!pixData) {
     return null;
   }
@@ -155,55 +50,18 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
         </p>
       </div>
 
-      <div className="w-48 h-48 bg-white p-2 border rounded-lg mb-4 flex items-center justify-center">
-        {pixData.qrCodeImage ? (
-          <img 
-            src={pixData.qrCodeImage} 
-            alt="QR Code PIX" 
-            className="w-full h-full"
-          />
-        ) : (
-          <QrCode className="w-12 h-12 text-gray-400" />
-        )}
-      </div>
+      {/* QR Code Component */}
+      <PixQrCode qrCodeImage={pixData.qrCodeImage} />
 
-      <div className="w-full mb-4">
-        <p className="text-xs text-gray-500 mb-2">Código PIX (Copia e Cola):</p>
-        <div className="relative">
-          <div className="p-3 bg-gray-50 border rounded-md text-gray-800 text-xs font-mono break-all">
-            {pixData.qrCode}
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2"
-            onClick={copyToClipboard}
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-green-600" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-      </div>
+      {/* Copy Code Component */}
+      <PixCopyCode 
+        pixCode={pixData.qrCode} 
+        buttonStyle={buttonStyle}
+        buttonText={customization?.button_text || "Copiar Código PIX"}
+      />
 
-      <Button
-        onClick={copyToClipboard}
-        className="w-full text-white mb-4"
-        style={buttonStyle}
-      >
-        <Copy className="h-4 w-4 mr-2" />
-        {customization?.button_text || "Copiar Código PIX"}
-      </Button>
-
-      <Alert className="mb-4 bg-blue-50 border-blue-200">
-        <AlertCircle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800 text-sm">
-          O pagamento via PIX é instantâneo. Após o pagamento, você receberá a confirmação em seu e-mail.
-        </AlertDescription>
-      </Alert>
+      {/* Information Component */}
+      <PixInformation />
     </div>
   );
 };
