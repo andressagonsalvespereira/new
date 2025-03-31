@@ -31,6 +31,8 @@ const AddProductDialog = ({
   handleSwitchChange,
   handleAddProduct
 }: AddProductDialogProps) => {
+  const addDescriptionId = "add-product-description";
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -39,10 +41,10 @@ const AddProductDialog = ({
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent aria-describedby="add-product-description">
+      <DialogContent aria-describedby={addDescriptionId}>
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
-          <DialogDescription id="add-product-description">
+          <DialogDescription id={addDescriptionId}>
             Fill in the details of the new product you want to add to your catalog.
           </DialogDescription>
         </DialogHeader>

@@ -29,12 +29,14 @@ const EditProductDialog = ({
   handleSwitchChange,
   handleUpdateProduct
 }: EditProductDialogProps) => {
+  const editDescriptionId = "edit-product-description";
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent aria-describedby="edit-product-description">
+      <DialogContent aria-describedby={editDescriptionId}>
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
-          <DialogDescription id="edit-product-description">
+          <DialogDescription id={editDescriptionId}>
             Update the details of the existing product in your catalog.
           </DialogDescription>
         </DialogHeader>
