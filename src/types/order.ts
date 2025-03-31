@@ -1,6 +1,6 @@
 
 export type PaymentMethod = 'pix' | 'card';
-export type PaymentStatus = 'pending' | 'confirmed' | 'declined' | 'refunded' | 'cancelled' | 'manual_review';
+export type PaymentStatus = 'pending' | 'confirmed' | 'declined' | 'refunded' | 'cancelled' | 'manual_review' | 'awaiting_manual_confirmation';
 
 export interface CardDetails {
   number: string;

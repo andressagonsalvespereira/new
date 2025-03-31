@@ -11,6 +11,7 @@ import Orders from "@/pages/admin/Orders";
 import PixelSettings from "@/pages/admin/PixelSettings";
 import QuickCheckout from "@/pages/QuickCheckout";
 import PaymentFailed from "@/pages/PaymentFailed";
+import PixPaymentManual from "@/pages/PixPaymentManual";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import { AsaasProvider } from "@/contexts/AsaasContext";
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/checkout/:slug" element={<Checkout />} />
                 <Route path="/quick-checkout/:productId" element={<QuickCheckout />} />
                 <Route path="/payment-failed" element={<PaymentFailed />} />
+                <Route path="/pix-payment-manual" element={<PixPaymentManual />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />

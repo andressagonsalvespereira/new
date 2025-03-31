@@ -93,6 +93,23 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
     }
   };
 
+  // Prepare customer data for manual payment
+  const customerData = {
+    name: formState.fullName,
+    email: formState.email,
+    cpf: formState.cpf,
+    phone: formState.phone,
+    address: formState.street ? {
+      street: formState.street,
+      number: formState.number,
+      complement: formState.complement,
+      neighborhood: formState.neighborhood,
+      city: formState.city,
+      state: formState.state,
+      postalCode: formState.cep.replace(/\D/g, '')
+    } : undefined
+  };
+
   return (
     <>
       <PersonalInfoSection 
@@ -135,6 +152,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         setPaymentMethod={setPaymentMethod}
         createOrder={createOrder}
         productDetails={productDetails}
+        customerData={customerData}
       />
       
       <OrderSummarySection 

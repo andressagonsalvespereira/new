@@ -1,4 +1,3 @@
-
 // Define types for pixel settings
 export interface PixelSettings {
   google: {
@@ -166,7 +165,7 @@ export const trackPageView = (pagePath: string): void => {
     }
     
     // Track with Facebook Pixel
-    if (settings.facebook.enabled && settings.facebook.events.pageView && window.fbq) {
+    if (settings.facebook.enabled && settings.facebook.events.pageView && typeof window.fbq === 'function') {
       window.fbq('track', 'PageView');
       console.log('Facebook Pixel: Page view tracked', pagePath);
     }
@@ -210,7 +209,7 @@ export const trackPurchase = (data: PurchaseEventData): void => {
     }
     
     // Track with Facebook Pixel
-    if (settings.facebook.enabled && settings.facebook.events.purchase && window.fbq) {
+    if (settings.facebook.enabled && settings.facebook.events.purchase && typeof window.fbq === 'function') {
       window.fbq('track', 'Purchase', {
         value: data.value,
         currency: 'BRL',
@@ -258,7 +257,7 @@ export const trackAddToCart = (data: AddToCartEventData): void => {
     }
     
     // Track with Facebook Pixel
-    if (settings.facebook.enabled && settings.facebook.events.addToCart && window.fbq) {
+    if (settings.facebook.enabled && settings.facebook.events.addToCart && typeof window.fbq === 'function') {
       window.fbq('track', 'AddToCart', {
         value: data.value,
         currency: 'BRL',
