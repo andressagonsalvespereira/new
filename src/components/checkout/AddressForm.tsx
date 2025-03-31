@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleAlert, Loader2 } from 'lucide-react';
+import { CircleAlert, Loader2, Truck, Package, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AddressFormProps {
   onSubmit: (data: AddressData) => void;
@@ -17,6 +18,7 @@ export interface AddressData {
   neighborhood: string;
   city: string;
   state: string;
+  shippingOption?: string;
 }
 
 const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
@@ -29,6 +31,8 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
   const [state, setState] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showShippingOptions, setShowShippingOptions] = useState(false);
+  const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
 
   const formatCEP = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -58,15 +62,23 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           delete newErrors.city;
           delete newErrors.state;
           setErrors(newErrors);
+          
+          // Show shipping options after valid CEP
+          setShowShippingOptions(true);
+          setSelectedShipping('free');
         } else {
           setErrors(prev => ({...prev, cep: 'CEP não encontrado'}));
+          setShowShippingOptions(false);
         }
       } catch (error) {
         console.error('Erro ao buscar CEP:', error);
         setErrors(prev => ({...prev, cep: 'Erro ao buscar CEP'}));
+        setShowShippingOptions(false);
       } finally {
         setIsLoading(false);
       }
+    } else {
+      setShowShippingOptions(false);
     }
   };
 
@@ -112,9 +124,14 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
         complement,
         neighborhood,
         city,
-        state
+        state,
+        shippingOption: selectedShipping || undefined
       });
     }
+  };
+
+  const selectShippingOption = (option: string) => {
+    setSelectedShipping(option);
   };
 
   return (
@@ -149,6 +166,38 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
             </div>
           )}
         </div>
+        
+        {showShippingOptions && (
+          <div className="bg-green-50 border border-green-100 rounded-md p-4 my-4">
+            <h3 className="font-medium text-green-800 mb-3 flex items-center">
+              <Truck className="h-5 w-5 mr-2" />
+              Opções de Entrega
+            </h3>
+            
+            <div 
+              className={`border rounded-md p-3 mb-3 flex items-start cursor-pointer transition-colors ${
+                selectedShipping === 'free' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+              }`}
+              onClick={() => selectShippingOption('free')}
+            >
+              <div className={`rounded-full border flex-shrink-0 w-5 h-5 flex items-center justify-center mr-2 mt-0.5 ${
+                selectedShipping === 'free' ? 'border-green-500 bg-green-500' : 'border-gray-400'
+              }`}>
+                {selectedShipping === 'free' && <CheckCircle2 className="h-4 w-4 text-white" />}
+              </div>
+              <div className="flex-grow">
+                <div className="font-medium">Frete Grátis</div>
+                <div className="text-sm text-gray-600 flex items-center">
+                  <Package className="h-4 w-4 mr-1 text-gray-500" />
+                  Prazo de entrega: 5-10 dias úteis
+                </div>
+              </div>
+              <div className="text-green-600 font-bold">
+                R$ 0,00
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">

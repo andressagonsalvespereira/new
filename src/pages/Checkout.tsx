@@ -287,6 +287,13 @@ const Checkout = () => {
                           </span>
                         </div>
                         
+                        {addressInfo?.shippingOption && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Frete</span>
+                            <span className="text-green-600 font-medium">Grátis</span>
+                          </div>
+                        )}
+                        
                         {addressInfo && (
                           <div className="pt-3 border-t border-gray-200">
                             <h4 className="text-sm font-medium mb-2">Endereço de entrega:</h4>
@@ -296,6 +303,13 @@ const Checkout = () => {
                               {`${addressInfo.neighborhood}, ${addressInfo.city} - ${addressInfo.state}`}<br/>
                               {`CEP: ${addressInfo.cep}`}
                             </p>
+                            
+                            {addressInfo.shippingOption && (
+                              <div className="mt-2 text-xs flex items-center text-green-700">
+                                <Truck className="h-3 w-3 mr-1" />
+                                <span>Entrega em 5-10 dias úteis</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
