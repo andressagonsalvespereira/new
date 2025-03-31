@@ -14,9 +14,9 @@ interface ProductTableActionsProps {
 const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsProps) => {
   const { toast } = useToast();
   
-  const copyCheckoutLink = (productId: string) => {
+  const copyCheckoutLink = (productSlug: string) => {
     const baseUrl = window.location.origin;
-    const checkoutUrl = `${baseUrl}/quick-checkout/${productId}`;
+    const checkoutUrl = `${baseUrl}/checkout/${productSlug}`;
     
     navigator.clipboard.writeText(checkoutUrl)
       .then(() => {
@@ -35,9 +35,9 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
       });
   };
 
-  const openCheckoutLink = (productId: string) => {
+  const openCheckoutLink = (productSlug: string) => {
     const baseUrl = window.location.origin;
-    const checkoutUrl = `${baseUrl}/quick-checkout/${productId}`;
+    const checkoutUrl = `${baseUrl}/checkout/${productSlug}`;
     window.open(checkoutUrl, '_blank');
   };
   
@@ -46,7 +46,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
       <Button
         variant="outline"
         size="sm"
-        onClick={() => copyCheckoutLink(product.id)}
+        onClick={() => copyCheckoutLink(product.slug)}
         title="Copiar link de checkout rápido"
       >
         <Copy className="h-4 w-4" />
@@ -54,7 +54,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
       <Button
         variant="outline"
         size="sm"
-        onClick={() => openCheckoutLink(product.id)}
+        onClick={() => openCheckoutLink(product.slug)}
         title="Abrir checkout rápido"
       >
         <ExternalLink className="h-4 w-4" />

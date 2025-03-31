@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   imageUrl: string;
   isDigital: boolean;
+  slug: string;
 }
 
 export interface CreateProductInput {

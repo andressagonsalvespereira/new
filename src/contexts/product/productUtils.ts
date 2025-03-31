@@ -1,6 +1,7 @@
 
 import { Product, CreateProductInput } from '@/types/product';
 import { v4 as uuidv4 } from 'uuid';
+import { slugify } from './slugUtils';
 
 // Local storage key for products
 const LOCAL_STORAGE_KEY = 'cached_products';
@@ -28,15 +29,34 @@ export const saveProducts = (products: Product[]): void => {
   }
 };
 
+// Generate a unique local slug
+const generateLocalSlug = (name: string, existingProducts: Product[]): string => {
+  let baseSlug = slugify(name);
+  let slug = baseSlug;
+  let counter = 1;
+  
+  // Check if slug already exists in local products
+  while (existingProducts.some(p => p.slug === slug)) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return slug;
+};
+
 // Create a product (local version)
 export const createProduct = (data: CreateProductInput): Product => {
+  const existingProducts = loadProducts();
+  const slug = generateLocalSlug(data.name, existingProducts);
+  
   const newProduct = {
     id: `local_${uuidv4()}`,
     name: data.name,
     description: data.description,
     price: data.price,
     imageUrl: data.imageUrl,
-    isDigital: data.isDigital
+    isDigital: data.isDigital,
+    slug: slug
   };
   
   // Add to local storage
@@ -48,13 +68,20 @@ export const createProduct = (data: CreateProductInput): Product => {
 };
 
 export const updateExistingProduct = (product: Product, data: CreateProductInput): Product => {
+  // If name changed, update slug
+  const nameChanged = product.name !== data.name;
+  const slug = nameChanged 
+    ? generateLocalSlug(data.name, loadProducts().filter(p => p.id !== product.id))
+    : product.slug;
+  
   return {
     ...product,
     name: data.name,
     description: data.description,
     price: data.price,
     imageUrl: data.imageUrl,
-    isDigital: data.isDigital
+    isDigital: data.isDigital,
+    slug: slug
   };
 };
 
@@ -67,9 +94,18 @@ export const updateProduct = (id: string, data: Partial<Product>): Product | und
     return undefined;
   }
   
+  const currentProduct = products[productIndex];
+  
+  // If name is changing, update slug
+  let updatedSlug = currentProduct.slug;
+  if (data.name && data.name !== currentProduct.name) {
+    updatedSlug = generateLocalSlug(data.name, products.filter(p => p.id !== id));
+  }
+  
   const updatedProduct = {
-    ...products[productIndex],
+    ...currentProduct,
     ...data,
+    slug: data.slug || updatedSlug
   };
   
   products[productIndex] = updatedProduct;
@@ -95,4 +131,10 @@ export const deleteProduct = (id: string): boolean => {
 export const getProductById = (id: string): Product | undefined => {
   const products = loadProducts();
   return products.find(p => p.id === id);
+};
+
+// Get product by slug locally
+export const getProductBySlug = (slug: string): Product | undefined => {
+  const products = loadProducts();
+  return products.find(p => p.slug === slug);
 };

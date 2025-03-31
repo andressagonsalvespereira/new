@@ -196,6 +196,7 @@ export type Database = {
           is_digital: boolean | null
           name: string
           price: number
+          slug: string
           updated_at: string | null
         }
         Insert: {
@@ -206,6 +207,7 @@ export type Database = {
           is_digital?: boolean | null
           name: string
           price: number
+          slug: string
           updated_at?: string | null
         }
         Update: {
@@ -216,6 +218,7 @@ export type Database = {
           is_digital?: boolean | null
           name?: string
           price?: number
+          slug?: string
           updated_at?: string | null
         }
         Relationships: []

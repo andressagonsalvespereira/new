@@ -26,7 +26,8 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     addProduct,
     editProduct,
     removeProduct,
-    getProductById
+    getProductById,
+    getProductBySlug
   } = useProductOperations(products, setProducts, isOffline);
 
   return (
@@ -38,6 +39,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       editProduct, 
       removeProduct,
       getProductById,
+      getProductBySlug,
       refreshProducts: retryFetchProducts,
       updateProduct: editProduct,
       deleteProduct: removeProduct,

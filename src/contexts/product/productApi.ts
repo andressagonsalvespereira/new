@@ -1,6 +1,7 @@
 
 import { Product, CreateProductInput } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
+import { generateSlug } from './slugUtils';
 
 // Fetch products from Supabase
 export const fetchProductsFromAPI = async (): Promise<Product[]> => {
@@ -18,19 +19,24 @@ export const fetchProductsFromAPI = async (): Promise<Product[]> => {
     description: item.description || '',
     price: Number(item.price),
     imageUrl: item.image_url || '',
-    isDigital: item.is_digital || false
+    isDigital: item.is_digital || false,
+    slug: item.slug
   }));
 };
 
 // Add product to Supabase
 export const addProductToAPI = async (productData: CreateProductInput): Promise<Product> => {
+  // Generate a slug based on the product name
+  const slug = generateSlug(productData.name);
+  
   // Transform our product data to match database schema
   const dbProductData = {
     name: productData.name,
     description: productData.description,
     price: productData.price,
     image_url: productData.imageUrl,
-    is_digital: productData.isDigital
+    is_digital: productData.isDigital,
+    slug: slug
   };
   
   const { data, error } = await supabase
@@ -48,7 +54,8 @@ export const addProductToAPI = async (productData: CreateProductInput): Promise<
     description: data.description || '',
     price: Number(data.price),
     imageUrl: data.image_url || '',
-    isDigital: data.is_digital || false
+    isDigital: data.is_digital || false,
+    slug: data.slug
   };
 };
 
@@ -57,11 +64,16 @@ export const editProductInAPI = async (id: string, productData: Partial<Product>
   // Transform our product data to match database schema
   const dbProductData: any = {};
   
-  if (productData.name !== undefined) dbProductData.name = productData.name;
+  if (productData.name !== undefined) {
+    dbProductData.name = productData.name;
+    // Re-generate slug if name changes
+    dbProductData.slug = generateSlug(productData.name);
+  }
   if (productData.description !== undefined) dbProductData.description = productData.description;
   if (productData.price !== undefined) dbProductData.price = productData.price;
   if (productData.imageUrl !== undefined) dbProductData.image_url = productData.imageUrl;
   if (productData.isDigital !== undefined) dbProductData.is_digital = productData.isDigital;
+  if (productData.slug !== undefined) dbProductData.slug = productData.slug;
   
   // Update product in Supabase
   const { data, error } = await supabase
@@ -80,7 +92,8 @@ export const editProductInAPI = async (id: string, productData: Partial<Product>
     description: data.description || '',
     price: Number(data.price),
     imageUrl: data.image_url || '',
-    isDigital: data.is_digital || false
+    isDigital: data.is_digital || false,
+    slug: data.slug
   };
 };
 
@@ -112,6 +125,30 @@ export const getProductByIdFromAPI = async (id: string): Promise<Product | undef
     description: data.description || '',
     price: Number(data.price),
     imageUrl: data.image_url || '',
-    isDigital: data.is_digital || false
+    isDigital: data.is_digital || false,
+    slug: data.slug
+  };
+};
+
+// Get product by slug from Supabase
+export const getProductBySlugFromAPI = async (slug: string): Promise<Product | undefined> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('slug', slug)
+    .maybeSingle();
+  
+  if (error) throw error;
+  if (!data) return undefined;
+  
+  // Convert to our Product type
+  return {
+    id: String(data.id),
+    name: data.name,
+    description: data.description || '',
+    price: Number(data.price),
+    imageUrl: data.image_url || '',
+    isDigital: data.is_digital || false,
+    slug: data.slug
   };
 };

@@ -6,14 +6,16 @@ import {
   addProductToAPI, 
   editProductInAPI, 
   removeProductFromAPI, 
-  getProductByIdFromAPI 
+  getProductByIdFromAPI,
+  getProductBySlugFromAPI
 } from '../productApi';
 import { 
   saveProducts,
   createProduct as createLocalProduct,
   updateProduct as updateLocalProduct,
   deleteProduct as deleteLocalProduct,
-  getProductById as getLocalProductById
+  getProductById as getLocalProductById,
+  getProductBySlug as getLocalProductBySlug
 } from '../productUtils';
 
 export const useProductOperations = (products: Product[], setProducts: React.Dispatch<React.SetStateAction<Product[]>>, networkError: boolean) => {
@@ -188,10 +190,37 @@ export const useProductOperations = (products: Product[], setProducts: React.Dis
     }
   };
 
+  const getProductBySlug = async (slug: string): Promise<Product | undefined> => {
+    try {
+      if (networkError) {
+        // Handle offline product lookup by slug
+        return getLocalProductBySlug(slug) || products.find(p => p.slug === slug);
+      }
+      
+      return await getProductBySlugFromAPI(slug);
+    } catch (err) {
+      console.error('Error getting product by slug:', err);
+      // Try to get from cached products as fallback
+      const cachedProduct = products.find(p => p.slug === slug);
+      if (cachedProduct) {
+        console.log('Returning cached product by slug:', cachedProduct);
+        return cachedProduct;
+      }
+      
+      toast({
+        title: "Error",
+        description: "Failed to fetch product by slug",
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
   return {
     addProduct,
     editProduct,
     removeProduct,
-    getProductById
+    getProductById,
+    getProductBySlug
   };
 };

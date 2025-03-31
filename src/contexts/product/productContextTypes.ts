@@ -10,6 +10,7 @@ export interface ProductContextType {
   editProduct: (id: string, product: Partial<Product>) => Promise<Product>;
   removeProduct: (id: string) => Promise<void>;
   getProductById: (id: string) => Promise<Product | undefined>;
+  getProductBySlug: (slug: string) => Promise<Product | undefined>;
   refreshProducts: () => Promise<void>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<Product>;
   deleteProduct: (id: string) => Promise<void>;
