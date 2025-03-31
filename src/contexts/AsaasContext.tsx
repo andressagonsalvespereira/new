@@ -32,6 +32,13 @@ type AsaasProviderProps = {
   children: React.ReactNode;
 };
 
+// Função utilitária para transformar o status de cartão em um tipo enum válido
+const normalizeCardStatus = (status: string | null | undefined): 'APPROVED' | 'DENIED' | 'ANALYSIS' => {
+  if (status === 'APPROVED') return 'APPROVED';
+  if (status === 'DENIED') return 'DENIED';
+  return 'ANALYSIS'; // valor padrão
+};
+
 export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
   const { toast } = useToast();
   const [settings, setSettings] = useState<AsaasSettings>(defaultSettings);
@@ -75,7 +82,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
             sandboxApiKey: asaasConfigData?.sandbox_api_key || '',
             productionApiKey: asaasConfigData?.production_api_key || '',
             manualCardProcessing: false,
-            manualCardStatus: settingsData.manual_card_status || 'ANALYSIS',
+            manualCardStatus: normalizeCardStatus(settingsData.manual_card_status),
             manualPixPage: false,
             manualPaymentConfig: false,
           };
@@ -97,7 +104,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
               ...parsedSettings,   // Sobrescreve com os valores salvos
               // Garante que apiKey seja definida
               apiKey: parsedSettings.apiKey || '',
-              manualCardStatus: parsedSettings.manualCardStatus || defaultSettings.manualCardStatus,
+              manualCardStatus: normalizeCardStatus(parsedSettings.manualCardStatus),
             });
           }
         }
@@ -118,7 +125,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
       const settingsToSave = {
         ...newSettings,
         apiKey: newSettings.apiKey || '',
-        manualCardStatus: newSettings.manualCardStatus || defaultSettings.manualCardStatus
+        manualCardStatus: normalizeCardStatus(newSettings.manualCardStatus)
       };
       
       console.log('Salvando configurações:', settingsToSave);

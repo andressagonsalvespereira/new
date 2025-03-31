@@ -10,6 +10,7 @@ import PaymentMethodsCard from './PaymentMethodsCard';
 import ApiKeysCard from './ApiKeysCard';
 import ManualPaymentSettings from './ManualPaymentSettings';
 import { Form } from '@/components/ui/form';
+import { AsaasSettings } from '@/types/asaas';
 
 // Define o schema de validação do formulário
 const PaymentSettingsSchema = z.object({
@@ -28,6 +29,24 @@ const PaymentSettingsSchema = z.object({
 });
 
 type PaymentSettingsFormValues = z.infer<typeof PaymentSettingsSchema>;
+
+// Função para converter FormValues para AsaasSettings
+const formValuesToAsaasSettings = (values: PaymentSettingsFormValues): AsaasSettings => {
+  return {
+    isEnabled: values.isEnabled,
+    apiKey: values.apiKey || '',
+    allowPix: values.allowPix,
+    allowCreditCard: values.allowCreditCard,
+    manualCreditCard: values.manualCreditCard,
+    sandboxMode: values.sandboxMode,
+    sandboxApiKey: values.sandboxApiKey || '',
+    productionApiKey: values.productionApiKey || '',
+    manualCardProcessing: values.manualCardProcessing,
+    manualCardStatus: values.manualCardStatus,
+    manualPixPage: values.manualPixPage,
+    manualPaymentConfig: values.manualPaymentConfig,
+  };
+};
 
 const PaymentSettingsForm = () => {
   const { toast } = useToast();
@@ -117,20 +136,10 @@ const PaymentSettingsForm = () => {
         ? data.sandboxApiKey || ''
         : data.productionApiKey || '';
         
-      await updateSettings({
-        isEnabled: data.isEnabled,
-        apiKey, // Garante que apiKey seja sempre incluído
-        manualCardProcessing: data.manualCardProcessing,
-        manualCardStatus: data.manualCardStatus,
-        manualCreditCard: data.manualCreditCard,
-        allowPix: data.allowPix,
-        allowCreditCard: data.allowCreditCard,
-        sandboxMode: data.sandboxMode,
-        sandboxApiKey: data.sandboxApiKey || '',
-        productionApiKey: data.productionApiKey || '',
-        manualPixPage: data.manualPixPage,
-        manualPaymentConfig: data.manualPaymentConfig,
-      });
+      await updateSettings(formValuesToAsaasSettings({
+        ...data,
+        apiKey
+      }));
       
       toast({
         title: "Configurações salvas",
