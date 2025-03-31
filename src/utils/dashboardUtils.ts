@@ -25,9 +25,9 @@ export const formatCurrency = (value: number): string => {
 // Get visitor time periods
 export const getVisitorPeriods = () => {
   return {
-    '24h': generateVisitorData(24).reduce((a, b) => a + b, 0),
-    '48h': generateVisitorData(48).reduce((a, b) => a + b, 0),
-    '72h': generateVisitorData(72).reduce((a, b) => a + b, 0),
+    '24h': Math.floor(Math.random() * 500) + 100,
+    '48h': Math.floor(Math.random() * 800) + 300,
+    '72h': Math.floor(Math.random() * 1200) + 500,
   };
 };
 

@@ -4,8 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { AsaasSettings } from '@/types/asaas';
 import { CardFormData } from '../../payment-methods/CardForm';
 import { PaymentResult } from './types';
-import { randomId } from '../../utils/strings';
 import asaasApiService from '@/services/asaasService';
+
+// Helper function to generate a random ID
+const randomId = (length: number): string => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
 
 export const handleAutomaticCardProcessing = async (
   cardData: CardFormData,
@@ -23,11 +32,14 @@ export const handleAutomaticCardProcessing = async (
   const asaasApiKey = settings.apiKey || '';
 
   try {
+    // Use mock data if customerAsaasId is undefined (when Asaas is disabled)
+    const customerAsaasId = formState.personalInfo?.customerAsaasId || `cus_${randomId(8)}`;
+    
     // Use createPayment instead with the proper structure for credit card payments
     const paymentResponse = await asaasApiService.createPayment(
       settings,
       {
-        customer: formState.personalInfo.customerAsaasId,
+        customer: customerAsaasId,
         billingType: "CREDIT_CARD",
         value: formState.productPrice,
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -41,11 +53,11 @@ export const handleAutomaticCardProcessing = async (
         },
         creditCardHolderInfo: {
           name: cardData.cardName,
-          email: formState.personalInfo.email,
-          cpfCnpj: formState.personalInfo.cpf,
-          postalCode: formState.personalInfo.postalCode,
-          addressNumber: formState.personalInfo.addressNumber,
-          phone: formState.personalInfo.phone
+          email: formState.personalInfo?.email || 'customer@example.com',
+          cpfCnpj: formState.personalInfo?.cpf || '00000000000',
+          postalCode: formState.personalInfo?.postalCode || '00000000',
+          addressNumber: formState.personalInfo?.addressNumber || '0',
+          phone: formState.personalInfo?.phone || ''
         }
       }
     );

@@ -47,7 +47,7 @@ export const processPayment = async (
 
   if (paymentMethod === 'card') {
     const formState = {
-      personalInfo: formValues.personalInfo,
+      personalInfo: formValues.personalInfo || {},
       productId: formValues.productId,
       productName: formValues.productName,
       productPrice: formValues.productPrice,
@@ -62,7 +62,10 @@ export const processPayment = async (
           isSandbox,
           onSubmit,
         },
-        setError
+        setError,
+        setPaymentStatus,
+        setIsSubmitting,
+        navigate
       );
     } else {
       setError('Dados de cartão não fornecidos');

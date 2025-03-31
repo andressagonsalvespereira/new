@@ -14,16 +14,31 @@ const Dashboard = () => {
     <DashboardLayout>
       <DashboardHeader />
       
-      <VisitorStats />
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">Estatísticas de Visitantes</h2>
+        <VisitorStats />
+      </div>
       
-      <PaymentStats />
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">Estatísticas de Pagamento</h2>
+        <PaymentStats />
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <VisitorsChart />
-        <PaymentMethodsChart />
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Tendência de Visitantes</h2>
+          <VisitorsChart />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Métodos de Pagamento</h2>
+          <PaymentMethodsChart />
+        </div>
       </div>
 
-      <RecentTransactions transactions={transactions} />
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">Transações Recentes</h2>
+        <RecentTransactions transactions={transactions} />
+      </div>
     </DashboardLayout>
   );
 };

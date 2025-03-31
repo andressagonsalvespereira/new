@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, QrCode, DollarSign } from 'lucide-react';
+import { CreditCard, QrCode, DollarSign, CheckCircle } from 'lucide-react';
 import StatCard from './StatCard';
 import { getPaymentSummary, formatCurrency } from '@/utils/dashboardUtils';
 
@@ -9,7 +8,7 @@ const PaymentStats = () => {
   const paymentSummary = getPaymentSummary();
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <StatCard
         title="Cartões Capturados"
         value={`${paymentSummary.cardCaptured}`}
@@ -25,7 +24,7 @@ const PaymentStats = () => {
       <StatCard
         title="PIX Concluídos"
         value={`${paymentSummary.pixCompleted}`}
-        icon={<QrCode className="h-5 w-5 text-emerald-500" />}
+        icon={<CheckCircle className="h-5 w-5 text-emerald-500" />}
         className="border-emerald-100"
       />
       <StatCard
