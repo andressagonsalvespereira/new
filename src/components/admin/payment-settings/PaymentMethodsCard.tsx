@@ -126,7 +126,7 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
             </div>
             
             {formState.manualCardProcessing && (
-              <Alert className="mt-2 bg-amber-50 border-amber-200">
+              <Alert variant="warning" className="mt-2 bg-amber-50 border-amber-200">
                 <AlertCircleIcon className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-800">
                   Com o processamento manual ativado, os pagamentos com cartão não serão processados automaticamente. 
