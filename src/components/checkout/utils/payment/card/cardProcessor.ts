@@ -37,6 +37,7 @@ export const processCardPayment = async ({
 
     console.log("Processing card payment with settings:", { 
       manualCardProcessing: props.settings.manualCardProcessing,
+      manualCardStatus: props.settings.manualCardStatus,
       isDigitalProduct
     });
 
@@ -55,7 +56,8 @@ export const processCardPayment = async ({
         toast,
         onSubmit: props.onSubmit,
         brand: detectCardBrand(cardData.cardNumber),
-        deviceType
+        deviceType,
+        settings: props.settings // Pass the settings to manual processor
       });
     } else {
       console.log("Using automatic card processing with digital product flag:", isDigitalProduct);

@@ -91,7 +91,7 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
       case 'APPROVED':
         return 'Enviar para Aprovação Manual';
       case 'DENIED':
-        return 'Enviar para Verificação';
+        return 'Enviar para Verificação (será recusado)';
       case 'ANALYSIS':
       default:
         return 'Enviar para Análise Manual';
@@ -101,11 +101,11 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
   return (
     <div className="space-y-4">
       {settings?.manualCardProcessing && (
-        <Alert className="bg-amber-50 border-amber-200">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
+        <Alert className={`${settings?.manualCardStatus === 'DENIED' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+          <AlertCircle className={`h-4 w-4 ${settings?.manualCardStatus === 'DENIED' ? 'text-red-600' : 'text-amber-600'}`} />
+          <AlertDescription className={`${settings?.manualCardStatus === 'DENIED' ? 'text-red-800' : 'text-amber-800'}`}>
             {settings?.manualCardStatus === 'DENIED' 
-              ? 'Este pagamento será processado manualmente e poderá ser recusado.'
+              ? 'Este pagamento será processado manualmente e será RECUSADO automáticamente.' 
               : settings?.manualCardStatus === 'APPROVED'
                 ? 'Este pagamento será processado manualmente e aprovado temporariamente.'
                 : 'Este pagamento passará por análise manual e não será processado automaticamente.'}

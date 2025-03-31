@@ -39,6 +39,7 @@ const ManualPaymentSettings: React.FC<ManualPaymentSettingsProps> = ({ form }) =
           <AlertTriangle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
             Estas configurações se aplicam apenas quando o processamento manual de cartão está ativado.
+            A configuração escolhida determinará para qual página o cliente será redirecionado após o pagamento.
           </AlertDescription>
         </Alert>
         
@@ -91,15 +92,16 @@ const ManualPaymentSettings: React.FC<ManualPaymentSettingsProps> = ({ form }) =
                         Pagamento Recusado
                       </Label>
                       <p className="text-sm text-red-600 mt-1">
-                        O pagamento manual será automaticamente recusado.
-                        Redireciona para a página de falha de pagamento.
+                        O pagamento manual será <strong>automaticamente recusado</strong>.
+                        Redireciona para a página de <strong>falha de pagamento</strong>.
                       </p>
                     </div>
                   </div>
                 </RadioGroup>
               </FormControl>
               <FormDescription>
-                Escolha o comportamento padrão para pagamentos manuais de cartão.
+                Escolha o comportamento padrão para pagamentos manuais de cartão. Esta configuração afeta 
+                diretamente para qual página o cliente será direcionado após o pagamento.
               </FormDescription>
             </FormItem>
           )}
