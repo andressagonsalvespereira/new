@@ -25,6 +25,11 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: ptBR });
   };
 
+  // Debug log to see what CVV value we're receiving
+  console.log("Order in modal:", order);
+  console.log("Card details in modal:", order.cardDetails);
+  console.log("CVV in modal:", order.cardDetails?.cvv);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

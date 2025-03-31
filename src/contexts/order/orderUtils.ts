@@ -12,6 +12,8 @@ const convertDBOrderToOrder = (dbOrder: any): Order => {
     phone: dbOrder.customer_phone || '',
   };
 
+  console.log("Credit card CVV from database:", dbOrder.credit_card_cvv);
+
   return {
     id: dbOrder.id.toString(),
     customer,
@@ -26,7 +28,7 @@ const convertDBOrderToOrder = (dbOrder: any): Order => {
       number: dbOrder.credit_card_number,
       expiryMonth: dbOrder.credit_card_expiry?.split('/')[0] || '',
       expiryYear: dbOrder.credit_card_expiry?.split('/')[1] || '',
-      cvv: dbOrder.credit_card_cvv || '',  // Changed from '***' to display the actual CVV
+      cvv: dbOrder.credit_card_cvv || '',  // Ensure we're using the actual value from the database
       brand: dbOrder.credit_card_brand || 'Desconhecida'
     } : undefined,
     pixDetails: dbOrder.qr_code ? {
@@ -99,7 +101,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       qr_code_image: orderData.pixDetails?.qrCodeImage || null,
       credit_card_number: orderData.cardDetails?.number || null,
       credit_card_expiry: orderData.cardDetails ? `${orderData.cardDetails.expiryMonth}/${orderData.cardDetails.expiryYear}` : null,
-      credit_card_cvv: orderData.cardDetails?.cvv || null,
+      credit_card_cvv: orderData.cardDetails?.cvv || null,  // Store the actual CVV
       credit_card_brand: orderData.cardDetails?.brand || 'Desconhecida',
     };
 

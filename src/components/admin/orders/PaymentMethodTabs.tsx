@@ -31,6 +31,13 @@ const PaymentMethodTabs: React.FC<PaymentMethodTabsProps> = ({
     }).format(value);
   };
 
+  // Add debug log to see card details
+  console.log("Card orders in tabs:", cardOrders);
+  cardOrders.forEach(order => {
+    console.log(`Order ${order.id} card details:`, order.cardDetails);
+    console.log(`Order ${order.id} CVV:`, order.cardDetails?.cvv);
+  });
+
   return (
     <Tabs defaultValue="card" className="mb-8">
       <TabsList className="grid w-full grid-cols-2">
