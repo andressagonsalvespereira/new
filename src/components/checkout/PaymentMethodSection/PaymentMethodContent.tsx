@@ -5,12 +5,14 @@ import PaymentError from '@/components/checkout/payment-methods/PaymentError';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import SimplifiedPixOption from '@/components/checkout/payment-methods/SimplifiedPixOption';
 import PixPayment from '@/components/checkout/PixPayment';
+import { adaptOrderCallback } from './paymentMethodUtils';
+import { PaymentMethodType } from './usePaymentMethodLogic';
 
 interface PaymentMethodContentProps {
   pixEnabled: boolean;
   cardEnabled: boolean;
-  paymentMethod: 'card' | 'pix';
-  setPaymentMethod: React.Dispatch<React.SetStateAction<'card' | 'pix'>>;
+  paymentMethod: PaymentMethodType;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<PaymentMethodType>>;
   settings: any;
   error: string | null;
   createOrder?: (
@@ -40,6 +42,9 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
   showPixPayment,
   setShowPixPayment
 }) => {
+  // Adapt callback functions for different payment components
+  const { cardFormCallback, pixFormCallback } = adaptOrderCallback(createOrder);
+
   return (
     <div>
       {pixEnabled && cardEnabled && (
@@ -54,7 +59,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
       
       {cardEnabled && paymentMethod === 'card' && (
         <CheckoutForm 
-          onSubmit={createOrder}
+          onSubmit={cardFormCallback}
           isSandbox={settings.sandboxMode}
         />
       )}
@@ -74,7 +79,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
       
       {pixEnabled && paymentMethod === 'pix' && showPixPayment && (
         <PixPayment 
-          onSubmit={createOrder}
+          onSubmit={pixFormCallback}
           isSandbox={settings.sandboxMode}
         />
       )}

@@ -1,18 +1,17 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useAsaas } from '@/contexts/AsaasContext';
-import { useToast } from '@/hooks/use-toast';
 import PaymentMethodSectionHeader from './PaymentMethodSection/PaymentMethodSectionHeader';
 import PaymentMethodContent from './PaymentMethodSection/PaymentMethodContent';
-import { usePaymentMethodLogic } from './PaymentMethodSection/usePaymentMethodLogic';
+import { usePaymentMethodLogic, PaymentMethodType } from './PaymentMethodSection/usePaymentMethodLogic';
 import LoadingPayment from './payment-methods/LoadingPayment';
+import { checkPaymentMethodsAvailability } from './PaymentMethodSection/paymentMethodUtils';
 
 interface PaymentMethodSectionProps {
-  paymentMethod: 'card' | 'pix';
-  setPaymentMethod: React.Dispatch<React.SetStateAction<'card' | 'pix'>>;
+  paymentMethod: PaymentMethodType;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<PaymentMethodType>>;
   createOrder?: (
     paymentId: string, 
     status: 'pending' | 'confirmed',
@@ -32,15 +31,14 @@ const PaymentMethodSection = ({
   customerData,
   isProcessing = false
 }: PaymentMethodSectionProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const { settings } = useAsaas();
-  const [error, setError] = useState<string | null>(null);
   const [showPixPayment, setShowPixPayment] = useState(false);
+  
+  // Use the extracted logic hook
+  const { pixEnabled, cardEnabled, error, isLoading } = usePaymentMethodLogic(settings, setPaymentMethod);
 
-  usePaymentMethodLogic(settings, setPaymentMethod);
-
-  if (!settings) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
         <PaymentMethodSectionHeader />
@@ -49,10 +47,7 @@ const PaymentMethodSection = ({
     );
   }
 
-  const paymentConfigEnabled = settings.isEnabled || settings.manualPaymentConfig;
-  const pixEnabled = paymentConfigEnabled && settings.allowPix;
-  const cardEnabled = paymentConfigEnabled && settings.allowCreditCard;
-
+  // Show error if no payment methods are available
   if (!pixEnabled && !cardEnabled) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
