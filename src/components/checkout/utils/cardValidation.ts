@@ -11,70 +11,47 @@ export interface CardValidationErrors {
   cvv?: string;
 }
 
+// Current date info for expiry validation
+const now = new Date();
+const currentYear = now.getFullYear() % 100; // Last two digits of current year
+const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+
 // Zod schema for card validation
 export const CardSchema = z.object({
   cardName: z.string().min(1, "Nome no cartão é obrigatório"),
-  cardNumber: z.string().min(16, "Número do cartão inválido").max(19, "Número do cartão inválido"),
+  cardNumber: z.string()
+    .min(16, "Número do cartão inválido")
+    .max(19, "Número do cartão inválido")
+    .refine(val => val.replace(/\s/g, '').length >= 16, {
+      message: "Número do cartão deve ter pelo menos 16 dígitos"
+    }),
   expiryMonth: z.string()
     .min(1, "Mês de validade é obrigatório")
     .max(2, "Mês inválido")
     .refine((val) => {
       const month = parseInt(val, 10);
       return !isNaN(month) && month >= 1 && month <= 12;
-    }, "Mês inválido (1-12)"),
+    }, "Mês inválido (1-12)")
+    .refine((month, ctx) => {
+      const year = parseInt(ctx.data.expiryYear, 10);
+      // If it's the current year, month must be current or future
+      if (year === currentYear && parseInt(month, 10) < currentMonth) {
+        return false;
+      }
+      return true;
+    }, "Cartão expirado"),
   expiryYear: z.string()
     .min(2, "Ano de validade é obrigatório")
-    .max(2, "Ano inválido (AA)"),
+    .max(2, "Ano inválido (AA)")
+    .refine((val) => {
+      const year = parseInt(val, 10);
+      return !isNaN(year) && year >= currentYear;
+    }, "Ano inválido ou expirado"),
   cvv: z.string()
     .min(3, "CVV inválido")
     .max(3, "CVV inválido")
     .refine((val) => validateCVV(val), "CVV inválido (não pode ser 000)")
 });
-
-/**
- * Valida os dados do cartão de crédito
- */
-export const validateCardForm = (
-  cardName: string,
-  cardNumber: string,
-  expiryMonth: string,
-  expiryYear: string,
-  cvv: string
-): CardValidationErrors | null => {
-  const errors: CardValidationErrors = {};
-  const cleanCardNumber = cardNumber.replace(/\s+/g, '');
-  
-  if (!cardName.trim()) {
-    errors.cardName = 'Nome no cartão é obrigatório';
-  }
-  
-  if (cleanCardNumber.length < 16) {
-    errors.cardNumber = 'Número do cartão inválido';
-  }
-  
-  if (!expiryMonth) {
-    errors.expiryMonth = 'Mês de validade é obrigatório';
-  } else {
-    const month = parseInt(expiryMonth, 10);
-    if (isNaN(month) || month < 1 || month > 12) {
-      errors.expiryMonth = 'Mês inválido (1-12)';
-    }
-  }
-  
-  if (!expiryYear) {
-    errors.expiryYear = 'Ano de validade é obrigatório';
-  } else if (expiryYear.length !== 2) {
-    errors.expiryYear = 'Ano inválido (AA)';
-  }
-  
-  if (!cvv || cvv.length !== 3) {
-    errors.cvv = 'CVV inválido';
-  } else if (cvv === '000') {
-    errors.cvv = 'CVV inválido (não pode ser 000)';
-  }
-  
-  return Object.keys(errors).length > 0 ? errors : null;
-};
 
 /**
  * Formata o número do cartão com espaços a cada 4 dígitos

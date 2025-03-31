@@ -1,7 +1,9 @@
 
 import React from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
-import { useCardForm } from './hooks/useCardForm';
+import { CardSchema } from '@/components/checkout/utils/cardValidation';
 import CardNameField from './form-fields/CardNameField';
 import CardNumberField from './form-fields/CardNumberField';
 import CardExpiryFields from './form-fields/CardExpiryFields';
@@ -30,7 +32,20 @@ const CardForm: React.FC<CardFormProps> = ({
   buttonText = "Pagar com Cartão"
 }) => {
   const { customization } = useCheckoutCustomization();
-  const { register, handleSubmit, processSubmit, errors, cardBrand, watch } = useCardForm(onSubmit);
+  
+  const methods = useForm<CardFormData>({
+    defaultValues: {
+      cardName: '',
+      cardNumber: '',
+      expiryMonth: '',
+      expiryYear: '',
+      cvv: ''
+    },
+    resolver: zodResolver(CardSchema),
+    mode: 'onBlur'
+  });
+
+  const { handleSubmit, watch, formState: { errors } } = methods;
 
   // Get button styles from customization
   const buttonStyle = {
@@ -42,48 +57,39 @@ const CardForm: React.FC<CardFormProps> = ({
   const displayButtonText = customization?.button_text || buttonText;
 
   return (
-    <form onSubmit={handleSubmit(processSubmit)} className="space-y-4">
-      <CardNameField 
-        value={watch('cardName')}
-        onChange={(e) => register('cardName').onChange(e)}
-        disabled={loading || isSubmitting}
-        error={errors.cardName}
-      />
-
-      <CardNumberField 
-        value={watch('cardNumber')}
-        onChange={(e) => register('cardNumber').onChange(e)}
-        disabled={loading || isSubmitting}
-        error={errors.cardNumber}
-        cardBrand={cardBrand}
-      />
-
-      <div className="grid grid-cols-3 gap-4">
-        <CardExpiryFields 
-          monthValue={watch('expiryMonth')}
-          yearValue={watch('expiryYear')}
-          onMonthChange={(e) => register('expiryMonth').onChange(e)}
-          onYearChange={(e) => register('expiryYear').onChange(e)}
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <CardNameField 
           disabled={loading || isSubmitting}
-          monthError={errors.expiryMonth}
-          yearError={errors.expiryYear}
+          error={errors.cardName?.message}
         />
-        
-        <CVVField 
-          value={watch('cvv')}
-          onChange={(e) => register('cvv').onChange(e)}
-          disabled={loading || isSubmitting}
-          error={errors.cvv}
-        />
-      </div>
 
-      <CardSubmitButton 
-        isLoading={loading}
-        isSubmitting={isSubmitting}
-        buttonText={displayButtonText}
-        buttonStyle={buttonStyle}
-      />
-    </form>
+        <CardNumberField 
+          disabled={loading || isSubmitting}
+          error={errors.cardNumber?.message}
+        />
+
+        <div className="grid grid-cols-3 gap-4">
+          <CardExpiryFields 
+            disabled={loading || isSubmitting}
+            monthError={errors.expiryMonth?.message}
+            yearError={errors.expiryYear?.message}
+          />
+          
+          <CVVField 
+            disabled={loading || isSubmitting}
+            error={errors.cvv?.message}
+          />
+        </div>
+
+        <CardSubmitButton 
+          isLoading={loading}
+          isSubmitting={isSubmitting}
+          buttonText={displayButtonText}
+          buttonStyle={buttonStyle}
+        />
+      </form>
+    </FormProvider>
   );
 };
 

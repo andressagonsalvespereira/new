@@ -31,14 +31,14 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
     
     try {
       // Processar pagamento com cartão usando o utilitário
-      await processCardPayment(
+      await processCardPayment({
         cardData,
-        { 
+        props: { 
           formState, 
           settings: settings || {
             isEnabled: false,
             manualCardProcessing: true,
-            manualCreditCard: false, // Added this required property
+            manualCreditCard: false,
             apiKey: '',
             allowPix: true,
             allowCreditCard: true,
@@ -56,7 +56,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         setIsSubmitting,
         navigate,
         toast
-      );
+      });
     } catch (error) {
       console.error("Error in handleCardFormSubmit:", error);
       setError('Falha ao processar o pagamento. Por favor, tente novamente.');
@@ -86,6 +86,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         onSubmit={handleCardFormSubmit}
         isSubmitting={isSubmitting}
         buttonText={settings?.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'}
+        loading={isSubmitting}
       />
     </div>
   );
