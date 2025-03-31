@@ -18,7 +18,7 @@ interface ProductTableProps {
   loading: boolean;
   error: string | null;
   onEdit: (product: Product) => void;
-  onDelete: (id: string) => void;
+  onDelete: (product: Product) => void;
 }
 
 const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTableProps) => {
@@ -89,6 +89,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                       src={product.imageUrl} 
                       alt={product.name} 
                       className="h-full w-full object-cover"
+                      loading="lazy"
                     />
                   </div>
                 ) : (
@@ -132,7 +133,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => onDelete(product.id)}
+                    onClick={() => onDelete(product)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Excluir
