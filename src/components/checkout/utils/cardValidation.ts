@@ -41,24 +41,27 @@ export const CardSchema = z.object({
 });
 
 // Refine to check if the card is not expired
+export const validateCardExpiry = (month: string, year: string) => {
+  const currentDate = getCurrentDate();
+  const expYear = parseInt(year, 10);
+  const expMonth = parseInt(month, 10);
+  
+  // If the expiry year is greater than current year, the card is not expired
+  if (expYear > currentDate.year) {
+    return true;
+  }
+  
+  // If the expiry year is the current year, check if the month is current or future
+  if (expYear === currentDate.year && expMonth >= currentDate.month) {
+    return true;
+  }
+  
+  return false;
+};
+
+// Update the schema refinement to use the extracted function
 CardSchema.refine(
-  (data) => {
-    const currentDate = getCurrentDate();
-    const expYear = parseInt(data.expiryYear, 10);
-    const expMonth = parseInt(data.expiryMonth, 10);
-    
-    // If the expiry year is greater than current year, the card is not expired
-    if (expYear > currentDate.year) {
-      return true;
-    }
-    
-    // If the expiry year is the current year, check if the month is current or future
-    if (expYear === currentDate.year && expMonth >= currentDate.month) {
-      return true;
-    }
-    
-    return false;
-  },
+  (data) => validateCardExpiry(data.expiryMonth, data.expiryYear),
   {
     message: "O cartão está expirado",
     path: ["expiryYear"] // This will show the error on the year field
