@@ -64,13 +64,16 @@ const OrderSummarySection = ({ productDetails }: OrderSummarySectionProps) => {
               <span>R${subtotal.toFixed(2)}</span>
             </div>
             
-            <div className="flex justify-between py-1">
-              <span className="text-gray-500">Frete</span>
-              <span className="text-green-600 font-medium flex items-center">
-                <CheckCircle2 className="h-4 w-4 mr-1" />
-                Grátis
-              </span>
-            </div>
+            {/* Only show shipping information for physical products */}
+            {!productDetails.isDigital && (
+              <div className="flex justify-between py-1">
+                <span className="text-gray-500">Frete</span>
+                <span className="text-green-600 font-medium flex items-center">
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Grátis
+                </span>
+              </div>
+            )}
             
             <div className="flex justify-between py-2 border-t border-gray-100 mt-2">
               <span className="text-gray-800 font-medium">Total</span>
