@@ -144,14 +144,25 @@ export const obterProdutoPorIdAPI = async (id: string): Promise<Product | undefi
 
 // Obter produto por slug do Supabase
 export const obterProdutoPorSlugAPI = async (slug: string): Promise<Product | undefined> => {
+  console.log('Buscando produto no Supabase por slug:', slug);
+  
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('slug', slug)
     .maybeSingle();
   
-  if (error) throw error;
-  if (!data) return undefined;
+  if (error) {
+    console.error('Erro ao buscar produto por slug:', error);
+    throw error;
+  }
+  
+  console.log('Resposta do Supabase para slug', slug, ':', data);
+  
+  if (!data) {
+    console.log('Nenhum produto encontrado com o slug:', slug);
+    return undefined;
+  }
   
   // Converter para o tipo de Produto
   return mapDbToProduct(data as unknown as LinhaSupabaseProduto);

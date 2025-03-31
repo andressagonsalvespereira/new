@@ -15,6 +15,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
   const { toast } = useToast();
   
   const copyCheckoutLink = (productSlug: string) => {
+    console.log('Copying checkout link for slug:', productSlug);
     const baseUrl = window.location.origin;
     const checkoutUrl = `${baseUrl}/checkout/${productSlug}`;
     
@@ -22,7 +23,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
       .then(() => {
         toast({
           title: "Link copiado",
-          description: "Link de checkout rápido copiado para a área de transferência",
+          description: "Link de checkout copiado para a área de transferência",
         });
       })
       .catch(err => {
@@ -36,6 +37,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
   };
 
   const openCheckoutLink = (productSlug: string) => {
+    console.log('Opening checkout link for slug:', productSlug);
     const baseUrl = window.location.origin;
     const checkoutUrl = `${baseUrl}/checkout/${productSlug}`;
     window.open(checkoutUrl, '_blank');
@@ -47,7 +49,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
         variant="outline"
         size="sm"
         onClick={() => copyCheckoutLink(product.slug)}
-        title="Copiar link de checkout rápido"
+        title="Copiar link de checkout"
       >
         <Copy className="h-4 w-4" />
       </Button>
@@ -55,7 +57,7 @@ const ProductTableActions = ({ product, onEdit, onDelete }: ProductTableActionsP
         variant="outline"
         size="sm"
         onClick={() => openCheckoutLink(product.slug)}
-        title="Abrir checkout rápido"
+        title="Abrir checkout"
       >
         <ExternalLink className="h-4 w-4" />
       </Button>

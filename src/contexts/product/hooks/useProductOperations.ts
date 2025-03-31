@@ -84,12 +84,24 @@ export const useProductOperations = (props: ProductOperationsProps) => {
     try {
       console.log('Produto não encontrado no estado local, buscando na API');
       const product = await obterProdutoPorIdAPI(id);
+      
+      // Se encontramos o produto, adicionamos ao estado local para futuras referências
+      if (product) {
+        setProducts(prev => {
+          // Verificar se o produto já existe na lista
+          if (!prev.some(p => p.id === product.id)) {
+            return [...prev, product];
+          }
+          return prev;
+        });
+      }
+      
       return product;
     } catch (error) {
       console.error('Erro ao buscar produto por ID:', error);
       return undefined;
     }
-  }, [products, isOffline]);
+  }, [products, isOffline, setProducts]);
 
   // Buscar produto por slug
   const getProductBySlug = useCallback(async (slug: string): Promise<Product | undefined> => {
@@ -112,12 +124,27 @@ export const useProductOperations = (props: ProductOperationsProps) => {
     try {
       console.log('Produto não encontrado no estado local, buscando na API');
       const product = await obterProdutoPorSlugAPI(slug);
+      
+      // Se encontramos o produto, adicionamos ao estado local para futuras referências
+      if (product) {
+        console.log('Produto encontrado na API:', product);
+        setProducts(prev => {
+          // Verificar se o produto já existe na lista
+          if (!prev.some(p => p.id === product.id)) {
+            return [...prev, product];
+          }
+          return prev;
+        });
+      } else {
+        console.log('Produto não encontrado nem na API');
+      }
+      
       return product;
     } catch (error) {
       console.error('Erro ao buscar produto por slug:', error);
       return undefined;
     }
-  }, [products, isOffline]);
+  }, [products, isOffline, setProducts]);
 
   // Memoizar os valores retornados para evitar re-renderizações desnecessárias
   return useMemo(() => ({
