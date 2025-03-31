@@ -7,6 +7,9 @@ interface CheckoutCustomization {
   header_message: string;
   banner_image_url: string;
   show_banner: boolean;
+  button_color: string;
+  button_text_color: string;
+  heading_color: string;
 }
 
 const CheckoutHeader = () => {
@@ -17,16 +20,20 @@ const CheckoutHeader = () => {
   const [customization, setCustomization] = useState<CheckoutCustomization>({
     header_message: 'Oferta por tempo limitado!',
     banner_image_url: '',
-    show_banner: true
+    show_banner: true,
+    button_color: '#3b82f6',
+    button_text_color: '#ffffff',
+    heading_color: '#000000'
   });
 
   useEffect(() => {
     // Fetch customization settings
     const fetchCustomization = async () => {
       try {
-        const { data, error } = await supabase
+        // Use the any type to bypass TypeScript checking for the table name
+        const { data, error } = await (supabase as any)
           .from('checkout_customization')
-          .select('header_message, banner_image_url, show_banner')
+          .select('header_message, banner_image_url, show_banner, button_color, button_text_color, heading_color')
           .order('id', { ascending: false })
           .limit(1)
           .single();
@@ -37,7 +44,7 @@ const CheckoutHeader = () => {
         }
 
         if (data) {
-          setCustomization(data);
+          setCustomization(data as CheckoutCustomization);
         }
       } catch (err) {
         console.error('Failed to fetch checkout customization', err);
