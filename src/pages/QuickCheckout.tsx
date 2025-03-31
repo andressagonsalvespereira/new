@@ -90,9 +90,9 @@ const QuickCheckout = () => {
                   <CheckoutForm 
                     onSubmit={handlePaymentSubmit} 
                     isSandbox={settings.sandboxMode}
-                    isDigitalProduct={product.isDigital || product.digital}
-                    useCustomProcessing={product.useCustomProcessing || product.usarProcessamentoPersonalizado}
-                    manualCardStatus={product.manualCardStatus || product.statusCartaoManual}
+                    isDigitalProduct={product.digital}
+                    useCustomProcessing={product.usarProcessamentoPersonalizado}
+                    manualCardStatus={product.statusCartaoManual}
                   />
                 )}
                 
@@ -100,7 +100,7 @@ const QuickCheckout = () => {
                   <PixPayment 
                     onSubmit={handlePaymentSubmit}
                     isSandbox={settings.sandboxMode}
-                    isDigitalProduct={product.isDigital || product.digital}
+                    isDigitalProduct={product.digital}
                   />
                 )}
               </div>
