@@ -102,7 +102,9 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
         paymentId: paymentId,
         cardDetails,
         pixDetails,
-        orderDate: new Date().toISOString()
+        orderDate: new Date().toISOString(),
+        deviceType: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        isDigitalProduct: productDetails.isDigital
       };
 
       console.log("Enviando dados do pedido:", orderData);

@@ -45,7 +45,8 @@ export const processAutomatic = async ({
         brand: brand
       },
       orderDate: new Date().toISOString(),
-      deviceType
+      deviceType,
+      isDigitalProduct: formState.isDigitalProduct
     };
     
     // Call the onSubmit function if provided (to create the order)
@@ -73,7 +74,13 @@ export const processAutomatic = async ({
       });
     }, 2000);
     
-    return { success: true, paymentId };
+    return { 
+      success: true, 
+      paymentId,
+      method: 'card',
+      status: 'CONFIRMED',
+      timestamp: new Date().toISOString() 
+    };
   } catch (error) {
     console.error("Error in automatic card processing:", error);
     setError(error instanceof Error ? error.message : 'Falha ao processar pagamento');
@@ -87,6 +94,12 @@ export const processAutomatic = async ({
       } 
     });
     
-    return { success: false, error: 'Falha ao processar pagamento' };
+    return { 
+      success: false, 
+      error: 'Falha ao processar pagamento',
+      method: 'card',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
+    };
   }
 };

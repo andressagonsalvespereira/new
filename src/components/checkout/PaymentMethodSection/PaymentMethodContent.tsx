@@ -45,6 +45,9 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
   // Adapt callback functions for different payment components
   const { cardFormCallback, pixFormCallback } = adaptOrderCallback(createOrder);
 
+  // Check if the product is digital
+  const isDigitalProduct = productDetails?.isDigital || false;
+
   return (
     <div>
       {pixEnabled && cardEnabled && (
@@ -61,6 +64,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
         <CheckoutForm 
           onSubmit={cardFormCallback}
           isSandbox={settings.sandboxMode}
+          isDigitalProduct={isDigitalProduct}
         />
       )}
       
@@ -81,6 +85,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
         <PixPayment 
           onSubmit={pixFormCallback}
           isSandbox={settings.sandboxMode}
+          isDigitalProduct={isDigitalProduct}
         />
       )}
     </div>

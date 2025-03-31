@@ -61,13 +61,13 @@ export const processCardPayment = async ({
       console.log("Using automatic card processing with digital product flag:", isDigitalProduct);
       return await processAutomatic({
         cardData,
-        props: {
-          ...props,
-          formState: { 
-            ...props.formState,
-            isDigitalProduct
-          }
+        formState: { 
+          ...props.formState,
+          isDigitalProduct
         },
+        settings: props.settings,
+        isSandbox: props.isSandbox,
+        onSubmit: props.onSubmit,
         setError,
         setPaymentStatus,
         setIsSubmitting,

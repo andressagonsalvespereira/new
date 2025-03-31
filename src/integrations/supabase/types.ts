@@ -126,6 +126,7 @@ export type Database = {
           customer_phone: string | null
           device_type: string | null
           id: number
+          is_digital_product: boolean | null
           payment_id: string | null
           payment_method: string | null
           price: number
@@ -148,6 +149,7 @@ export type Database = {
           customer_phone?: string | null
           device_type?: string | null
           id?: number
+          is_digital_product?: boolean | null
           payment_id?: string | null
           payment_method?: string | null
           price: number
@@ -170,6 +172,7 @@ export type Database = {
           customer_phone?: string | null
           device_type?: string | null
           id?: number
+          is_digital_product?: boolean | null
           payment_id?: string | null
           payment_method?: string | null
           price?: number
