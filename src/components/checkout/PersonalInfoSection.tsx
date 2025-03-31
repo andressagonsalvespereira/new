@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +30,7 @@ const PersonalInfoSection = ({
       </div>
       
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label htmlFor="fullName" className="block text-sm mb-1">Nome completo</label>
             <Input
@@ -55,7 +56,7 @@ const PersonalInfoSection = ({
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label htmlFor="cpf" className="block text-sm mb-1">CPF/CNPJ</label>
             <Input
@@ -69,9 +70,9 @@ const PersonalInfoSection = ({
           </div>
           <div>
             <label htmlFor="phone" className="block text-sm mb-1">Celular</label>
-            <div className="flex">
+            <div className="flex flex-wrap sm:flex-nowrap gap-2">
               <Select defaultValue="55">
-                <SelectTrigger className="w-20 h-9 border-gray-300">
+                <SelectTrigger className="w-20 h-9 border-gray-300 flex-shrink-0">
                   <SelectValue placeholder="+55" />
                 </SelectTrigger>
                 <SelectContent>
@@ -82,7 +83,7 @@ const PersonalInfoSection = ({
                 id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className={`h-9 ml-2 flex-1 ${formErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                className={`h-9 flex-1 ${formErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="(00) 00000-0000"
               />
             </div>
