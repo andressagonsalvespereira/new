@@ -82,12 +82,14 @@ const CheckoutHeader = () => {
       </header>
       
       {customization.show_banner && customization.banner_image_url && (
-        <div className="w-full">
-          <img 
-            src={customization.banner_image_url} 
-            alt="Checkout Banner" 
-            className="w-full h-auto object-cover max-h-40 md:max-h-60"
-          />
+        <div className="w-full flex justify-center mt-2 mb-4">
+          <div className="max-w-xl w-full px-4">
+            <img 
+              src={customization.banner_image_url} 
+              alt="Checkout Banner" 
+              className="w-full h-auto object-cover rounded-md"
+            />
+          </div>
         </div>
       )}
     </>
