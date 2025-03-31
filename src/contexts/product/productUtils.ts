@@ -11,7 +11,7 @@ export const loadProducts = async (): Promise<Product[]> => {
 };
 
 export const createProduct = (data: CreateProductInput): Product => {
-  return {
+  const newProduct = {
     id: uuidv4(),
     name: data.name,
     description: data.description,
@@ -19,6 +19,11 @@ export const createProduct = (data: CreateProductInput): Product => {
     imageUrl: data.imageUrl,
     isDigital: data.isDigital
   };
+  
+  // Adicionar à lista em memória
+  productsInMemory.push(newProduct);
+  
+  return newProduct;
 };
 
 export const updateExistingProduct = (product: Product, data: CreateProductInput): Product => {
