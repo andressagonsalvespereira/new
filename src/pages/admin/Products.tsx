@@ -7,7 +7,7 @@ import AddProductDialog from '@/components/products/AddProductDialog';
 import EditProductDialog from '@/components/products/EditProductDialog';
 import ProductHeader from '@/components/products/ProductHeader';
 import ProductDeleteConfirmation from '@/components/products/ProductDeleteConfirmation';
-import { useProductManagement } from '@/hooks/useProductManagement';
+import { useGerenciamentoProdutos } from '@/hooks/useProductManagement';
 
 const Products: React.FC = () => {
   const {
@@ -36,12 +36,12 @@ const Products: React.FC = () => {
     currentPage,
     pageSize,
     handlePageChange
-  } = useProductManagement();
+  } = useGerenciamentoProdutos();
   
   // Added key to console log to check if component mounts multiple times
   React.useEffect(() => {
-    console.log('Products page mounted');
-    return () => console.log('Products page unmounted');
+    console.log('Página de produtos montada');
+    return () => console.log('Página de produtos desmontada');
   }, []);
   
   return (
@@ -100,7 +100,7 @@ const Products: React.FC = () => {
         <ProductDeleteConfirmation
           isOpen={isDeleteDialogOpen}
           setIsOpen={setIsDeleteDialogOpen}
-          productName={productToDelete.name}
+          productName={productToDelete.nome}
           onConfirm={handleDeleteProduct}
         />
       )}

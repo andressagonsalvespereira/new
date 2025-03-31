@@ -13,15 +13,15 @@ interface ProductTableRowProps {
 const ProductTableRow = ({ product, onEdit, onDelete }: ProductTableRowProps) => {
   return (
     <TableRow key={product.id}>
-      <TableCell className="font-medium">{product.name}</TableCell>
-      <TableCell className="max-w-xs truncate">{product.description}</TableCell>
-      <TableCell>R$ {product.price.toFixed(2)}</TableCell>
+      <TableCell className="font-medium">{product.nome}</TableCell>
+      <TableCell className="max-w-xs truncate">{product.descricao}</TableCell>
+      <TableCell>R$ {product.preco.toFixed(2)}</TableCell>
       <TableCell>
-        {product.imageUrl ? (
+        {product.urlImagem ? (
           <div className="h-10 w-10 overflow-hidden rounded-md">
             <img 
-              src={product.imageUrl} 
-              alt={product.name} 
+              src={product.urlImagem} 
+              alt={product.nome} 
               className="h-full w-full object-cover"
               loading="lazy"
               onError={(e) => {
@@ -36,8 +36,8 @@ const ProductTableRow = ({ product, onEdit, onDelete }: ProductTableRowProps) =>
         )}
       </TableCell>
       <TableCell>
-        <span className={`px-2 py-1 text-xs rounded-full ${product.isDigital ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-          {product.isDigital ? 'Digital' : 'Físico'}
+        <span className={`px-2 py-1 text-xs rounded-full ${product.digital ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+          {product.digital ? 'Digital' : 'Físico'}
         </span>
       </TableCell>
       <TableCell className="text-right">

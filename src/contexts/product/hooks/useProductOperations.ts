@@ -1,13 +1,13 @@
 
 import { useCallback } from 'react';
-import { Product, CreateProductInput } from '@/types/product';
+import { Product, CriarProdutoInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  addProductToAPI,
-  editProductInAPI,
-  removeProductFromAPI,
-  getProductByIdFromAPI,
-  getProductBySlugFromAPI
+  adicionarProdutoAPI,
+  editarProdutoAPI,
+  removerProdutoAPI,
+  obterProdutoPorIdAPI,
+  obterProdutoPorSlugAPI
 } from '../productApi';
 
 interface UseProductOperationsProps {
@@ -19,16 +19,16 @@ interface UseProductOperationsProps {
 export const useProductOperations = ({ products, setProducts, isOffline }: UseProductOperationsProps) => {
   const { toast } = useToast();
   
-  const addProduct = useCallback(async (productData: CreateProductInput): Promise<void> => {
+  const addProduct = useCallback(async (productData: CriarProdutoInput): Promise<void> => {
     try {
-      const newProduct = await addProductToAPI(productData);
-      setProducts(prevProducts => [...prevProducts, newProduct]);
+      const newProduct = await adicionarProdutoAPI(productData);
+      setProducts(prevProducts => [newProduct, ...prevProducts]);
       toast({
         title: "Produto adicionado",
-        description: `O produto ${newProduct.name} foi adicionado com sucesso.`,
+        description: `O produto ${newProduct.nome} foi adicionado com sucesso.`,
       });
     } catch (error: any) {
-      console.error("Error adding product:", error);
+      console.error("Erro ao adicionar produto:", error);
       toast({
         title: "Erro ao adicionar produto",
         description: error.message || "Ocorreu um erro ao adicionar o produto.",
@@ -39,16 +39,16 @@ export const useProductOperations = ({ products, setProducts, isOffline }: UsePr
   
   const editProduct = useCallback(async (id: string, productData: Partial<Product>): Promise<void> => {
     try {
-      const updatedProduct = await editProductInAPI(id, productData);
+      const updatedProduct = await editarProdutoAPI(id, productData);
       setProducts(prevProducts =>
         prevProducts.map(product => (product.id === id ? updatedProduct : product))
       );
       toast({
         title: "Produto atualizado",
-        description: `O produto ${updatedProduct.name} foi atualizado com sucesso.`,
+        description: `O produto ${updatedProduct.nome} foi atualizado com sucesso.`,
       });
     } catch (error: any) {
-      console.error("Error updating product:", error);
+      console.error("Erro ao atualizar produto:", error);
       toast({
         title: "Erro ao atualizar produto",
         description: error.message || "Ocorreu um erro ao atualizar o produto.",
@@ -59,14 +59,14 @@ export const useProductOperations = ({ products, setProducts, isOffline }: UsePr
   
   const removeProduct = useCallback(async (id: string): Promise<void> => {
     try {
-      await removeProductFromAPI(id);
+      await removerProdutoAPI(id);
       setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
       toast({
         title: "Produto removido",
         description: "O produto foi removido com sucesso.",
       });
     } catch (error: any) {
-      console.error("Error deleting product:", error);
+      console.error("Erro ao remover produto:", error);
       toast({
         title: "Erro ao remover produto",
         description: error.message || "Ocorreu um erro ao remover o produto.",
@@ -77,10 +77,10 @@ export const useProductOperations = ({ products, setProducts, isOffline }: UsePr
   
   const getProductById = useCallback(async (id: string): Promise<Product | undefined> => {
     try {
-      const product = await getProductByIdFromAPI(id);
+      const product = await obterProdutoPorIdAPI(id);
       return product;
     } catch (error) {
-      console.error("Error fetching product by ID:", error);
+      console.error("Erro ao buscar produto por ID:", error);
       toast({
         title: "Erro ao buscar produto",
         description: "Ocorreu um erro ao buscar o produto por ID.",
@@ -115,7 +115,7 @@ export const useProductOperations = ({ products, setProducts, isOffline }: UsePr
       // Se não encontrar localmente, buscar da API
       try {
         console.log('Buscando produto na API pelo slug:', slug);
-        const product = await getProductBySlugFromAPI(slug);
+        const product = await obterProdutoPorSlugAPI(slug);
         console.log('Resposta da API:', product);
         return product;
       } catch (error) {

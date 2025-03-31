@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
-import { fetchProductsFromAPI } from '../productApi';
+import { buscarProdutosAPI } from '../productApi';
 import { loadProducts, saveProducts } from '../productUtils';
 
 export const useProductFetching = () => {
@@ -27,7 +27,7 @@ export const useProductFetching = () => {
     setHasAttemptedFetch(true);
     
     try {
-      const formattedProducts = await fetchProductsFromAPI();
+      const formattedProducts = await buscarProdutosAPI();
       setProducts(formattedProducts);
       
       // Sync local storage with latest data
@@ -43,15 +43,15 @@ export const useProductFetching = () => {
         setProducts(localProducts);
         setNetworkError(true);
         toast({
-          title: "Offline mode",
-          description: "Loading products from local storage due to connection failure",
+          title: "Modo offline",
+          description: "Carregando produtos do armazenamento local devido à falha na conexão",
           variant: "destructive",
         });
       } catch (localErr) {
         console.error('Error loading local products:', localErr);
         toast({
-          title: "Error",
-          description: "Failed to load products, check your connection",
+          title: "Erro",
+          description: "Falha ao carregar produtos, verifique sua conexão",
           variant: "destructive",
         });
       }
@@ -60,7 +60,7 @@ export const useProductFetching = () => {
       // Permitir novas tentativas de carregamento apenas através do retryFetchProducts
       fetchAttemptedRef.current = true;
     }
-  }, [toast]);
+  }, [toast, loading]);
 
   // Add a retry mechanism with force refresh
   const retryFetchProducts = useCallback(async (): Promise<void> => {

@@ -9,13 +9,13 @@ import {
   DialogTitle, 
   DialogDescription 
 } from '@/components/ui/dialog';
-import { CreateProductInput } from '@/types/product';
+import { CriarProdutoInput } from '@/types/product';
 import ProductFormFields from './ProductFormFields';
 
 interface EditProductDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  formData: CreateProductInput;
+  formData: CriarProdutoInput;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSwitchChange: (checked: boolean) => void;
   handleUseCustomProcessingChange?: (checked: boolean) => void;
@@ -42,9 +42,9 @@ const EditProductDialog = ({
         aria-labelledby="edit-product-title"
       >
         <DialogHeader>
-          <DialogTitle id="edit-product-title">Edit Product</DialogTitle>
+          <DialogTitle id="edit-product-title">Editar Produto</DialogTitle>
           <DialogDescription id={editDescriptionId}>
-            Update the details of the existing product in your catalog.
+            Atualize os detalhes do produto existente em seu catálogo.
           </DialogDescription>
         </DialogHeader>
         <ProductFormFields 
@@ -55,12 +55,12 @@ const EditProductDialog = ({
           handleManualCardStatusChange={handleManualCardStatusChange}
         />
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
           <Button 
             className="bg-blue-600 hover:bg-blue-700 text-white" 
             onClick={handleUpdateProduct}
           >
-            Update Product
+            Atualizar Produto
           </Button>
         </DialogFooter>
       </DialogContent>

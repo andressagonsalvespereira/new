@@ -1,5 +1,5 @@
 
-import { Product, CreateProductInput } from '@/types/product';
+import { Product, CriarProdutoInput } from '@/types/product';
 import { v4 as uuidv4 } from 'uuid';
 import { slugify } from './slugUtils';
 
@@ -30,8 +30,8 @@ export const saveProducts = (products: Product[]): void => {
 };
 
 // Generate a unique local slug
-const generateLocalSlug = (name: string, existingProducts: Product[]): string => {
-  let baseSlug = slugify(name);
+const generateLocalSlug = (nome: string, existingProducts: Product[]): string => {
+  let baseSlug = slugify(nome);
   let slug = baseSlug;
   let counter = 1;
   
@@ -45,18 +45,20 @@ const generateLocalSlug = (name: string, existingProducts: Product[]): string =>
 };
 
 // Create a product (local version)
-export const createProduct = (data: CreateProductInput): Product => {
+export const createProduct = (data: CriarProdutoInput): Product => {
   const existingProducts = loadProducts();
-  const slug = generateLocalSlug(data.name, existingProducts);
+  const slug = generateLocalSlug(data.nome, existingProducts);
   
-  const newProduct = {
+  const newProduct: Product = {
     id: `local_${uuidv4()}`,
-    name: data.name,
-    description: data.description,
-    price: data.price,
-    imageUrl: data.imageUrl,
-    isDigital: data.isDigital,
-    slug: slug
+    nome: data.nome,
+    descricao: data.descricao,
+    preco: data.preco,
+    urlImagem: data.urlImagem,
+    digital: data.digital,
+    slug: slug,
+    usarProcessamentoPersonalizado: data.usarProcessamentoPersonalizado,
+    statusCartaoManual: data.statusCartaoManual
   };
   
   // Add to local storage
@@ -67,21 +69,23 @@ export const createProduct = (data: CreateProductInput): Product => {
   return newProduct;
 };
 
-export const updateExistingProduct = (product: Product, data: CreateProductInput): Product => {
+export const updateExistingProduct = (product: Product, data: CriarProdutoInput): Product => {
   // If name changed, update slug
-  const nameChanged = product.name !== data.name;
-  const slug = nameChanged 
-    ? generateLocalSlug(data.name, loadProducts().filter(p => p.id !== product.id))
+  const nomeAlterado = product.nome !== data.nome;
+  const slug = nomeAlterado 
+    ? generateLocalSlug(data.nome, loadProducts().filter(p => p.id !== product.id))
     : product.slug;
   
   return {
     ...product,
-    name: data.name,
-    description: data.description,
-    price: data.price,
-    imageUrl: data.imageUrl,
-    isDigital: data.isDigital,
-    slug: slug
+    nome: data.nome,
+    descricao: data.descricao,
+    preco: data.preco,
+    urlImagem: data.urlImagem,
+    digital: data.digital,
+    slug: slug,
+    usarProcessamentoPersonalizado: data.usarProcessamentoPersonalizado,
+    statusCartaoManual: data.statusCartaoManual
   };
 };
 
@@ -98,8 +102,8 @@ export const updateProduct = (id: string, data: Partial<Product>): Product | und
   
   // If name is changing, update slug
   let updatedSlug = currentProduct.slug;
-  if (data.name && data.name !== currentProduct.name) {
-    updatedSlug = generateLocalSlug(data.name, products.filter(p => p.id !== id));
+  if (data.nome && data.nome !== currentProduct.nome) {
+    updatedSlug = generateLocalSlug(data.nome, products.filter(p => p.id !== id));
   }
   
   const updatedProduct = {

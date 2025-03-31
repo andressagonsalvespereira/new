@@ -1,9 +1,10 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
-import { Product, CreateProductInput } from '@/types/product';
+import { Product, CriarProdutoInput } from '@/types/product';
 
-const estadoInicialFormulario: CreateProductInput = {
+const estadoInicialFormulario: CriarProdutoInput = {
   nome: '',
   descricao: '',
   preco: 0,
@@ -19,7 +20,7 @@ export const useGerenciamentoProdutos = () => {
   const [dialogoRemocaoAberto, definirDialogoRemocaoAberto] = useState(false);
   const [produtoEmEdicao, definirProdutoEmEdicao] = useState<Product | null>(null);
   const [produtoParaRemover, definirProdutoParaRemover] = useState<Product | null>(null);
-  const [dadosFormulario, definirDadosFormulario] = useState<CreateProductInput>(estadoInicialFormulario);
+  const [dadosFormulario, definirDadosFormulario] = useState<CriarProdutoInput>(estadoInicialFormulario);
   
   // Pagination state
   const [paginaAtual, definirPaginaAtual] = useState(1);
@@ -90,15 +91,15 @@ export const useGerenciamentoProdutos = () => {
       definirDialogoAdicaoAberto(false);
 
       exibirNotificacao({
-        titulo: "Sucesso",
-        descricao: "Produto adicionado com sucesso",
+        title: "Sucesso",
+        description: "Produto adicionado com sucesso",
       });
     } catch (erro) {
       console.error('Erro ao adicionar produto:', erro);
       exibirNotificacao({
-        titulo: "Erro",
-        descricao: "Falha ao adicionar produto",
-        variante: "destrutiva",
+        title: "Erro",
+        description: "Falha ao adicionar produto",
+        variant: "destructive",
       });
     }
   };
@@ -106,13 +107,13 @@ export const useGerenciamentoProdutos = () => {
   const handleEditarClique = useCallback((produto: Product) => {
     definirProdutoEmEdicao(produto);
     definirDadosFormulario({
-      nome: produto.name,
-      descricao: produto.description || '',
-      preco: produto.price,
-      urlImagem: produto.imageUrl || '',
-      digital: produto.isDigital,
-      usarProcessamentoPersonalizado: produto.useCustomProcessing || false,
-      statusCartaoManual: produto.manualCardStatus || 'ANALISE'
+      nome: produto.nome,
+      descricao: produto.descricao || '',
+      preco: produto.preco,
+      urlImagem: produto.urlImagem || '',
+      digital: produto.digital,
+      usarProcessamentoPersonalizado: produto.usarProcessamentoPersonalizado || false,
+      statusCartaoManual: produto.statusCartaoManual || 'ANALISE'
     });
     definirDialogoEdicaoAberto(true);
   }, []);
@@ -131,15 +132,15 @@ export const useGerenciamentoProdutos = () => {
       definirProdutoEmEdicao(null);
 
       exibirNotificacao({
-        titulo: "Sucesso",
-        descricao: "Produto atualizado com sucesso",
+        title: "Sucesso",
+        description: "Produto atualizado com sucesso",
       });
     } catch (erro) {
       console.error('Erro ao atualizar produto:', erro);
       exibirNotificacao({
-        titulo: "Erro",
-        descricao: "Falha ao atualizar produto",
-        variante: "destrutiva",
+        title: "Erro",
+        description: "Falha ao atualizar produto",
+        variant: "destructive",
       });
     }
   };
@@ -153,15 +154,15 @@ export const useGerenciamentoProdutos = () => {
       definirProdutoParaRemover(null);
       
       exibirNotificacao({
-        titulo: "Sucesso",
-        descricao: "Produto removido com sucesso",
+        title: "Sucesso",
+        description: "Produto removido com sucesso",
       });
     } catch (erro) {
       console.error('Erro ao remover produto:', erro);
       exibirNotificacao({
-        titulo: "Erro",
-        descricao: "Falha ao remover produto",
-        variante: "destrutiva",
+        title: "Erro",
+        description: "Falha ao remover produto",
+        variant: "destructive",
       });
     }
   };
@@ -201,3 +202,6 @@ export const useGerenciamentoProdutos = () => {
     handlePageChange: handleMudancaPagina
   };
 };
+
+// Exportando com o nome antigo para manter compatibilidade
+export const useProductManagement = useGerenciamentoProdutos;

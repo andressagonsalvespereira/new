@@ -1,12 +1,12 @@
 
 import { ReactNode } from 'react';
-import { Product, CreateProductInput } from '@/types/product';
+import { Product, CriarProdutoInput } from '@/types/product';
 
 export interface ProductContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
-  addProduct: (product: CreateProductInput) => Promise<void>;
+  addProduct: (product: CriarProdutoInput) => Promise<void>;
   editProduct: (id: string, product: Partial<Product>) => Promise<void>;
   removeProduct: (id: string) => Promise<void>;
   getProductById: (id: string) => Promise<Product | undefined>;

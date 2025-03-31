@@ -11,13 +11,13 @@ import {
   DialogDescription 
 } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
-import { CreateProductInput } from '@/types/product';
+import { CriarProdutoInput } from '@/types/product';
 import ProductFormFields from './ProductFormFields';
 
 interface AddProductDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  formData: CreateProductInput;
+  formData: CriarProdutoInput;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSwitchChange: (checked: boolean) => void;
   handleUseCustomProcessingChange?: (checked: boolean) => void;
@@ -42,7 +42,7 @@ const AddProductDialog = ({
       <DialogTrigger asChild>
         <Button className="bg-green-600 hover:bg-green-700 text-white">
           <Plus className="h-4 w-4 mr-2" />
-          Add Product
+          Adicionar Produto
         </Button>
       </DialogTrigger>
       <DialogContent 
@@ -50,9 +50,9 @@ const AddProductDialog = ({
         aria-labelledby="add-product-title"
       >
         <DialogHeader>
-          <DialogTitle id="add-product-title">Add New Product</DialogTitle>
+          <DialogTitle id="add-product-title">Adicionar Novo Produto</DialogTitle>
           <DialogDescription id={addDescriptionId}>
-            Fill in the details of the new product you want to add to your catalog.
+            Preencha os detalhes do novo produto que você deseja adicionar ao seu catálogo.
           </DialogDescription>
         </DialogHeader>
         <ProductFormFields 
@@ -63,9 +63,9 @@ const AddProductDialog = ({
           handleManualCardStatusChange={handleManualCardStatusChange}
         />
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
           <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleAddProduct}>
-            Add Product
+            Adicionar Produto
           </Button>
         </DialogFooter>
       </DialogContent>

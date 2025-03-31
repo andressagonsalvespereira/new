@@ -1,4 +1,5 @@
-import { Produto, CreateProdutoInput } from '@/types/product';
+
+import { Product, CriarProdutoInput } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 import { generateSlug } from './slugUtils';
 
@@ -18,17 +19,17 @@ interface LinhaSupabaseProduto {
 }
 
 // Buscar produtos do Supabase
-export const buscarProdutosAPI = async (): Promise<Produto[]> => {
+export const buscarProdutosAPI = async (): Promise<Product[]> => {
   const { data, error } = await supabase
-    .from('produtos')
+    .from('products')
     .select('*')
-    .order('criado_em', { ascending: false });
+    .order('created_at', { ascending: false });
   
   if (error) throw error;
   
-  return (data as LinhaSupabaseProduto[]).map(item => ({
+  return (data as unknown as LinhaSupabaseProduto[]).map(item => ({
     id: String(item.id),
-    nome: item.nome,
+    nome: item.nome || '',
     descricao: item.descricao || '',
     preco: Number(item.preco),
     urlImagem: item.url_imagem || '',
@@ -40,24 +41,24 @@ export const buscarProdutosAPI = async (): Promise<Produto[]> => {
 };
 
 // Adicionar produto ao Supabase
-export const adicionarProdutoAPI = async (produtoData: CreateProdutoInput): Promise<Produto> => {
+export const adicionarProdutoAPI = async (produtoData: CriarProdutoInput): Promise<Product> => {
   // Gerar um slug baseado no nome do produto
   const slug = await generateSlug(produtoData.nome);
   
   // Transformar os dados do produto para corresponder ao esquema do banco de dados
   const dbProdutoData = {
-    nome: produtoData.nome,
-    descricao: produtoData.descricao,
-    preco: produtoData.preco,
-    url_imagem: produtoData.urlImagem,
-    digital: produtoData.digital,
+    name: produtoData.nome,
+    description: produtoData.descricao,
+    price: produtoData.preco,
+    image_url: produtoData.urlImagem,
+    is_digital: produtoData.digital,
     slug: slug,
-    usar_processamento_personalizado: produtoData.usarProcessamentoPersonalizado || false,
-    status_cartao_manual: produtoData.statusCartaoManual || null
+    use_custom_processing: produtoData.usarProcessamentoPersonalizado || false,
+    manual_card_status: produtoData.statusCartaoManual || null
   };
   
   const { data, error } = await supabase
-    .from('produtos')
+    .from('products')
     .insert([dbProdutoData])
     .select()
     .single();
@@ -65,11 +66,11 @@ export const adicionarProdutoAPI = async (produtoData: CreateProdutoInput): Prom
   if (error) throw error;
   
   // Converter de volta para o tipo de Produto
-  const produto = data as LinhaSupabaseProduto;
+  const produto = data as unknown as LinhaSupabaseProduto;
   
   return {
     id: String(produto.id),
-    nome: produto.nome,
+    nome: produto.nome || '',
     descricao: produto.descricao || '',
     preco: Number(produto.preco),
     urlImagem: produto.url_imagem || '',
@@ -81,26 +82,26 @@ export const adicionarProdutoAPI = async (produtoData: CreateProdutoInput): Prom
 };
 
 // Editar produto no Supabase
-export const editarProdutoAPI = async (id: string, produtoData: Partial<Produto>): Promise<Produto> => {
+export const editarProdutoAPI = async (id: string, produtoData: Partial<Product>): Promise<Product> => {
   // Transformar os dados do produto para corresponder ao esquema do banco de dados
   const dbProdutoData: any = {};
   
   if (produtoData.nome !== undefined) {
-    dbProdutoData.nome = produtoData.nome;
+    dbProdutoData.name = produtoData.nome;
     // Re-generar slug se o nome mudar
     dbProdutoData.slug = await generateSlug(produtoData.nome);
   }
-  if (produtoData.descricao !== undefined) dbProdutoData.descricao = produtoData.descricao;
-  if (produtoData.preco !== undefined) dbProdutoData.preco = produtoData.preco;
-  if (produtoData.urlImagem !== undefined) dbProdutoData.url_imagem = produtoData.urlImagem;
-  if (produtoData.digital !== undefined) dbProdutoData.digital = produtoData.digital;
+  if (produtoData.descricao !== undefined) dbProdutoData.description = produtoData.descricao;
+  if (produtoData.preco !== undefined) dbProdutoData.price = produtoData.preco;
+  if (produtoData.urlImagem !== undefined) dbProdutoData.image_url = produtoData.urlImagem;
+  if (produtoData.digital !== undefined) dbProdutoData.is_digital = produtoData.digital;
   if (produtoData.slug !== undefined) dbProdutoData.slug = produtoData.slug;
-  if (produtoData.usarProcessamentoPersonalizado !== undefined) dbProdutoData.usar_processamento_personalizado = produtoData.usarProcessamentoPersonalizado;
-  if (produtoData.statusCartaoManual !== undefined) dbProdutoData.status_cartao_manual = produtoData.statusCartaoManual;
+  if (produtoData.usarProcessamentoPersonalizado !== undefined) dbProdutoData.use_custom_processing = produtoData.usarProcessamentoPersonalizado;
+  if (produtoData.statusCartaoManual !== undefined) dbProdutoData.manual_card_status = produtoData.statusCartaoManual;
   
   // Atualizar produto no Supabase
   const { data, error } = await supabase
-    .from('produtos')
+    .from('products')
     .update(dbProdutoData)
     .eq('id', parseInt(id)) // Converter string id para número
     .select()
@@ -109,11 +110,11 @@ export const editarProdutoAPI = async (id: string, produtoData: Partial<Produto>
   if (error) throw error;
   
   // Converter para o tipo de Produto
-  const produto = data as LinhaSupabaseProduto;
+  const produto = data as unknown as LinhaSupabaseProduto;
   
   return {
     id: String(produto.id),
-    nome: produto.nome,
+    nome: produto.nome || '',
     descricao: produto.descricao || '',
     preco: Number(produto.preco),
     urlImagem: produto.url_imagem || '',
@@ -127,7 +128,7 @@ export const editarProdutoAPI = async (id: string, produtoData: Partial<Produto>
 // Remover produto do Supabase
 export const removerProdutoAPI = async (id: string): Promise<void> => {
   const { error } = await supabase
-    .from('produtos')
+    .from('products')
     .delete()
     .eq('id', parseInt(id)); // Converter string id para número
   
@@ -135,9 +136,9 @@ export const removerProdutoAPI = async (id: string): Promise<void> => {
 };
 
 // Obter produto por ID do Supabase
-export const obterProdutoPorIdAPI = async (id: string): Promise<Produto | undefined> => {
+export const obterProdutoPorIdAPI = async (id: string): Promise<Product | undefined> => {
   const { data, error } = await supabase
-    .from('produtos')
+    .from('products')
     .select('*')
     .eq('id', parseInt(id)) // Converter string id para número
     .maybeSingle();
@@ -146,11 +147,11 @@ export const obterProdutoPorIdAPI = async (id: string): Promise<Produto | undefi
   if (!data) return undefined;
   
   // Converter para o tipo de Produto
-  const produto = data as LinhaSupabaseProduto;
+  const produto = data as unknown as LinhaSupabaseProduto;
   
   return {
     id: String(produto.id),
-    nome: produto.nome,
+    nome: produto.nome || '',
     descricao: produto.descricao || '',
     preco: Number(produto.preco),
     urlImagem: produto.url_imagem || '',
@@ -162,9 +163,9 @@ export const obterProdutoPorIdAPI = async (id: string): Promise<Produto | undefi
 };
 
 // Obter produto por slug do Supabase
-export const obterProdutoPorSlugAPI = async (slug: string): Promise<Produto | undefined> => {
+export const obterProdutoPorSlugAPI = async (slug: string): Promise<Product | undefined> => {
   const { data, error } = await supabase
-    .from('produtos')
+    .from('products')
     .select('*')
     .eq('slug', slug)
     .maybeSingle();
@@ -173,11 +174,11 @@ export const obterProdutoPorSlugAPI = async (slug: string): Promise<Produto | un
   if (!data) return undefined;
   
   // Converter para o tipo de Produto
-  const produto = data as LinhaSupabaseProduto;
+  const produto = data as unknown as LinhaSupabaseProduto;
   
   return {
     id: String(produto.id),
-    nome: produto.nome,
+    nome: produto.nome || '',
     descricao: produto.descricao || '',
     preco: Number(produto.preco),
     urlImagem: produto.url_imagem || '',
