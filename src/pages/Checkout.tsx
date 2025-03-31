@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductCheckout } from '@/hooks/useProductCheckout';
@@ -90,7 +91,8 @@ const Checkout = () => {
       toast({
         title: "Pedido concluído!",
         description: "Seu pagamento foi processado com sucesso.",
-        variant: "success",
+        // Fix the type error by using a valid variant
+        variant: "default",
       });
     }, 2000);
   };

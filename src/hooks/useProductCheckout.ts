@@ -28,7 +28,17 @@ export const useProductCheckout = (productSlug: string | undefined) => {
         // Verifica se já temos produtos na lista e procura pelo slug
         if (products && products.length > 0) {
           console.log('Verificando produtos em cache primeiro...');
-          const cachedProduct = products.find(p => p.slug === productSlug);
+          // Check exact match first
+          let cachedProduct = products.find(p => p.slug === productSlug);
+          
+          // If not found, try checking if the slug is part of a product slug 
+          // (in case there was a suffix added like '-1')
+          if (!cachedProduct) {
+            console.log('Slug exato não encontrado, tentando buscar slug parcial...');
+            const baseSlug = productSlug.split('-')[0]; // Get base slug without suffix
+            cachedProduct = products.find(p => p.slug === baseSlug || p.slug.startsWith(baseSlug + '-'));
+          }
+          
           if (cachedProduct) {
             console.log('Produto encontrado no cache:', cachedProduct);
             setProduct(cachedProduct);
@@ -37,13 +47,20 @@ export const useProductCheckout = (productSlug: string | undefined) => {
           }
         }
         
-        const productData = await getProductBySlug(productSlug);
+        // Try to get the product from API
+        let productData = await getProductBySlug(productSlug);
+        
+        // If product not found with exact slug, try with the base slug (without suffix)
+        if (!productData && productSlug.includes('-')) {
+          const baseSlug = productSlug.split('-')[0];
+          console.log('Tentando buscar com slug base:', baseSlug);
+          productData = await getProductBySlug(baseSlug);
+        }
         
         console.log('Dados do produto encontrado:', productData);
         
         if (!productData) {
           console.error('Produto não encontrado para o slug:', productSlug);
-          // Apenas registra o erro, mas não lança exceção para evitar problemas no carregamento
           setProduct(null);
           setLoading(false);
           toast({
