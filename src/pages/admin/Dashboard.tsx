@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
+import VisitorStats from '@/components/dashboard/VisitorStats';
+import PaymentStats from '@/components/dashboard/PaymentStats';
+import VisitorsChart from '@/components/dashboard/VisitorsChart';
+import PaymentMethodsChart from '@/components/dashboard/PaymentMethodsChart';
 
 interface DashboardStats {
   productCount: number;
@@ -78,6 +82,10 @@ const Dashboard: React.FC = () => {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         
+        <VisitorStats />
+        
+        <PaymentStats />
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Stats Cards */}
           <Card className="shadow-sm">
@@ -111,6 +119,11 @@ const Dashboard: React.FC = () => {
               </Link>
             </CardFooter>
           </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <VisitorsChart />
+          <PaymentMethodsChart />
         </div>
         
         {/* Test Checkout Buttons */}

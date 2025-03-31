@@ -54,20 +54,15 @@ export const processPayment = async (
     };
 
     if (formValues.cardData) {
-      const props: PaymentProcessorProps = {
-        formState,
-        settings,
-        isSandbox,
-        onSubmit,
-      };
-
       await processCardPayment(
         formValues.cardData,
-        props,
-        setError,
-        setPaymentStatus,
-        setIsSubmitting,
-        navigate
+        {
+          formState,
+          settings,
+          isSandbox,
+          onSubmit,
+        },
+        setError
       );
     } else {
       setError('Dados de cartão não fornecidos');
