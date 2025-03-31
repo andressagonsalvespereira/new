@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductCheckout } from '@/hooks/useProductCheckout';
 import { Loader2, ShoppingBag, ArrowLeft } from 'lucide-react';
@@ -8,6 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { usePixel } from '@/contexts/PixelContext';
 import { Button } from '@/components/ui/button';
+import CustomerInfoForm from '@/components/checkout/CustomerInfoForm';
+import CheckoutForm from '@/components/checkout/CheckoutForm';
+import { CustomerData } from '@/components/checkout/CustomerInfoForm';
 
 const Checkout = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
@@ -15,15 +18,14 @@ const Checkout = () => {
   const { trackPageView } = usePixel();
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Rastreamento de visualização de página
+  const [customerDetails, setCustomerDetails] = useState<CustomerData | null>(null);
+  const [isOrderSubmitted, setIsOrderSubmitted] = useState(false);
+
+  React.useEffect(() => {
     trackPageView();
-    
-    // Depuração para verificar se o slug está sendo passado corretamente
     console.log('Checkout renderizado com slug:', productSlug);
   }, [trackPageView, productSlug]);
   
-  // Mostrar loading enquanto o produto está sendo carregado
   if (loading) {
     return (
       <CheckoutContainer>
@@ -37,7 +39,6 @@ const Checkout = () => {
     );
   }
   
-  // Mostrar mensagem se o produto não for encontrado
   if (productNotFound || !product) {
     return (
       <CheckoutContainer>
@@ -68,7 +69,6 @@ const Checkout = () => {
     );
   }
   
-  // Converter o produto para o formato esperado pelo componente de checkout
   const productDetails: ProductDetailsType = {
     id: product.id,
     name: product.name,
@@ -77,8 +77,17 @@ const Checkout = () => {
     image: product.imageUrl || '/placeholder.svg',
     isDigital: product.isDigital,
   };
+
+  const handleCustomerSubmit = (data: CustomerData) => {
+    setCustomerDetails(data);
+  };
+
+  const handlePaymentSubmit = async (paymentData: any) => {
+    // Lógica de processamento de pagamento será implementada
+    console.log('Pagamento processado', paymentData);
+    setIsOrderSubmitted(true);
+  };
   
-  // Aqui renderiza o conteúdo do checkout com o produto carregado
   return (
     <CheckoutContainer>
       <Card className="mb-6 shadow-sm">
@@ -87,16 +96,24 @@ const Checkout = () => {
             <h1 className="text-2xl font-bold mb-2">{productDetails.name}</h1>
             <p className="text-gray-600">{productDetails.description}</p>
             <p className="text-xl font-semibold mt-2">R$ {productDetails.price.toFixed(2)}</p>
-            
-            <div className="mt-4 p-4 bg-gray-50 rounded-md">
-              <p className="text-sm text-gray-500 mb-2">
-                Formulário de checkout em desenvolvimento.
-              </p>
-              <p className="text-sm text-gray-500">
-                Em breve você poderá comprar este produto diretamente por esta página.
-              </p>
-            </div>
           </div>
+
+          {!customerDetails ? (
+            <CustomerInfoForm 
+              onSubmit={handleCustomerSubmit} 
+              isCompleted={false} 
+            />
+          ) : !isOrderSubmitted ? (
+            <CheckoutForm 
+              onSubmit={handlePaymentSubmit} 
+              isSandbox={false} 
+            />
+          ) : (
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-green-600">Pedido Concluído!</h2>
+              <p>Obrigado por sua compra, {customerDetails.fullName}.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </CheckoutContainer>
@@ -104,3 +121,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
