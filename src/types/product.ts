@@ -7,6 +7,8 @@ export interface Product {
   imageUrl: string;
   isDigital: boolean;
   slug: string;
+  useCustomProcessing?: boolean;
+  manualCardStatus?: string;
 }
 
 export interface CreateProductInput {
@@ -15,4 +17,6 @@ export interface CreateProductInput {
   price: number;
   imageUrl: string;
   isDigital: boolean;
+  useCustomProcessing?: boolean;
+  manualCardStatus?: string;
 }

@@ -245,10 +245,12 @@ export type Database = {
           id: number
           image_url: string | null
           is_digital: boolean | null
+          manual_card_status: string | null
           name: string
           price: number
           slug: string
           updated_at: string | null
+          use_custom_processing: boolean | null
         }
         Insert: {
           created_at?: string | null
@@ -256,10 +258,12 @@ export type Database = {
           id?: number
           image_url?: string | null
           is_digital?: boolean | null
+          manual_card_status?: string | null
           name: string
           price: number
           slug: string
           updated_at?: string | null
+          use_custom_processing?: boolean | null
         }
         Update: {
           created_at?: string | null
@@ -267,10 +271,12 @@ export type Database = {
           id?: number
           image_url?: string | null
           is_digital?: boolean | null
+          manual_card_status?: string | null
           name?: string
           price?: number
           slug?: string
           updated_at?: string | null
+          use_custom_processing?: boolean | null
         }
         Relationships: []
       }

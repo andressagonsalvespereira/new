@@ -18,6 +18,8 @@ interface EditProductDialogProps {
   formData: CreateProductInput;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSwitchChange: (checked: boolean) => void;
+  handleUseCustomProcessingChange?: (checked: boolean) => void;
+  handleManualCardStatusChange?: (value: string) => void;
   handleUpdateProduct: () => void;
 }
 
@@ -27,6 +29,8 @@ const EditProductDialog = ({
   formData,
   handleInputChange,
   handleSwitchChange,
+  handleUseCustomProcessingChange,
+  handleManualCardStatusChange,
   handleUpdateProduct
 }: EditProductDialogProps) => {
   const editDescriptionId = "edit-product-description";
@@ -47,6 +51,8 @@ const EditProductDialog = ({
           formData={formData}
           handleInputChange={handleInputChange}
           handleSwitchChange={handleSwitchChange}
+          handleUseCustomProcessingChange={handleUseCustomProcessingChange}
+          handleManualCardStatusChange={handleManualCardStatusChange}
         />
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>

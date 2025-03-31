@@ -25,6 +25,8 @@ const Products: React.FC = () => {
     isOffline,
     handleInputChange,
     handleSwitchChange,
+    handleUseCustomProcessingChange,
+    handleManualCardStatusChange,
     handleAddProduct,
     handleEditClick,
     handleDeleteClick,
@@ -78,6 +80,8 @@ const Products: React.FC = () => {
         formData={formData}
         handleInputChange={handleInputChange}
         handleSwitchChange={handleSwitchChange}
+        handleUseCustomProcessingChange={handleUseCustomProcessingChange}
+        handleManualCardStatusChange={handleManualCardStatusChange}
         handleAddProduct={handleAddProduct}
       />
 
@@ -87,6 +91,8 @@ const Products: React.FC = () => {
         formData={formData}
         handleInputChange={handleInputChange}
         handleSwitchChange={handleSwitchChange}
+        handleUseCustomProcessingChange={handleUseCustomProcessingChange}
+        handleManualCardStatusChange={handleManualCardStatusChange}
         handleUpdateProduct={handleUpdateProduct}
       />
 

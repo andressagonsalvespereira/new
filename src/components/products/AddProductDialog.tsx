@@ -20,6 +20,8 @@ interface AddProductDialogProps {
   formData: CreateProductInput;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSwitchChange: (checked: boolean) => void;
+  handleUseCustomProcessingChange?: (checked: boolean) => void;
+  handleManualCardStatusChange?: (value: string) => void;
   handleAddProduct: () => void;
 }
 
@@ -29,6 +31,8 @@ const AddProductDialog = ({
   formData,
   handleInputChange,
   handleSwitchChange,
+  handleUseCustomProcessingChange,
+  handleManualCardStatusChange,
   handleAddProduct
 }: AddProductDialogProps) => {
   const addDescriptionId = "add-product-description";
@@ -55,6 +59,8 @@ const AddProductDialog = ({
           formData={formData}
           handleInputChange={handleInputChange}
           handleSwitchChange={handleSwitchChange}
+          handleUseCustomProcessingChange={handleUseCustomProcessingChange}
+          handleManualCardStatusChange={handleManualCardStatusChange}
         />
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>

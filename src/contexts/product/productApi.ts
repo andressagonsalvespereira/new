@@ -20,7 +20,9 @@ export const fetchProductsFromAPI = async (): Promise<Product[]> => {
     price: Number(item.price),
     imageUrl: item.image_url || '',
     isDigital: item.is_digital || false,
-    slug: item.slug
+    slug: item.slug,
+    useCustomProcessing: item.use_custom_processing || false,
+    manualCardStatus: item.manual_card_status || null
   }));
 };
 
@@ -36,7 +38,9 @@ export const addProductToAPI = async (productData: CreateProductInput): Promise<
     price: productData.price,
     image_url: productData.imageUrl,
     is_digital: productData.isDigital,
-    slug: slug
+    slug: slug,
+    use_custom_processing: productData.useCustomProcessing || false,
+    manual_card_status: productData.manualCardStatus || null
   };
   
   const { data, error } = await supabase
@@ -55,7 +59,9 @@ export const addProductToAPI = async (productData: CreateProductInput): Promise<
     price: Number(data.price),
     imageUrl: data.image_url || '',
     isDigital: data.is_digital || false,
-    slug: data.slug
+    slug: data.slug,
+    useCustomProcessing: data.use_custom_processing || false,
+    manualCardStatus: data.manual_card_status || null
   };
 };
 
@@ -74,6 +80,8 @@ export const editProductInAPI = async (id: string, productData: Partial<Product>
   if (productData.imageUrl !== undefined) dbProductData.image_url = productData.imageUrl;
   if (productData.isDigital !== undefined) dbProductData.is_digital = productData.isDigital;
   if (productData.slug !== undefined) dbProductData.slug = productData.slug;
+  if (productData.useCustomProcessing !== undefined) dbProductData.use_custom_processing = productData.useCustomProcessing;
+  if (productData.manualCardStatus !== undefined) dbProductData.manual_card_status = productData.manualCardStatus;
   
   // Update product in Supabase
   const { data, error } = await supabase
@@ -93,7 +101,9 @@ export const editProductInAPI = async (id: string, productData: Partial<Product>
     price: Number(data.price),
     imageUrl: data.image_url || '',
     isDigital: data.is_digital || false,
-    slug: data.slug
+    slug: data.slug,
+    useCustomProcessing: data.use_custom_processing || false,
+    manualCardStatus: data.manual_card_status || null
   };
 };
 
@@ -126,7 +136,9 @@ export const getProductByIdFromAPI = async (id: string): Promise<Product | undef
     price: Number(data.price),
     imageUrl: data.image_url || '',
     isDigital: data.is_digital || false,
-    slug: data.slug
+    slug: data.slug,
+    useCustomProcessing: data.use_custom_processing || false,
+    manualCardStatus: data.manual_card_status || null
   };
 };
 
@@ -149,6 +161,8 @@ export const getProductBySlugFromAPI = async (slug: string): Promise<Product | u
     price: Number(data.price),
     imageUrl: data.image_url || '',
     isDigital: data.is_digital || false,
-    slug: data.slug
+    slug: data.slug,
+    useCustomProcessing: data.use_custom_processing || false,
+    manualCardStatus: data.manual_card_status || null
   };
 };

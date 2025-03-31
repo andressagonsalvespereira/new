@@ -9,7 +9,9 @@ const initialFormState: CreateProductInput = {
   description: '',
   price: 0,
   imageUrl: '',
-  isDigital: false
+  isDigital: false,
+  useCustomProcessing: false,
+  manualCardStatus: 'ANALYSIS'
 };
 
 export const useProductManagement = () => {
@@ -68,6 +70,20 @@ export const useProductManagement = () => {
     }));
   }, []);
 
+  const handleUseCustomProcessingChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      useCustomProcessing: checked
+    }));
+  }, []);
+
+  const handleManualCardStatusChange = useCallback((value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      manualCardStatus: value
+    }));
+  }, []);
+
   const handleAddProduct = async () => {
     try {
       await addProduct(formData);
@@ -95,7 +111,9 @@ export const useProductManagement = () => {
       description: product.description || '',
       price: product.price,
       imageUrl: product.imageUrl || '',
-      isDigital: product.isDigital
+      isDigital: product.isDigital,
+      useCustomProcessing: product.useCustomProcessing || false,
+      manualCardStatus: product.manualCardStatus || 'ANALYSIS'
     });
     setIsEditDialogOpen(true);
   }, []);
@@ -169,6 +187,8 @@ export const useProductManagement = () => {
     isOffline,
     handleInputChange,
     handleSwitchChange,
+    handleUseCustomProcessingChange,
+    handleManualCardStatusChange,
     handleAddProduct,
     handleEditClick,
     handleDeleteClick,

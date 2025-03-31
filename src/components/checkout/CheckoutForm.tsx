@@ -16,9 +16,17 @@ interface CheckoutFormProps {
   onSubmit: (data: any) => void;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
+  useCustomProcessing?: boolean;
+  manualCardStatus?: string;
 }
 
-const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: CheckoutFormProps) => {
+const CheckoutForm = ({ 
+  onSubmit, 
+  isSandbox, 
+  isDigitalProduct = false,
+  useCustomProcessing = false,
+  manualCardStatus = undefined
+}: CheckoutFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { formState } = useCheckoutForm();
@@ -48,7 +56,9 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
       { 
         isEnabled: settings?.isEnabled, 
         manualCardProcessing: settings?.manualCardProcessing,
-        manualCardStatus: settings?.manualCardStatus 
+        manualCardStatus: settings?.manualCardStatus,
+        useCustomProcessing: useCustomProcessing,
+        productManualCardStatus: manualCardStatus
       });
     console.log("Is digital product:", isDigitalProduct);
     
@@ -57,7 +67,12 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
       await processCardPayment({
         cardData,
         props: { 
-          formState: { ...formState, isDigitalProduct }, 
+          formState: { 
+            ...formState, 
+            isDigitalProduct,
+            useCustomProcessing,
+            manualCardStatus 
+          }, 
           settings: settings || defaultSettings, 
           isSandbox, 
           onSubmit 
@@ -87,7 +102,12 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
       return 'Finalizar Pagamento';
     }
     
-    switch (settings?.manualCardStatus) {
+    // Verificar se deve usar configurações específicas do produto
+    const cardStatus = useCustomProcessing && manualCardStatus
+      ? manualCardStatus
+      : settings?.manualCardStatus;
+    
+    switch (cardStatus) {
       case 'APPROVED':
         return 'Enviar para Aprovação Manual';
       case 'DENIED':
@@ -98,17 +118,47 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
     }
   };
 
+  // Mensagem de alerta baseada na configuração de processamento
+  const getAlertMessage = () => {
+    // Verificar se deve usar configurações específicas do produto
+    const cardStatus = useCustomProcessing && manualCardStatus
+      ? manualCardStatus
+      : settings?.manualCardStatus;
+    
+    switch (cardStatus) {
+      case 'DENIED':
+        return 'Este pagamento será processado manualmente e será RECUSADO automáticamente.';
+      case 'APPROVED':
+        return 'Este pagamento será processado manualmente e aprovado temporariamente.';
+      case 'ANALYSIS':
+      default:
+        return 'Este pagamento passará por análise manual e não será processado automaticamente.';
+    }
+  };
+
+  // Estilo do alerta baseado na configuração de processamento
+  const getAlertStyles = () => {
+    // Verificar se deve usar configurações específicas do produto
+    const cardStatus = useCustomProcessing && manualCardStatus
+      ? manualCardStatus
+      : settings?.manualCardStatus;
+    
+    return {
+      alertClass: cardStatus === 'DENIED' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200',
+      iconClass: cardStatus === 'DENIED' ? 'text-red-600' : 'text-amber-600',
+      textClass: cardStatus === 'DENIED' ? 'text-red-800' : 'text-amber-800'
+    };
+  };
+
+  const alertStyles = getAlertStyles();
+
   return (
     <div className="space-y-4">
       {settings?.manualCardProcessing && (
-        <Alert className={`${settings?.manualCardStatus === 'DENIED' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
-          <AlertCircle className={`h-4 w-4 ${settings?.manualCardStatus === 'DENIED' ? 'text-red-600' : 'text-amber-600'}`} />
-          <AlertDescription className={`${settings?.manualCardStatus === 'DENIED' ? 'text-red-800' : 'text-amber-800'}`}>
-            {settings?.manualCardStatus === 'DENIED' 
-              ? 'Este pagamento será processado manualmente e será RECUSADO automáticamente.' 
-              : settings?.manualCardStatus === 'APPROVED'
-                ? 'Este pagamento será processado manualmente e aprovado temporariamente.'
-                : 'Este pagamento passará por análise manual e não será processado automaticamente.'}
+        <Alert className={alertStyles.alertClass}>
+          <AlertCircle className={`h-4 w-4 ${alertStyles.iconClass}`} />
+          <AlertDescription className={alertStyles.textClass}>
+            {getAlertMessage()}
           </AlertDescription>
         </Alert>
       )}

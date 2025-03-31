@@ -28,15 +28,24 @@ export const processManualCard = async ({
   onSubmit?: (data: any) => void;
 }): Promise<PaymentResult | void> => {
   try {
-    console.log("Using manual card processor with settings:", settings?.manualCardStatus);
+    // Verifica se o produto tem configuração específica
+    const useCustomProcessing = formState.useCustomProcessing === true;
+    const productManualCardStatus = formState.manualCardStatus;
     
-    // Determine payment status based on manual settings
-    const manualCardStatus = settings?.manualCardStatus || 'ANALYSIS';
+    // Determina qual status de pagamento usar (específico do produto ou global)
+    let manualCardStatus = settings?.manualCardStatus || 'ANALYSIS';
+    
+    if (useCustomProcessing && productManualCardStatus) {
+      manualCardStatus = productManualCardStatus;
+      console.log("Using product-specific card processing status:", manualCardStatus);
+    } else {
+      console.log("Using global card processing status:", manualCardStatus);
+    }
     
     let paymentStatus = 'PENDING';
     let redirectPath = '/payment-success';
     
-    // Set status based on manual configuration
+    // Set status based on configuration (product-specific or global)
     switch (manualCardStatus) {
       case 'APPROVED':
         paymentStatus = 'CONFIRMED';
