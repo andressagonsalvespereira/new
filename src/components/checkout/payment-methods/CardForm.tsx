@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { CreditCard, Lock } from 'lucide-react';
@@ -43,7 +42,6 @@ const CardForm: React.FC<CardFormProps> = ({
     }
   });
 
-  // Watch for changes in the card number to detect the brand
   const cardNumber = watch('cardNumber');
 
   useEffect(() => {
@@ -74,7 +72,6 @@ const CardForm: React.FC<CardFormProps> = ({
 
   const processSubmit = (data: CardFormData) => {
     if (validateForm(data)) {
-      // Não mascare o CVV ao submeter - vamos armazená-lo completo
       onSubmit(data);
     }
   };
