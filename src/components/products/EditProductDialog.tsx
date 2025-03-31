@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CreateProductInput } from '@/types/product';
 import ProductFormFields from './ProductFormFields';
 
@@ -24,9 +24,12 @@ const EditProductDialog = ({
 }: EditProductDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent>
+      <DialogContent aria-describedby="edit-product-description">
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
+          <DialogDescription id="edit-product-description">
+            Update the details of the existing product in your catalog.
+          </DialogDescription>
         </DialogHeader>
         <ProductFormFields 
           formData={formData}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
 import { CreateProductInput } from '@/types/product';
 import ProductFormFields from './ProductFormFields';
@@ -31,9 +31,12 @@ const AddProductDialog = ({
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby="add-product-description">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
+          <DialogDescription id="add-product-description">
+            Fill in the details of the new product you want to add to your catalog.
+          </DialogDescription>
         </DialogHeader>
         <ProductFormFields 
           formData={formData}
