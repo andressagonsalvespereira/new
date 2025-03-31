@@ -1,11 +1,12 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import PaymentForm from '@/components/payments/PaymentForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, QrCode } from 'lucide-react';
+import { CreditCard, QrCode, ExternalLink } from 'lucide-react';
 
 const Payments = () => {
   return (
@@ -13,6 +14,15 @@ const Payments = () => {
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Process Payment</h1>
         <p className="text-muted-foreground">Create a new payment transaction</p>
+      </div>
+      
+      <div className="mb-6">
+        <Link to="/checkout/product-demo">
+          <Button className="flex items-center">
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Acessar Página de Checkout (Demo)
+          </Button>
+        </Link>
       </div>
       
       <Tabs defaultValue="card">
