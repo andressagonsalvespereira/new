@@ -1,4 +1,7 @@
 
+// Arquivo mantido para compatibilidade com versões anteriores
+// Reexporta os processadores de pagamento do novo sistema
+
 import { processCardPayment } from './payment/cardProcessor';
 import { processPixPayment } from './payment/pixProcessor';
 import { PaymentProcessorProps } from './payment/types';

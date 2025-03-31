@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { CardFormData } from '../../payment-methods/CardForm';
 import { formatCardNumber, validateCardForm } from '../cardValidation';
 import { PaymentProcessorProps, PaymentResult } from './types';
+import { simulateCardPayment, simulateCustomerCreation } from './paymentSimulator';
 
 /**
  * Processa pagamento com cartão de crédito
@@ -139,65 +140,26 @@ const handleAutomaticCardProcessing = async (
 ) => {
   try {
     // Em uma implementação real, isso chamaria a API do Asaas
-    // Primeiro criar um cliente
+    // Preparar dados do cliente
     const customerData = {
       name: formState.fullName,
       email: formState.email,
-      cpfCnpj: formState.cpf.replace(/[^\d]/g, ''),
-      phone: formState.phone.replace(/[^\d]/g, ''),
+      cpfCnpj: formState.cpf?.replace(/[^\d]/g, '') || '',
+      phone: formState.phone?.replace(/[^\d]/g, '') || '',
       address: formState.street,
       addressNumber: formState.number,
       complement: formState.complement,
       province: formState.neighborhood,
-      postalCode: formState.cep.replace(/[^\d]/g, ''),
+      postalCode: formState.cep?.replace(/[^\d]/g, '') || '',
       city: formState.city,
       state: formState.state
     };
 
-    // Simular a criação do cliente para demonstração
-    // const customer = await asaasService.createCustomer(customerData, isSandbox);
-    const customer = { id: 'cus_000005118652' }; // ID de cliente simulado
+    // Simular a criação do cliente
+    const customer = await simulateCustomerCreation();
     
-    // Em seguida, criar um pagamento com cartão de crédito
-    const today = new Date();
-    
-    const paymentData = {
-      customer: customer.id,
-      billingType: 'CREDIT_CARD' as const,
-      value: 120.00,
-      dueDate: today.toISOString().split('T')[0],
-      description: 'Sua compra na loja',
-      creditCard: {
-        holderName: cardData.cardName,
-        number: cardData.cardNumber.replace(/\s+/g, ''),
-        expiryMonth: cardData.expiryMonth,
-        expiryYear: cardData.expiryYear,
-        ccv: cardData.cvv
-      },
-      creditCardHolderInfo: {
-        name: formState.fullName,
-        email: formState.email,
-        cpfCnpj: formState.cpf.replace(/[^\d]/g, ''),
-        postalCode: formState.cep.replace(/[^\d]/g, ''),
-        addressNumber: formState.number,
-        addressComplement: formState.complement,
-        phone: formState.phone.replace(/[^\d]/g, '')
-      }
-    };
-
-    // Simular o processamento do pagamento para demonstração
-    // const payment = await asaasService.createPayment(paymentData, isSandbox);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Simular um pagamento bem-sucedido ou falho (70% de taxa de sucesso para demonstração)
-    const isSuccessful = Math.random() > 0.3;
-    const simulatedPayment = { 
-      id: 'pay_000012345678',
-      status: isSuccessful ? 'CONFIRMED' : 'DECLINED',
-      creditCard: {
-        creditCardBrand: 'VISA'
-      }
-    };
+    // Simular o processamento do pagamento
+    const simulatedPayment = await simulateCardPayment();
     
     setPaymentStatus(simulatedPayment.status);
     

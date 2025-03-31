@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Check, Copy, Loader2, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import asaasService from '@/services/asaasService';
+import { processPixPayment } from './utils/payment/pixProcessor';
+import { PaymentResult } from './utils/payment/types';
 
 interface PixPaymentProps {
   onSubmit: (data: any) => void;
@@ -28,47 +29,43 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
     const generatePixQrCode = async () => {
       if (!pixData) {
         setIsLoading(true);
-        try {
-          // Em uma implementação real, isso seria uma chamada à API do Asaas
-          // const customer = await asaasService.createCustomer(customerData, isSandbox);
-          // const payment = await asaasService.createPixPayment(paymentData, isSandbox);
-          // const pixQrCode = await asaasService.getPixQRCode(payment.id, isSandbox);
-          
-          // Simulação de dados para demonstração
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          const mockPixData = {
-            qrCode: '00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426655440000',
-            qrCodeImage: 'https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426655440000',
-            expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            paymentId: 'pay_' + Math.random().toString(36).substr(2, 9)
-          };
-          
-          setPixData(mockPixData);
-          
-          // Enviar dados do pagamento para processamento
-          onSubmit({
-            method: 'pix',
-            paymentId: mockPixData.paymentId,
-            status: 'PENDING',
-            qrCode: mockPixData.qrCode,
-            qrCodeImage: mockPixData.qrCodeImage,
-            expirationDate: mockPixData.expirationDate,
-            timestamp: new Date().toISOString()
-          });
-          
-        } catch (error) {
-          console.error('Error generating PIX QR code:', error);
-          setError('Erro ao gerar QR Code PIX. Por favor, tente novamente.');
-          toast({
-            title: "Erro no processamento",
-            description: "Houve um problema ao gerar o QR Code PIX. Por favor, tente novamente.",
-            variant: "destructive",
-            duration: 5000,
-          });
-        } finally {
-          setIsLoading(false);
-        }
+        
+        // Processar pagamento PIX
+        await processPixPayment(
+          {
+            formState: {}, // formState não é usado no processamento PIX simulado
+            settings: {
+              isEnabled: true,
+              apiKey: '',
+              allowPix: true,
+              allowCreditCard: true,
+              manualCreditCard: false,
+              sandboxMode: isSandbox
+            },
+            isSandbox,
+            onSubmit
+          },
+          (paymentData: PaymentResult) => {
+            // Extrair dados do PIX do resultado
+            setPixData({
+              qrCode: paymentData.qrCode as string,
+              qrCodeImage: paymentData.qrCodeImage as string,
+              expirationDate: paymentData.expirationDate as string,
+              paymentId: paymentData.paymentId
+            });
+          },
+          (errorMessage: string) => {
+            setError(errorMessage);
+            toast({
+              title: "Erro no processamento",
+              description: errorMessage,
+              variant: "destructive",
+              duration: 5000,
+            });
+          }
+        );
+        
+        setIsLoading(false);
       }
     };
     
