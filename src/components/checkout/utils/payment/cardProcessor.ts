@@ -5,7 +5,7 @@ import { CardFormData } from '../../payment-methods/CardForm';
 import { validateCardForm } from '../cardValidation';
 import { PaymentProcessorProps, PaymentResult } from './types';
 import { detectCardBrand } from './cardDetection';
-import { handleManualCardProcessing, handleAutomaticCardProcessing } from './cardPaymentHandlers';
+import { handleAutomaticCardProcessing, handleManualCardProcessing } from './card';
 
 /**
  * Processa pagamento com cartão de crédito
