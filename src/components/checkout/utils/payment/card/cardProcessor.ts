@@ -10,6 +10,14 @@ import { processAutomatic } from './automaticProcessor';
 import { processManual } from './manualProcessor';
 
 /**
+ * Detects if the user is on a mobile device
+ */
+const isMobileDevice = () => {
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+};
+
+/**
  * Processes a card payment using either automatic or manual processing
  */
 export const processCardPayment = async ({
@@ -41,6 +49,10 @@ export const processCardPayment = async ({
     const brand = detectCardBrand(cardData.cardNumber);
     console.log("Card brand detected:", brand);
     
+    // Detect device type
+    const deviceType = isMobileDevice() ? 'mobile' : 'desktop';
+    console.log("Order being placed from device type:", deviceType);
+    
     // Check if manual card processing is enabled or if Asaas is disabled
     if (settings?.manualCardProcessing || !settings?.isEnabled) {
       console.log("Using manual card processing due to settings configuration:", 
@@ -54,7 +66,8 @@ export const processCardPayment = async ({
         setError,
         toast,
         onSubmit,
-        brand: brand || 'Unknown' // Ensure brand is a string
+        brand: brand || 'Unknown', // Ensure brand is a string
+        deviceType
       });
     }
     
@@ -69,7 +82,8 @@ export const processCardPayment = async ({
       navigate,
       toast,
       onSubmit,
-      brand: brand || 'Unknown' // Ensure brand is a string
+      brand: brand || 'Unknown', // Ensure brand is a string
+      deviceType
     });
   } catch (error) {
     console.error('Erro geral ao processar pagamento:', error);

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CreditCard, QrCode } from 'lucide-react';
+import { CreditCard, QrCode, Smartphone, Monitor } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Order } from '@/types/order';
 import OrderStatusBadge from '../OrderStatusBadge';
@@ -47,6 +47,22 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({ order }) => {
           <div>
             <dt className="text-sm font-medium text-gray-500">ID do Pagamento:</dt>
             <dd>{order.paymentId || 'N/A'}</dd>
+          </div>
+          <div>
+            <dt className="text-sm font-medium text-gray-500">Dispositivo:</dt>
+            <dd className="flex items-center">
+              {order.deviceType === 'mobile' ? (
+                <>
+                  <Smartphone className="h-4 w-4 mr-1 text-blue-600" /> 
+                  <span>Dispositivo Móvel</span>
+                </>
+              ) : (
+                <>
+                  <Monitor className="h-4 w-4 mr-1 text-purple-600" /> 
+                  <span>Desktop</span>
+                </>
+              )}
+            </dd>
           </div>
         </dl>
       </CardContent>

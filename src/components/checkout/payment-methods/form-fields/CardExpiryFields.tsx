@@ -16,7 +16,9 @@ const CardExpiryFields = ({
   monthError, 
   yearError 
 }: CardExpiryFieldsProps) => {
-  const { control } = useFormContext<CardFormData>();
+  const { control, watch } = useFormContext<CardFormData>();
+  const monthValue = watch('expiryMonth');
+  const yearValue = watch('expiryYear');
   
   return (
     <>
@@ -39,7 +41,7 @@ const CardExpiryFields = ({
                     const month = parseInt(value);
                     if (month > 12) {
                       field.onChange('12');
-                    } else if (month < 1) {
+                    } else if (month < 1 && value !== '01' && value !== '00') {
                       field.onChange('01');
                     } else {
                       field.onChange(value);
@@ -49,7 +51,14 @@ const CardExpiryFields = ({
                   }
                 }
               }}
-              onBlur={field.onBlur}
+              onBlur={(e) => {
+                // Format single digit month to have leading zero on blur
+                const value = e.target.value;
+                if (value.length === 1 && !isNaN(parseInt(value))) {
+                  field.onChange(`0${value}`);
+                }
+                field.onBlur();
+              }}
               disabled={disabled}
               className={monthError ? "border-red-500" : ""}
               maxLength={2}

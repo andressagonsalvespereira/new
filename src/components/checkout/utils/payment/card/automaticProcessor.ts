@@ -1,5 +1,6 @@
 
-import asaasApiService from '@/services/asaasService';
+import { AutomaticProcessorParams } from './types';
+import { simulatePayment } from '../paymentSimulator';
 
 export const processAutomatic = async ({
   cardData,
@@ -12,127 +13,80 @@ export const processAutomatic = async ({
   navigate,
   toast,
   onSubmit,
-  brand
-}) => {
-  // Check if API key is present
-  const asaasApiKey = settings?.apiKey;
-  
-  if (!asaasApiKey) {
-    console.error("Missing Asaas API key. Falling back to manual processing");
-    return processManual({
-      cardData,
-      formState,
-      navigate,
-      setIsSubmitting,
-      setError,
-      toast,
-      onSubmit,
-      brand
-    });
-  }
-
+  brand = 'Unknown',
+  deviceType = 'desktop'
+}: AutomaticProcessorParams) => {
   try {
-    // Use mock data if customerAsaasId is undefined (when Asaas is disabled)
-    const customerAsaasId = formState?.personalInfo?.customerAsaasId || `cus_${Math.random().toString(36).substring(2, 10)}`;
+    console.log("Processing automatic card payment with device type:", deviceType);
     
-    console.log("Processing payment with customerAsaasId:", customerAsaasId);
+    // Simulate successful API payment processing
+    const { success, paymentId, error } = await simulatePayment();
     
-    // Use createPayment instead with the proper structure for credit card payments
-    const paymentResponse = await asaasApiService.createPayment(
-      settings,
-      {
-        customer: customerAsaasId,
-        billingType: "CREDIT_CARD",
-        value: formState.productPrice,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        description: `Compra de ${formState.productName || 'produto'}`,
-        creditCard: {
-          holderName: cardData.cardName,
-          number: cardData.cardNumber.replace(/\s/g, ''),
-          expiryMonth: cardData.expiryMonth,
-          expiryYear: cardData.expiryYear,
-          ccv: cardData.cvv
-        },
-        creditCardHolderInfo: {
-          name: cardData.cardName,
-          email: formState.personalInfo?.email || 'customer@example.com',
-          cpfCnpj: formState.personalInfo?.cpf || '00000000000',
-          postalCode: formState.personalInfo?.postalCode || '00000000',
-          addressNumber: formState.personalInfo?.addressNumber || '0',
-          phone: formState.personalInfo?.phone || ''
-        }
-      }
-    );
-
-    console.log("Payment created successfully:", paymentResponse);
-
-    if (paymentResponse && paymentResponse.id) {
-      setPaymentStatus(paymentResponse.status);
-
-      const paymentData = {
-        paymentId: paymentResponse.id,
-        status: paymentResponse.status,
-        brand: brand || 'Desconhecida'
-      };
-
-      if (onSubmit) {
-        onSubmit(paymentData);
-      }
-
-      navigate('/payment-success', {
-        state: {
-          ...formState,
-          paymentMethod: 'card',
-          orderId: paymentResponse.id
-        }
-      });
-    } else {
-      setError('Erro ao criar pagamento. Por favor, tente novamente.');
-      if (toast) {
-        toast({
-          title: "Erro no processamento",
-          description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-          variant: "destructive",
-          duration: 5000,
-        });
-      }
+    if (!success) {
+      throw new Error(error || 'Falha no processamento do pagamento');
     }
-  } catch (error) {
-    console.error("Error creating payment:", error);
-
-    let errorMessage = 'Erro ao processar o pagamento. Por favor, tente novamente.';
-    if (error.errors && error.errors.length > 0) {
-      errorMessage = error.errors.map((e) => e.description).join(', ');
-    } else if (error.message) {
-      errorMessage = error.message;
+    
+    setPaymentStatus('CONFIRMED');
+    
+    // Format the data for creating the order
+    const orderData = {
+      customer: formState.personalInfo,
+      productId: formState.productId,
+      productName: formState.productName,
+      productPrice: formState.productPrice,
+      paymentMethod: 'CREDIT_CARD',
+      paymentStatus: 'Pago',
+      paymentId,
+      cardDetails: {
+        number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
+        expiryMonth: cardData.expiryMonth,
+        expiryYear: cardData.expiryYear,
+        cvv: cardData.cvv,
+        brand: brand
+      },
+      orderDate: new Date().toISOString(),
+      deviceType
+    };
+    
+    // Call the onSubmit function if provided (to create the order)
+    if (onSubmit) {
+      await onSubmit(orderData);
     }
-
-    setError(errorMessage);
+    
+    // Show success message
     if (toast) {
       toast({
-        title: "Erro no processamento",
-        description: errorMessage,
-        variant: "destructive",
+        title: "Pagamento aprovado!",
+        description: "Seu pagamento foi processado com sucesso.",
         duration: 5000,
       });
     }
     
-    // If API error occurs, fall back to manual processing
-    console.log("API error occurred. Falling back to manual processing");
-    return processManual({
-      cardData,
-      formState,
-      navigate,
-      setIsSubmitting,
-      setError,
-      toast,
-      onSubmit,
-      brand
-    });
-  } finally {
+    // Navigate to the success page
+    setTimeout(() => {
+      navigate('/payment-success', { 
+        state: { 
+          paymentId,
+          productName: formState.productName,
+          automatic: true 
+        } 
+      });
+    }, 2000);
+    
+    return { success: true, paymentId };
+  } catch (error) {
+    console.error("Error in automatic card processing:", error);
+    setError(error instanceof Error ? error.message : 'Falha ao processar pagamento');
     setIsSubmitting(false);
+    
+    // Navigate to failure page for persistent errors
+    navigate('/payment-failed', { 
+      state: { 
+        productName: formState.productName,
+        error: error instanceof Error ? error.message : 'Falha ao processar pagamento'
+      } 
+    });
+    
+    return { success: false, error: 'Falha ao processar pagamento' };
   }
 };
-
-// Import this at the end to avoid circular dependencies
-import { processManual } from './manualProcessor';

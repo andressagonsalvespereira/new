@@ -1,3 +1,4 @@
+
 // Arquivo dedicado à validação de cartões de crédito
 import { z } from "zod";
 import { validateCVV } from "@/utils/validators";
@@ -31,23 +32,25 @@ export const CardSchema = z.object({
       const month = parseInt(val, 10);
       return !isNaN(month) && month >= 1 && month <= 12;
     }, "Mês inválido (1-12)")
-    .refine((val) => {
+    .refine((val, ctx) => {
       const month = parseInt(val, 10);
+      const year = parseInt(ctx.data.expiryYear, 10);
       
-      // Get the current form data in a safer way
-      try {
-        // Using this approach instead of z.getContext()
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear() % 100;
-        const currentMonth = currentDate.getMonth() + 1;
-        
-        // This is a simplified check that doesn't need context
-        // For proper context-aware validation, we should use a custom validator
-        // rather than relying on zod's refine with context
-        return !(currentYear === parseInt(new Date().getFullYear().toString().substr(-2), 10) && month < currentMonth);
-      } catch (error) {
-        return true; // Fall back to basic validation if context check fails
-      }
+      // Only validate expiration if both month and year are valid numbers
+      if (isNaN(month) || isNaN(year)) return true;
+      
+      // Get current date info
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear() % 100;
+      const currentMonth = currentDate.getMonth() + 1;
+      
+      // If it's a future year, it's valid regardless of month
+      if (year > currentYear) return true;
+      
+      // If it's the current year, month must be current or future
+      if (year === currentYear && month < currentMonth) return false;
+      
+      return true;
     }, "Mês expirado"),
   expiryYear: z.string()
     .min(2, "Ano de validade é obrigatório")

@@ -1,6 +1,7 @@
 
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD';
 export type PaymentStatus = 'Aguardando' | 'Pago' | 'Cancelado' | 'Pendente';
+export type DeviceType = 'mobile' | 'desktop';
 
 export interface Order {
   id: string;
@@ -17,6 +18,7 @@ export interface Order {
   paymentId?: string;
   createdAt?: string;
   updatedAt?: string;
+  deviceType?: DeviceType;
 }
 
 export interface CustomerInfo {
@@ -62,4 +64,5 @@ export interface CreateOrderInput {
   pixDetails?: PixDetails;
   paymentId?: string;
   orderDate?: string;
+  deviceType?: DeviceType;
 }

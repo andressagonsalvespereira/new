@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye, Trash2, Smartphone, Monitor } from 'lucide-react';
 import { Order } from '@/types/order';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ const CardOrdersTable: React.FC<CardOrdersTableProps> = ({
             <TableHead className={isMobile ? "hidden md:table-cell" : ""}>Número do Cartão</TableHead>
             <TableHead className={isMobile ? "hidden lg:table-cell" : ""}>Validade</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Dispositivo</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -51,6 +52,19 @@ const CardOrdersTable: React.FC<CardOrdersTableProps> = ({
               </TableCell>
               <TableCell>
                 <OrderStatusBadge status={order.paymentStatus} />
+              </TableCell>
+              <TableCell>
+                {order.deviceType === 'mobile' ? (
+                  <div className="flex items-center text-blue-600">
+                    <Smartphone className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Mobile</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-purple-600">
+                    <Monitor className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Desktop</span>
+                  </div>
+                )}
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
