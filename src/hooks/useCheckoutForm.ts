@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,6 +19,51 @@ export interface CheckoutFormState {
   deliveryEstimate: string | null;
 }
 
+// Funções de formatação
+const formatters = {
+  formatCPF: (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .substring(0, 14);
+  },
+
+  formatPhone: (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .substring(0, 15);
+  },
+
+  formatCEP: (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers.replace(/(\d{5})(\d{1,3})/, '$1-$2').substring(0, 9);
+  }
+};
+
+// Função de validação de formulário
+const validateCheckoutForm = (formState: CheckoutFormState) => {
+  const errors: Record<string, string> = {};
+  
+  if (!formState.fullName) errors.fullName = 'Nome é obrigatório';
+  if (!formState.email) errors.email = 'Email é obrigatório';
+  else if (!/\S+@\S+\.\S+/.test(formState.email)) errors.email = 'Email inválido';
+  if (!formState.cpf) errors.cpf = 'CPF é obrigatório';
+  if (!formState.phone) errors.phone = 'Telefone é obrigatório';
+  if (!formState.cep) errors.cep = 'CEP é obrigatório';
+  if (!formState.street) errors.street = 'Rua é obrigatória';
+  if (!formState.number) errors.number = 'Número é obrigatório';
+  if (!formState.neighborhood) errors.neighborhood = 'Bairro é obrigatório';
+  if (!formState.city) errors.city = 'Cidade é obrigatória';
+  if (!formState.state) errors.state = 'Estado é obrigatório';
+  
+  return errors;
+};
+
+// Hook principal
 export function useCheckoutForm() {
   const { toast } = useToast();
   const [formState, setFormState] = useState<CheckoutFormState>({
@@ -38,30 +84,7 @@ export function useCheckoutForm() {
   });
   const [isSearchingCep, setIsSearchingCep] = useState(false);
 
-  // Formatting functions
-  const formatCPF = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-      .substring(0, 14);
-  };
-
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .substring(0, 15);
-  };
-
-  const formatCEP = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers.replace(/(\d{5})(\d{1,3})/, '$1-$2').substring(0, 9);
-  };
-
-  // Field updaters with formatting
+  // Funções para atualizar os campos do formulário
   const setFullName = (value: string) => 
     setFormState(prev => ({ ...prev, fullName: value }));
   
@@ -69,13 +92,13 @@ export function useCheckoutForm() {
     setFormState(prev => ({ ...prev, email: value }));
   
   const setCpf = (value: string) => 
-    setFormState(prev => ({ ...prev, cpf: formatCPF(value) }));
+    setFormState(prev => ({ ...prev, cpf: formatters.formatCPF(value) }));
   
   const setPhone = (value: string) => 
-    setFormState(prev => ({ ...prev, phone: formatPhone(value) }));
+    setFormState(prev => ({ ...prev, phone: formatters.formatPhone(value) }));
   
   const setCep = (value: string) => 
-    setFormState(prev => ({ ...prev, cep: formatCEP(value) }));
+    setFormState(prev => ({ ...prev, cep: formatters.formatCEP(value) }));
   
   const setStreet = (value: string) => 
     setFormState(prev => ({ ...prev, street: value }));
@@ -104,9 +127,9 @@ export function useCheckoutForm() {
   const setDeliveryEstimate = (value: string | null) =>
     setFormState(prev => ({ ...prev, deliveryEstimate: value }));
 
-  // Address search functionality
+  // Função para buscar endereço pelo CEP
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedCep = formatCEP(e.target.value);
+    const formattedCep = formatters.formatCEP(e.target.value);
     setCep(formattedCep);
     
     if (formattedCep.replace(/\D/g, '').length === 8) {
@@ -139,7 +162,7 @@ export function useCheckoutForm() {
           
           setDeliveryEstimate(`Chegará em ${formattedDate}`);
           
-          // Clear previous errors for these fields
+          // Limpar erros anteriores para estes campos
           const newErrors = {...formState.formErrors};
           delete newErrors.cep;
           delete newErrors.street;
@@ -177,21 +200,9 @@ export function useCheckoutForm() {
     }
   };
 
+  // Função de validação do formulário
   const validateForm = () => {
-    const errors: Record<string, string> = {};
-    
-    if (!formState.fullName) errors.fullName = 'Nome é obrigatório';
-    if (!formState.email) errors.email = 'Email é obrigatório';
-    else if (!/\S+@\S+\.\S+/.test(formState.email)) errors.email = 'Email inválido';
-    if (!formState.cpf) errors.cpf = 'CPF é obrigatório';
-    if (!formState.phone) errors.phone = 'Telefone é obrigatório';
-    if (!formState.cep) errors.cep = 'CEP é obrigatório';
-    if (!formState.street) errors.street = 'Rua é obrigatória';
-    if (!formState.number) errors.number = 'Número é obrigatório';
-    if (!formState.neighborhood) errors.neighborhood = 'Bairro é obrigatório';
-    if (!formState.city) errors.city = 'Cidade é obrigatória';
-    if (!formState.state) errors.state = 'Estado é obrigatório';
-    
+    const errors = validateCheckoutForm(formState);
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
