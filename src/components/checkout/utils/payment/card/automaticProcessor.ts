@@ -1,6 +1,7 @@
 
 import { AutomaticProcessorParams } from './types';
 import { simulatePayment } from '../paymentSimulator';
+import { PaymentResult } from '../types';
 
 export const processAutomatic = async ({
   cardData,
@@ -15,7 +16,7 @@ export const processAutomatic = async ({
   onSubmit,
   brand = 'Unknown',
   deviceType = 'desktop'
-}: AutomaticProcessorParams) => {
+}: AutomaticProcessorParams): Promise<PaymentResult> => {
   try {
     console.log("Processing automatic card payment with device type:", deviceType);
     

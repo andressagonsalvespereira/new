@@ -79,6 +79,7 @@ export const processManual = async ({
     });
 
     return {
+      success: true,
       method: 'card',
       paymentId: paymentData.paymentId,
       status: paymentData.status,
@@ -99,6 +100,13 @@ export const processManual = async ({
         duration: 5000,
       });
     }
+    return {
+      success: false,
+      error: 'Erro ao processar pagamento',
+      method: 'card',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
+    };
   } finally {
     setIsSubmitting(false);
   }

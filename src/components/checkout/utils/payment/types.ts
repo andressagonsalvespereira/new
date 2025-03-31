@@ -9,8 +9,10 @@ export interface PaymentProcessorProps {
 }
 
 export interface PaymentResult {
+  success: boolean;
   method: 'card' | 'pix';
-  paymentId: string;
+  paymentId?: string;
+  error?: string;
   status: string;
   timestamp: string;
   [key: string]: any;

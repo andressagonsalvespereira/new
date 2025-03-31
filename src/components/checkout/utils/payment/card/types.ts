@@ -2,7 +2,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { CardFormData } from '../../../payment-methods/CardForm';
-import { PaymentProcessorProps } from '../types';
+import { PaymentProcessorProps, PaymentResult } from '../types';
 import { DeviceType } from '@/types/order';
 
 export interface CardProcessorParams {
