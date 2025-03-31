@@ -31,12 +31,12 @@ import { Toaster } from './components/ui/toaster';
 
 function App() {
   return (
-    <AuthProvider>
-      <ProductProvider>
-        <OrderProvider>
-          <AsaasProvider>
-            <PixelProvider>
-              <Router>
+    <Router>
+      <AuthProvider>
+        <ProductProvider>
+          <OrderProvider>
+            <AsaasProvider>
+              <PixelProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/dashboard" element={<Dashboard />} />
@@ -62,12 +62,12 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <Toaster />
-              </Router>
-            </PixelProvider>
-          </AsaasProvider>
-        </OrderProvider>
-      </ProductProvider>
-    </AuthProvider>
+              </PixelProvider>
+            </AsaasProvider>
+          </OrderProvider>
+        </ProductProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

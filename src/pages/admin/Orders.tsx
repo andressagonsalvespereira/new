@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -169,7 +168,7 @@ const OrderDetailsModal = ({
               {order.paymentMethod === 'PIX' && order.pixDetails && (
                 <div className="mt-4 border-t pt-4">
                   <h4 className="font-medium mb-2">Dados do PIX</h4>
-                  {order.paymentStatus === 'pending' && order.pixDetails.qrCodeImage && (
+                  {order.paymentStatus === 'Aguardando' && order.pixDetails.qrCodeImage && (
                     <div className="flex justify-center mb-4">
                       <img 
                         src={order.pixDetails.qrCodeImage} 
@@ -360,18 +359,18 @@ const Orders = () => {
                           <TableCell>{formatCurrency(order.productPrice)}</TableCell>
                           <TableCell>{formatDate(order.orderDate)}</TableCell>
                           <TableCell>
-                            {order.paymentStatus === 'pending' && (
+                            {order.paymentStatus === 'Aguardando' && (
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="flex items-center"
+                                className="flex items-center text-xs"
                                 onClick={() => handleViewOrder(order)}
                               >
                                 <QrCode className="h-4 w-4 mr-1 text-green-600" />
                                 Ver QR Code
                               </Button>
                             )}
-                            {order.paymentStatus !== 'pending' && (
+                            {order.paymentStatus !== 'Aguardando' && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 Pago
                               </span>

@@ -12,6 +12,10 @@ import CheckoutHeader from '@/components/checkout/CheckoutHeader';
 import CheckoutFooter from '@/components/checkout/CheckoutFooter';
 import { CustomerInfo, PaymentStatus } from '@/types/order';
 
+interface CheckoutHeaderProps {
+  title: string;
+}
+
 const PixPaymentManual = () => {
   const location = useLocation();
   const navigate = useNavigate();
