@@ -9,6 +9,7 @@ import {
   LogOut,
   Settings,
   Sliders,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,9 @@ interface SidebarItemProps {
 
 const SidebarItem = ({ icon: Icon, label, href }: SidebarItemProps) => {
   const location = useLocation();
-  const isActive = location.pathname === href;
+  // Check if current path starts with the href to handle nested routes
+  const isActive = location.pathname === href || 
+                   (href !== "/" && location.pathname.startsWith(href));
 
   return (
     <Link
@@ -58,7 +61,7 @@ export const Sidebar = () => {
             Administration
           </p>
           <div className="space-y-1">
-            <SidebarItem icon={Sliders} label="Payment Settings" href="/admin/settings/payment" />
+            <SidebarItem icon={DollarSign} label="Payment Settings" href="/admin/settings/payment" />
             <SidebarItem icon={Settings} label="General Settings" href="/settings" />
           </div>
         </div>
