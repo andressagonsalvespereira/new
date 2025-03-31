@@ -11,6 +11,7 @@ import PaymentOptions from './payment-methods/PaymentOptions';
 import PaymentError from './payment-methods/PaymentError';
 import LoadingPayment from './payment-methods/LoadingPayment';
 import SimplifiedPixOption from './payment-methods/SimplifiedPixOption';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductDetailsType {
   name: string;
@@ -29,7 +30,7 @@ interface PaymentMethodSectionProps {
     status: 'pending' | 'confirmed',
     cardDetails?: CardDetails,
     pixDetails?: PixDetails
-  ) => Promise<Order | void>;  // Updated to accept Order or void
+  ) => Promise<Order>;
   productDetails?: ProductDetailsType;
   customerData?: any;
   isProcessing?: boolean;
@@ -44,6 +45,7 @@ const PaymentMethodSection = ({
   isProcessing = false
 }: PaymentMethodSectionProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { settings } = useAsaas();
   const [error, setError] = useState<string | null>(null);
   const [showPixPayment, setShowPixPayment] = useState(false);
@@ -86,17 +88,28 @@ const PaymentMethodSection = ({
       } catch (error) {
         console.error("Error in handleCardSubmit:", error);
         setError('Erro ao processar pagamento com cartão. Por favor, tente novamente.');
+        toast({
+          title: "Erro no processamento",
+          description: "Houve um problema ao processar o pagamento com cartão.",
+          variant: "destructive",
+        });
       }
     }
   };
 
   const handlePixSubmit = async (data: any) => {
+    if (!settings) {
+      console.error("Settings not available");
+      return;
+    }
+    
     const useManualPix = (!settings.isEnabled && settings.manualPaymentConfig) || 
                          (settings.isEnabled && settings.manualPixPage);
     
     if (useManualPix && paymentMethod === 'pix') {
       if (createOrder) {
         try {
+          console.log("Creating order with manual PIX payment");
           await createOrder(
             `pix-${Date.now()}`, 
             'pending',
@@ -110,6 +123,11 @@ const PaymentMethodSection = ({
         } catch (error) {
           console.error("Error in handlePixSubmit (manual):", error);
           setError('Erro ao processar pagamento PIX. Por favor, tente novamente.');
+          toast({
+            title: "Erro no processamento",
+            description: "Houve um problema ao processar o pagamento PIX.",
+            variant: "destructive",
+          });
         }
       }
       return;
@@ -117,6 +135,7 @@ const PaymentMethodSection = ({
     
     if (createOrder) {
       try {
+        console.log("Creating order with PIX payment data:", data);
         const pixDetails: PixDetails = {
           qrCode: data.qrCode,
           qrCodeImage: data.qrCodeImage,
@@ -132,19 +151,32 @@ const PaymentMethodSection = ({
       } catch (error) {
         console.error("Error in handlePixSubmit:", error);
         setError('Erro ao processar pagamento PIX. Por favor, tente novamente.');
+        toast({
+          title: "Erro no processamento",
+          description: "Houve um problema ao processar o pagamento PIX.",
+          variant: "destructive",
+        });
       }
     }
   };
 
   const handlePixOptionClick = () => {
+    if (!settings) {
+      console.error("Settings not available");
+      return;
+    }
+    
     const useManualPix = (!settings.isEnabled && settings.manualPaymentConfig) || 
                          (settings.isEnabled && settings.manualPixPage);
     
     if (useManualPix) {
+      console.log("Using manual PIX payment option");
       handlePixSubmit({});
     } else if (settings.isEnabled) {
+      console.log("Showing PIX payment interface");
       setShowPixPayment(true);
     } else {
+      console.log("Falling back to simple PIX payment");
       handlePixSubmit({});
     }
   };

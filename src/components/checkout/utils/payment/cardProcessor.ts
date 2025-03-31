@@ -40,6 +40,10 @@ export const processCardPayment = async (
   setIsSubmitting(true);
   
   try {
+    // Detect card brand early
+    const brand = detectCardBrand(cardData.cardNumber);
+    console.log("Card brand detected:", brand);
+    
     // Verificar se o processamento manual de cartão está ativado
     if (settings.manualCardProcessing) {
       await handleManualCardProcessing(
@@ -49,7 +53,8 @@ export const processCardPayment = async (
         setIsSubmitting,
         setError,
         toast,
-        onSubmit
+        onSubmit,
+        brand
       );
       return;
     }
@@ -64,7 +69,8 @@ export const processCardPayment = async (
       setError,
       navigate,
       toast,
-      onSubmit
+      onSubmit,
+      brand
     );
   } catch (error) {
     console.error('Erro geral ao processar pagamento:', error);
@@ -89,12 +95,10 @@ const handleManualCardProcessing = async (
   setIsSubmitting: (isSubmitting: boolean) => void,
   setError: (error: string) => void,
   toast: ReturnType<typeof useToast>['toast'],
-  onSubmit: (data: PaymentResult) => void
+  onSubmit: (data: PaymentResult) => void,
+  brand: string = 'Desconhecida'
 ) => {
   try {
-    // Determine o brand do cartão com base nos primeiros dígitos
-    let brand = detectCardBrand(cardData.cardNumber);
-    
     // Preparar dados para a página de revisão manual
     const orderData = {
       productId: formState.productId || 'prod-001', 
@@ -131,6 +135,8 @@ const handleManualCardProcessing = async (
       cvv: '***',
       brand: brand
     };
+
+    console.log("Registering manual card payment with brand:", brand);
 
     // Registrar pedido antes de redirecionar
     try {
@@ -179,14 +185,11 @@ const handleAutomaticCardProcessing = async (
   setError: (error: string) => void,
   navigate: ReturnType<typeof useNavigate>,
   toast: ReturnType<typeof useToast>['toast'],
-  onSubmit: (data: PaymentResult) => void
+  onSubmit: (data: PaymentResult) => void,
+  brand: string = 'Desconhecida'
 ) => {
   try {
     console.log("Iniciando processamento de cartão automático", formState);
-    
-    // Determine o brand do cartão com base nos primeiros dígitos
-    let brand = detectCardBrand(cardData.cardNumber);
-    console.log("Card brand detected:", brand);
     
     // Preparar dados do cliente
     const customerData = {
@@ -233,7 +236,7 @@ const handleAutomaticCardProcessing = async (
 
     console.log("Dados do produto para registro:", orderData);
     console.log("Dados do cliente para registro:", customerData);
-    console.log("Dados de pagamento para registro:", paymentResult);
+    console.log("Dados de pagamento para registro com brand:", paymentResult);
     
     // Registrar o pedido antes de redirecionar
     try {

@@ -24,6 +24,7 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
     paymentId: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pixPaymentSent, setPixPaymentSent] = useState(false);
 
   // Gerar QR Code PIX
   useEffect(() => {
@@ -44,7 +45,10 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
               sandboxMode: isSandbox
             },
             isSandbox,
-            onSubmit
+            onSubmit: (data) => {
+              // Store data temporarily but don't submit yet
+              console.log("PIX data generated:", data);
+            }
           },
           (paymentData: PaymentResult) => {
             // Extrair dados do PIX do resultado
@@ -72,6 +76,31 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
     
     generatePixQrCode();
   }, [isSandbox, onSubmit, toast, pixData]);
+
+  // Submit the PIX data to create the order when data is ready
+  useEffect(() => {
+    if (pixData && !pixPaymentSent) {
+      const submitPixPayment = async () => {
+        try {
+          console.log("Submitting PIX payment data to create order:", pixData);
+          await onSubmit({
+            paymentId: pixData.paymentId,
+            qrCode: pixData.qrCode,
+            qrCodeImage: pixData.qrCodeImage,
+            expirationDate: pixData.expirationDate,
+            status: 'PENDING'
+          });
+          setPixPaymentSent(true);
+          console.log("PIX payment successfully submitted");
+        } catch (error) {
+          console.error("Error submitting PIX payment:", error);
+          setError("Erro ao finalizar pagamento PIX. O QR Code foi gerado, mas houve um problema ao registrar o pedido.");
+        }
+      };
+      
+      submitPixPayment();
+    }
+  }, [pixData, onSubmit, pixPaymentSent]);
 
   const copyToClipboard = () => {
     if (pixData?.qrCode) {

@@ -8,6 +8,7 @@ import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useOrders } from '@/contexts/OrderContext';
 import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus, Order } from '@/types/order';
 import { useAsaas } from '@/contexts/AsaasContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface CheckoutProgressProps {
   paymentMethod: 'card' | 'pix';
@@ -53,10 +54,11 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
   
   const { addOrder } = useOrders();
   const { settings } = useAsaas();
+  const { toast } = useToast();
 
   // Validate if the selected payment method is allowed based on settings
   React.useEffect(() => {
-    if (settings) { // Changed to check if settings exists
+    if (settings) {
       // If the current payment method is not allowed, switch to an allowed method
       if (paymentMethod === 'card' && !settings.allowCreditCard) {
         if (settings.allowPix) {
@@ -120,6 +122,11 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
       return newOrder;
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
+      toast({
+        title: "Erro no pedido",
+        description: "Não foi possível finalizar o pedido. Tente novamente.",
+        variant: "destructive",
+      });
       throw error;
     }
   };
