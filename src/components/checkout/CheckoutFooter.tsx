@@ -6,7 +6,12 @@ const CheckoutFooter = () => {
   return (
     <footer className="bg-gray-100 py-6 border-t touch-manipulation">
       <div className="max-w-5xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="border-t border-gray-200 pt-4 text-center">
+          <p className="text-xs text-gray-500">&copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
+          <p className="text-xs text-gray-500">Powered by <span className="text-green-600 font-medium">CheckoutSeguro</span></p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div>
             <h3 className="text-sm font-semibold mb-3">Políticas</h3>
             <ul className="space-y-2 text-xs text-gray-600">
@@ -44,11 +49,6 @@ const CheckoutFooter = () => {
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="border-t border-gray-200 pt-4 text-center">
-          <p className="text-xs text-gray-500">&copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
-          <p className="text-xs text-gray-500">Powered by <span className="text-green-600 font-medium">CheckoutSeguro</span></p>
         </div>
       </div>
     </footer>
