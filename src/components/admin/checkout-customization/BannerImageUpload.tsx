@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Control } from 'react-hook-form';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Link } from 'lucide-react';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
+import { Input } from '@/components/ui/input';
 
 interface BannerImageUploadProps {
   name: string;
@@ -18,6 +19,7 @@ const BannerImageUpload: React.FC<BannerImageUploadProps> = ({
   setValue
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const { uploadBannerImage } = useCheckoutCustomization();
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +37,17 @@ const BannerImageUpload: React.FC<BannerImageUploadProps> = ({
       }
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageUrl(e.target.value);
+  };
+
+  const handleUrlSubmit = () => {
+    if (imageUrl) {
+      setValue(name, imageUrl);
+      setImageUrl('');
     }
   };
 
@@ -66,33 +79,60 @@ const BannerImageUpload: React.FC<BannerImageUploadProps> = ({
                 </div>
               )}
               
-              <div className="flex items-center">
-                <input
-                  type="file"
-                  id="banner-upload"
-                  accept="image/*"
-                  onChange={handleUpload}
-                  className="hidden"
-                />
-                <label htmlFor="banner-upload">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={uploading}
-                    asChild
-                    className="cursor-pointer"
-                  >
-                    <div>
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploading ? 'Enviando...' : 'Enviar Banner'}
-                    </div>
-                  </Button>
-                </label>
+              <div className="space-y-4">
+                {/* External URL input */}
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-medium">Usar URL externa</label>
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="https://exemplo.com/imagem.jpg"
+                      value={imageUrl}
+                      onChange={handleUrlChange}
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleUrlSubmit}
+                      disabled={!imageUrl}
+                    >
+                      <Link className="w-4 h-4 mr-2" />
+                      Usar
+                    </Button>
+                  </div>
+                </div>
+
+                {/* File upload option */}
+                <div className="flex items-center">
+                  <label className="text-sm font-medium">Ou fazer upload</label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="file"
+                    id="banner-upload"
+                    accept="image/*"
+                    onChange={handleUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="banner-upload">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={uploading}
+                      asChild
+                      className="cursor-pointer"
+                    >
+                      <div>
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploading ? 'Enviando...' : 'Enviar Banner'}
+                      </div>
+                    </Button>
+                  </label>
+                </div>
               </div>
             </div>
           </FormControl>
           <FormDescription>
-            Escolha uma imagem para o banner do checkout. Recomendamos imagens com proporção 10:3 para melhor visualização.
+            Escolha uma imagem para o banner do checkout usando uma URL externa ou fazendo upload. Recomendamos imagens com proporção 10:3 para melhor visualização.
           </FormDescription>
           <FormMessage />
         </FormItem>
