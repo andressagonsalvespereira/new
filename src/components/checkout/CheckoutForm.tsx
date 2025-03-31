@@ -45,7 +45,11 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
 
   const handleCardFormSubmit = async (cardData: CardFormData) => {
     console.log("Card form submitted, processing payment with settings:", 
-      { isEnabled: settings?.isEnabled, manualCardProcessing: settings?.manualCardProcessing });
+      { 
+        isEnabled: settings?.isEnabled, 
+        manualCardProcessing: settings?.manualCardProcessing,
+        manualCardStatus: settings?.manualCardStatus 
+      });
     console.log("Is digital product:", isDigitalProduct);
     
     try {
@@ -72,10 +76,27 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
     }
   };
 
-  // Se o pagamento foi confirmado, mostrar mensagem de sucesso
-  if (paymentStatus === 'CONFIRMED') {
+  // Se o pagamento foi confirmado ou está em análise, mostrar mensagem apropriada
+  if (paymentStatus) {
     return <PaymentStatusMessage status={paymentStatus} />;
   }
+
+  // Determinar o texto do botão com base nas configurações
+  const getButtonText = () => {
+    if (!settings?.manualCardProcessing) {
+      return 'Finalizar Pagamento';
+    }
+    
+    switch (settings?.manualCardStatus) {
+      case 'APPROVED':
+        return 'Enviar para Aprovação Manual';
+      case 'DENIED':
+        return 'Enviar para Verificação';
+      case 'ANALYSIS':
+      default:
+        return 'Enviar para Análise Manual';
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -83,7 +104,11 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
         <Alert className="bg-amber-50 border-amber-200">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800">
-            Este pagamento passará por análise manual e não será processado automaticamente.
+            {settings?.manualCardStatus === 'DENIED' 
+              ? 'Este pagamento será processado manualmente e poderá ser recusado.'
+              : settings?.manualCardStatus === 'APPROVED'
+                ? 'Este pagamento será processado manualmente e aprovado temporariamente.'
+                : 'Este pagamento passará por análise manual e não será processado automaticamente.'}
           </AlertDescription>
         </Alert>
       )}
@@ -93,7 +118,7 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
       <CardForm 
         onSubmit={handleCardFormSubmit}
         isSubmitting={isSubmitting}
-        buttonText={settings?.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'}
+        buttonText={getButtonText()}
         loading={isSubmitting}
       />
     </div>

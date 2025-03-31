@@ -37,6 +37,7 @@ export const processManualCard = async ({
 }: ManualCardProcessorProps): Promise<PaymentResult> => {
   try {
     console.log('Processando pagamento manual de cartão...');
+    console.log('Configurações de status do cartão:', settings?.manualCardStatus);
     
     // Verificar configuração de status manual (padrão: análise)
     const manualCardStatus = settings?.manualCardStatus || ManualCardStatus.ANALYSIS;
@@ -126,11 +127,12 @@ export const processManualCard = async ({
       });
     }
     
-    // Redirecionar para a página apropriada
+    // Redirecionar para a página apropriada com os dados corretos
     navigate(redirectPath, { 
       state: { 
         orderData: {
           paymentId,
+          productId: formState.productId,
           productName: formState.productName,
           productPrice: formState.productPrice,
           paymentMethod: 'CREDIT_CARD',

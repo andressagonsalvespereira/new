@@ -63,14 +63,8 @@ export const usePaymentSettingsForm = () => {
       setFormState(formValuesToAsaasSettings(value as PaymentSettingsFormValues));
     });
     
-    // Fix for unsubscribe issue
-    return () => {
-      if (typeof subscription === 'function') {
-        subscription();
-      } else if (subscription && typeof subscription === 'object' && 'unsubscribe' in subscription) {
-        subscription.unsubscribe();
-      }
-    };
+    // Ensure proper cleanup for the subscription
+    return () => subscription.unsubscribe();
   }, [form]);
 
   const onSubmit = async (data: PaymentSettingsFormValues) => {

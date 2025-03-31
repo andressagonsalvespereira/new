@@ -42,6 +42,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
     const loadSettings = async () => {
       try {
         const loadedSettings = await getAsaasSettings();
+        console.log('Configurações carregadas:', loadedSettings);
         setSettings(loadedSettings);
         setLoading(false);
       } catch (error) {
