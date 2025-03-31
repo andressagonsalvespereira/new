@@ -7,6 +7,10 @@ export interface AsaasSettings {
   allowCreditCard: boolean;
   manualCreditCard: boolean;
   sandboxMode: boolean;
+  // Fixing type errors by adding property
+  manualCardProcessing?: boolean;
+  // For backward compatibility
+  isSandbox?: boolean;
 }
 
 // API interface types

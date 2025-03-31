@@ -1,13 +1,11 @@
-
 import React from 'react';
-import { useToast } from '@/hooks/use-toast';
 import PersonalInfoSection from '@/components/checkout/PersonalInfoSection';
 import AddressSection from '@/components/checkout/AddressSection';
 import PaymentMethodSection from '@/components/checkout/PaymentMethodSection';
 import OrderSummarySection from '@/components/checkout/OrderSummarySection';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useOrders } from '@/contexts/OrderContext';
-import { CreateOrderInput, CardDetails, PixDetails } from '@/types/order';
+import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus } from '@/types/order';
 
 interface CheckoutProgressProps {
   paymentMethod: 'card' | 'pix';
@@ -53,7 +51,6 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
   
   const { addOrder } = useOrders();
 
-  // Function to create order after successful payment
   const createOrder = async (
     paymentId: string, 
     status: 'pending' | 'confirmed',
@@ -80,8 +77,8 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         productId: productDetails.id,
         productName: productDetails.name,
         productPrice: productDetails.price,
-        paymentMethod,
-        paymentStatus: status,
+        paymentMethod: paymentMethod === 'card' ? 'CREDIT_CARD' as PaymentMethod : 'PIX' as PaymentMethod,
+        paymentStatus: status === 'pending' ? 'Aguardando' as PaymentStatus : 'Pago' as PaymentStatus,
         paymentId,
         cardDetails,
         pixDetails
@@ -93,7 +90,6 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
     }
   };
 
-  // Prepare customer data for manual payment
   const customerData = {
     name: formState.fullName,
     email: formState.email,
