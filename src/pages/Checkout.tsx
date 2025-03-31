@@ -14,7 +14,7 @@ const Checkout = () => {
   const { trackPageView } = usePixel();
   
   useEffect(() => {
-    // We can now safely call trackPageView as it's included in the context
+    // Rastreamento de visualização de página
     trackPageView();
     
     // Depuração para verificar se o slug está sendo passado corretamente

@@ -17,15 +17,19 @@ export const useProductCheckout = (productSlug: string | undefined) => {
     async function fetchProduct() {
       try {
         if (!productSlug) {
+          console.error('Slug do produto não fornecido');
           throw new Error('Slug do produto não fornecido');
         }
         
         setLoading(true);
         console.log('Buscando produto com slug:', productSlug);
+        
         const productData = await getProductBySlug(productSlug);
+        
         console.log('Dados do produto encontrado:', productData);
         
         if (!productData) {
+          console.error('Produto não encontrado para o slug:', productSlug);
           throw new Error('Produto não encontrado');
         }
         

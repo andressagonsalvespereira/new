@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { Product, CreateProductInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -89,17 +90,20 @@ export const useProductOperations = ({ products, setProducts, isOffline }: UsePr
     }
   }, [toast]);
 
-  // Esta função deve estar dentro do retorno de useProductOperations
   const getProductBySlug = useCallback(
     async (slug: string): Promise<Product | undefined> => {
       console.log('getProductBySlug chamado com slug:', slug);
-      console.log('Produtos atuais:', products);
       
-      // Primeiro tentar encontrar o produto localmente
-      const localProduct = products.find(p => p.slug === slug);
-      if (localProduct) {
-        console.log('Produto encontrado localmente:', localProduct);
-        return localProduct;
+      if (!products || products.length === 0) {
+        console.log('Nenhum produto disponível localmente');
+      } else {
+        console.log('Produtos atuais:', products);
+        // Primeiro tentar encontrar o produto localmente
+        const localProduct = products.find(p => p.slug === slug);
+        if (localProduct) {
+          console.log('Produto encontrado localmente:', localProduct);
+          return localProduct;
+        }
       }
       
       // Se não encontrar localmente e estivermos offline, retorne undefined

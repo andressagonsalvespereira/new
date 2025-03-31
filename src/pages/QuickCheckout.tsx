@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useAsaas } from '@/contexts/AsaasContext';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
@@ -30,11 +30,16 @@ const QuickCheckout = () => {
     handlePaymentSubmit
   } = useQuickCheckout(productId);
   
+  console.log("QuickCheckout rendering with product ID:", productId);
+  console.log("Product data:", product);
+  console.log("Loading state:", loading);
+  
   if (loading) {
     return (
       <CheckoutContainer>
         <div className="flex justify-center items-center min-h-[300px]">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-2">Carregando dados do produto...</span>
         </div>
       </CheckoutContainer>
     );

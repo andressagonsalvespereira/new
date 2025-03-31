@@ -29,11 +29,19 @@ export const useQuickCheckout = (productId: string | undefined) => {
     async function fetchProduct() {
       try {
         if (!productId) {
+          console.error('ID do produto não fornecido');
           throw new Error('ID do produto não fornecido');
         }
         
+        console.log('Carregando produto com ID:', productId);
+        setLoading(true);
+        
         const productData = await getProductById(productId);
+        
+        console.log('Dados do produto carregado:', productData);
+        
         if (!productData) {
+          console.error('Produto não encontrado para o ID:', productId);
           throw new Error('Produto não encontrado');
         }
         
@@ -45,16 +53,13 @@ export const useQuickCheckout = (productId: string | undefined) => {
           description: "Não foi possível carregar os dados do produto.",
           variant: "destructive",
         });
-        
-        // Redirect to home page after error
-        navigate('/');
       } finally {
         setLoading(false);
       }
     }
     
     fetchProduct();
-  }, [productId, getProductById, navigate, toast, trackPurchase]);
+  }, [productId, getProductById, toast]);
   
   const handleSubmitCustomerInfo = (customerData: CustomerInfo) => {
     setCustomerDetails(customerData);

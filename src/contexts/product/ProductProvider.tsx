@@ -5,7 +5,6 @@ import { ProductProviderProps } from './productContextTypes';
 import { useProductFetching } from './hooks/useProductFetching';
 import { useProductOperations } from './hooks/useProductOperations';
 
-// Add a debug log to see how many times this component renders
 export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) => {
   // Debug log to track component mounting
   React.useEffect(() => {
@@ -22,13 +21,19 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     retryFetchProducts
   } = useProductFetching();
 
+  const productOperationsProps = {
+    products,
+    setProducts,
+    isOffline
+  };
+
   const {
     addProduct,
     editProduct,
     removeProduct,
     getProductById,
     getProductBySlug
-  } = useProductOperations(products, setProducts, isOffline);
+  } = useProductOperations(productOperationsProps);
 
   // Memoizar o valor do contexto para evitar re-renderizações desnecessárias
   const contextValue = useMemo(() => ({
