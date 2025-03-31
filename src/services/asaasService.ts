@@ -6,8 +6,9 @@ import {
   saveAsaasConfig,
   saveAsaasSettings,
   saveAsaasPayment,
-  updateAsaasPaymentStatus
-} from './asaas/asaasDatabase';
+  updateAsaasPaymentStatus,
+  saveAsaasPixQrCode
+} from './asaas/index';
 
 // Re-export types
 export type {
@@ -25,7 +26,8 @@ export {
   saveAsaasConfig,
   saveAsaasSettings,
   saveAsaasPayment,
-  updateAsaasPaymentStatus
+  updateAsaasPaymentStatus,
+  saveAsaasPixQrCode
 };
 
 // Export the API service as default

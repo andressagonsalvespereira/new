@@ -2,6 +2,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { AsaasSettings } from '@/types/asaas';
 
+/**
+ * Retrieves Asaas settings from the database
+ * @returns Promise with AsaasSettings object
+ */
 export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   try {
     const { data, error } = await supabase
@@ -23,7 +27,7 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
       manualCardProcessing: data.manual_card_processing ?? false,
       manualPixPage: data.manual_pix_page ?? false,
       manualPaymentConfig: data.manual_payment_config ?? false,
-      manualCardStatus: data.manual_card_status || 'ANALYSIS'
+      manualCardStatus: (data.manual_card_status as 'APPROVED' | 'DENIED' | 'ANALYSIS') || 'ANALYSIS'
     };
   } catch (error) {
     console.error('Error fetching Asaas settings:', error);
@@ -31,6 +35,11 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   }
 };
 
+/**
+ * Saves Asaas settings to the database
+ * @param settings AsaasSettings object to save
+ * @returns Promise that resolves when settings are saved
+ */
 export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> => {
   try {
     const { error } = await supabase

@@ -10,6 +10,7 @@ import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
 import { processCardPayment } from './utils/payment/card/cardProcessor';
+import { AsaasSettings } from '@/types/asaas';
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => void;
@@ -26,6 +27,22 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
   const [error, setError] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
 
+  // Default settings if none are provided
+  const defaultSettings: AsaasSettings = {
+    isEnabled: false,
+    manualCardProcessing: true,
+    manualCreditCard: false,
+    apiKey: '',
+    allowPix: true,
+    allowCreditCard: true,
+    sandboxMode: true,
+    sandboxApiKey: '',
+    productionApiKey: '',
+    manualPixPage: false,
+    manualPaymentConfig: true,
+    manualCardStatus: 'ANALYSIS'
+  };
+
   const handleCardFormSubmit = async (cardData: CardFormData) => {
     console.log("Card form submitted, processing payment with settings:", 
       { isEnabled: settings?.isEnabled, manualCardProcessing: settings?.manualCardProcessing });
@@ -37,19 +54,7 @@ const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: Checkou
         cardData,
         props: { 
           formState: { ...formState, isDigitalProduct }, 
-          settings: settings || {
-            isEnabled: false,
-            manualCardProcessing: true,
-            manualCreditCard: false,
-            apiKey: '',
-            allowPix: true,
-            allowCreditCard: true,
-            sandboxMode: true,
-            sandboxApiKey: '',
-            productionApiKey: '',
-            manualPixPage: false,
-            manualPaymentConfig: true
-          }, 
+          settings: settings || defaultSettings, 
           isSandbox, 
           onSubmit 
         },
