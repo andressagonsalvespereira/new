@@ -14,9 +14,10 @@ import { processCardPayment } from './utils/payment/card/cardProcessor';
 interface CheckoutFormProps {
   onSubmit: (data: any) => void;
   isSandbox: boolean;
+  isDigitalProduct?: boolean;
 }
 
-const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
+const CheckoutForm = ({ onSubmit, isSandbox, isDigitalProduct = false }: CheckoutFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { formState } = useCheckoutForm();
@@ -28,13 +29,14 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
   const handleCardFormSubmit = async (cardData: CardFormData) => {
     console.log("Card form submitted, processing payment with settings:", 
       { isEnabled: settings?.isEnabled, manualCardProcessing: settings?.manualCardProcessing });
+    console.log("Is digital product:", isDigitalProduct);
     
     try {
       // Process payment with card using the utility with object parameter
       await processCardPayment({
         cardData,
         props: { 
-          formState, 
+          formState: { ...formState, isDigitalProduct }, 
           settings: settings || {
             isEnabled: false,
             manualCardProcessing: true,
@@ -55,7 +57,8 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         setPaymentStatus,
         setIsSubmitting,
         navigate,
-        toast
+        toast,
+        isDigitalProduct
       });
     } catch (error) {
       console.error("Error in handleCardFormSubmit:", error);

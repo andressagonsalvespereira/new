@@ -19,6 +19,7 @@ export interface Order {
   createdAt?: string;
   updatedAt?: string;
   deviceType?: DeviceType;
+  isDigitalProduct?: boolean;
 }
 
 export interface CustomerInfo {
@@ -65,4 +66,5 @@ export interface CreateOrderInput {
   paymentId?: string;
   orderDate?: string;
   deviceType?: DeviceType;
+  isDigitalProduct?: boolean;
 }

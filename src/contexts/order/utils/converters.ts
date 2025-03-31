@@ -33,5 +33,6 @@ export const convertDBOrderToOrder = (dbOrder: any): Order => {
       qrCodeImage: dbOrder.qr_code_image,
     } : undefined,
     deviceType: dbOrder.device_type,
+    isDigitalProduct: dbOrder.is_digital_product || false
   };
 };

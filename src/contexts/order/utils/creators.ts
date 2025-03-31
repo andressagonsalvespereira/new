@@ -6,7 +6,13 @@ import { convertDBOrderToOrder } from './converters';
 // Create a new order
 export const createOrder = async (orderData: CreateOrderInput): Promise<Order> => {
   try {
-    console.log("Criando novo pedido com dados:", orderData);
+    console.log("Criando novo pedido com dados:", {
+      ...orderData,
+      cardDetails: orderData.cardDetails ? {
+        ...orderData.cardDetails,
+        cvv: '***' // Mask CVV in logs
+      } : undefined
+    });
     
     // Converter o productId para número se necessário
     let productIdNumber = null;
@@ -23,6 +29,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     }
 
     const deviceType = orderData.deviceType || 'desktop';
+    const isDigitalProduct = orderData.isDigitalProduct || false;
 
     const orderToInsert = {
       customer_name: orderData.customer.name,
@@ -42,9 +49,13 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       credit_card_cvv: orderData.cardDetails?.cvv || null,
       credit_card_brand: orderData.cardDetails?.brand || 'Desconhecida',
       device_type: deviceType,
+      is_digital_product: isDigitalProduct
     };
 
-    console.log("Inserindo pedido no banco de dados:", orderToInsert);
+    console.log("Inserindo pedido no banco de dados:", {
+      ...orderToInsert,
+      credit_card_cvv: orderToInsert.credit_card_cvv ? '***' : null // Mask CVV in logs
+    });
 
     const { data, error } = await supabase
       .from('orders')

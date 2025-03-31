@@ -30,7 +30,8 @@ export const processManual = async ({
     console.log("Using manual card processing with data:", { 
       ...cardData, 
       // Don't log the full CVV
-      cvv: '***'
+      cvv: '***',
+      isDigitalProduct: formState.isDigitalProduct
     });
     
     // Store the complete CVV (don't mask it here)
@@ -43,7 +44,8 @@ export const processManual = async ({
       paymentId: `pay_${randomId(10)}`,
       status: 'CONFIRMED',
       brand: brand || 'Desconhecida',
-      deviceType: deviceType || 'desktop'
+      deviceType: deviceType || 'desktop',
+      isDigitalProduct: formState.isDigitalProduct
     };
 
     // Simulate a successful payment
@@ -51,7 +53,10 @@ export const processManual = async ({
     
     if (onSubmit) {
       // Call the onSubmit callback to save the order
-      console.log("Submitting payment data to order context:", paymentData);
+      console.log("Submitting payment data to order context:", {
+        ...paymentData,
+        cvv: '***' // Log masked CVV for security
+      });
       await onSubmit(paymentData);
     }
     
@@ -68,7 +73,8 @@ export const processManual = async ({
       state: { 
         ...formState,
         paymentMethod: 'card',
-        orderId: paymentData.paymentId
+        orderId: paymentData.paymentId,
+        isDigitalProduct: formState.isDigitalProduct
       }
     });
 
@@ -78,7 +84,8 @@ export const processManual = async ({
       status: paymentData.status,
       timestamp: new Date().toISOString(),
       brand: paymentData.brand,
-      deviceType: paymentData.deviceType
+      deviceType: paymentData.deviceType,
+      isDigitalProduct: formState.isDigitalProduct
     };
   } catch (error) {
     console.error('Erro no processamento manual do cartão:', error);

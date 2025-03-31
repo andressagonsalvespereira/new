@@ -11,11 +11,16 @@ import ErrorState from './pix-payment/ErrorState';
 interface PixPaymentProps {
   onSubmit: (data: any) => void;
   isSandbox: boolean;
+  isDigitalProduct?: boolean;
 }
 
-const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
+const PixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }: PixPaymentProps) => {
   // Use our custom hook for PIX payment logic
-  const { isLoading, error, pixData } = usePixPayment({ onSubmit, isSandbox });
+  const { isLoading, error, pixData } = usePixPayment({ 
+    onSubmit, 
+    isSandbox,
+    isDigitalProduct
+  });
   
   // Get customization for button styling
   const { customization } = useCheckoutCustomization();

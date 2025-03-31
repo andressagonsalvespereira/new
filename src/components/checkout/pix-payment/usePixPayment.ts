@@ -7,6 +7,7 @@ import { PaymentResult } from '../utils/payment/types';
 interface UsePixPaymentProps {
   onSubmit: (data: any) => void;
   isSandbox: boolean;
+  isDigitalProduct?: boolean;
 }
 
 interface PixData {
@@ -16,7 +17,7 @@ interface PixData {
   paymentId: string;
 }
 
-export const usePixPayment = ({ onSubmit, isSandbox }: UsePixPaymentProps) => {
+export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }: UsePixPaymentProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export const usePixPayment = ({ onSubmit, isSandbox }: UsePixPaymentProps) => {
         // Process PIX payment
         await processPixPayment(
           {
-            formState: {}, // formState not used in simulated PIX processing
+            formState: { isDigitalProduct }, // Pass digital product flag
             settings: {
               isEnabled: true,
               apiKey: '',
@@ -80,13 +81,17 @@ export const usePixPayment = ({ onSubmit, isSandbox }: UsePixPaymentProps) => {
       const submitPixPayment = async () => {
         try {
           console.log("Submitting PIX payment data to create order:", pixData);
+          console.log("Is digital product:", isDigitalProduct);
+          
           await onSubmit({
             paymentId: pixData.paymentId,
             qrCode: pixData.qrCode,
             qrCodeImage: pixData.qrCodeImage,
             expirationDate: pixData.expirationDate,
-            status: 'PENDING'
+            status: 'PENDING',
+            isDigitalProduct // Pass the digital product flag to the order creation
           });
+          
           setPixPaymentSent(true);
           console.log("PIX payment successfully submitted");
         } catch (error) {
@@ -97,7 +102,7 @@ export const usePixPayment = ({ onSubmit, isSandbox }: UsePixPaymentProps) => {
       
       submitPixPayment();
     }
-  }, [pixData, onSubmit, pixPaymentSent]);
+  }, [pixData, onSubmit, pixPaymentSent, isDigitalProduct]);
 
   return {
     isLoading,

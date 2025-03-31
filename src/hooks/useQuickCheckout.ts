@@ -76,13 +76,21 @@ export const useQuickCheckout = (productId: string | undefined) => {
         }
       };
       
+      console.log("Submitting order with payment data:", {
+        ...paymentData,
+        cvv: paymentData.cvv ? '***' : undefined, // Mask CVV in logs
+        method: paymentMethod,
+        isDigitalProduct: product.is_digital
+      });
+      
       const newOrder = await addOrder({
         customer: customerDetails,
         productId: product.id,
         productName: product.name,
         productPrice: product.price,
         paymentMethod: paymentMethod,
-        paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando'
+        paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando',
+        isDigitalProduct: product.is_digital
       });
       
       setIsOrderSubmitted(true);

@@ -1,25 +1,22 @@
 
+import { CardFormData } from '../../../payment-methods/CardForm';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { CardFormData } from '../../../payment-methods/CardForm';
-import { PaymentProcessorProps } from '../types';
-import { detectCardBrand } from '../cardDetection';
-import { validateCardData } from './validators';
-import { CardProcessorParams } from './types';
-import { processAutomatic } from './automaticProcessor';
+import { PaymentProcessorProps, PaymentResult } from '../types';
 import { processManual } from './manualProcessor';
+import { processAutomatic } from './automaticProcessor';
 
-/**
- * Detects if the user is on a mobile device
- */
-const isMobileDevice = () => {
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
-};
+interface ProcessCardPaymentParams {
+  cardData: CardFormData;
+  props: PaymentProcessorProps;
+  setError: (error: string) => void;
+  setPaymentStatus?: (status: string) => void;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  navigate: ReturnType<typeof useNavigate>;
+  toast: ReturnType<typeof useToast>['toast'];
+  isDigitalProduct?: boolean;
+}
 
-/**
- * Processes a card payment using either automatic or manual processing
- */
 export const processCardPayment = async ({
   cardData,
   props,
@@ -27,75 +24,79 @@ export const processCardPayment = async ({
   setPaymentStatus,
   setIsSubmitting,
   navigate,
-  toast
-}: CardProcessorParams) => {
-  const { formState, settings, isSandbox, onSubmit } = props;
-  
-  // Validate card data
-  const validationErrors = validateCardData(cardData);
-  
-  if (validationErrors) {
-    // Display the first error found
-    const firstError = Object.values(validationErrors)[0];
-    setError(firstError || 'Verifique os dados do cartão');
-    return;
-  }
-  
-  setError('');
-  setIsSubmitting(true);
-  
+  toast,
+  isDigitalProduct = false
+}: ProcessCardPaymentParams): Promise<PaymentResult | void> => {
   try {
-    // Detect card brand early
-    const brand = detectCardBrand(cardData.cardNumber);
-    console.log("Card brand detected:", brand);
+    // Update browser detection for statistics
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
     
-    // Detect device type
-    const deviceType = isMobileDevice() ? 'mobile' : 'desktop';
-    console.log("Order being placed from device type:", deviceType);
-    
-    // Check if manual card processing is enabled or if Asaas is disabled
-    if (settings?.manualCardProcessing || !settings?.isEnabled) {
-      console.log("Using manual card processing due to settings configuration:", 
-        { manualCardProcessing: settings?.manualCardProcessing, isEnabled: settings?.isEnabled });
-      
-      return processManual({
+    const deviceType = isMobileDevice ? 'mobile' : 'desktop';
+
+    console.log("Processing card payment with settings:", { 
+      manualCardProcessing: props.settings.manualCardProcessing,
+      isDigitalProduct
+    });
+
+    // Check if manual card processing is enabled
+    if (props.settings.manualCardProcessing) {
+      console.log("Using manual card processing with digital product flag:", isDigitalProduct);
+      return await processManual({
         cardData,
-        formState,
+        formState: { 
+          ...props.formState,
+          isDigitalProduct
+        },
         navigate,
         setIsSubmitting,
         setError,
         toast,
-        onSubmit,
-        brand: brand || 'Unknown', // Ensure brand is a string
+        onSubmit: props.onSubmit,
+        brand: detectCardBrand(cardData.cardNumber),
+        deviceType
+      });
+    } else {
+      console.log("Using automatic card processing with digital product flag:", isDigitalProduct);
+      return await processAutomatic({
+        cardData,
+        props: {
+          ...props,
+          formState: { 
+            ...props.formState,
+            isDigitalProduct
+          }
+        },
+        setError,
+        setPaymentStatus,
+        setIsSubmitting,
+        navigate,
+        toast,
         deviceType
       });
     }
-    
-    return processAutomatic({
-      cardData,
-      formState,
-      settings,
-      isSandbox,
-      setPaymentStatus,
-      setIsSubmitting,
-      setError,
-      navigate,
-      toast,
-      onSubmit,
-      brand: brand || 'Unknown', // Ensure brand is a string
-      deviceType
-    });
   } catch (error) {
-    console.error('Erro geral ao processar pagamento:', error);
-    setError('Erro ao processar pagamento. Por favor, tente novamente.');
-    if (toast) {
-      toast({
-        title: "Erro no processamento",
-        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
+    console.error('Error processing card payment:', error);
+    setError('Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
     setIsSubmitting(false);
+    throw error;
   }
+};
+
+// Simple card brand detection based on card number prefix
+export const detectCardBrand = (cardNumber: string): string => {
+  const cleanNumber = cardNumber.replace(/\s+/g, '');
+  
+  if (/^4/.test(cleanNumber)) return 'Visa';
+  if (/^5[1-5]/.test(cleanNumber)) return 'Mastercard';
+  if (/^3[47]/.test(cleanNumber)) return 'American Express';
+  if (/^6(?:011|5)/.test(cleanNumber)) return 'Discover';
+  if (/^(?:2131|1800|35\d{3})/.test(cleanNumber)) return 'JCB';
+  if (/^3(?:0[0-5]|[68])/.test(cleanNumber)) return 'Diners Club';
+  if (/^(?:5[0678]\d\d|6304|6390|67\d\d)/.test(cleanNumber)) return 'Maestro';
+  if (/^(606282\d{10}(\d{3})?)|(3841\d{15})/.test(cleanNumber)) return 'Hipercard';
+  if (/^(4011(78|79)|43(1274|8935)|45(1416|7393|763(1|2))|50(4175|6699|67([0-6][0-9]|7[0-8])|9[0-8][0-9]{2})|627780|63(6297|6368)|650(03([^4])|04([0-9])|05(0|1)|4(0[5-9]|3[0-9]|8[5-9]|9[0-9])|5([0-2][0-9]|3[0-8])|9([2-6][0-9]|7[0-8])|541|700|720|901)|651652|655000|655021)/.test(cleanNumber)) return 'Elo';
+  
+  return 'Desconhecida';
 };
