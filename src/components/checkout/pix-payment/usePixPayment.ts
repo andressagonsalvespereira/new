@@ -8,6 +8,7 @@ interface UsePixPaymentProps {
   onSubmit: (data: any) => void;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
+  customerData?: any;
 }
 
 interface PixData {
@@ -17,23 +18,67 @@ interface PixData {
   paymentId: string;
 }
 
-export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }: UsePixPaymentProps) => {
+export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, customerData }: UsePixPaymentProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pixData, setPixData] = useState<PixData | null>(null);
   const [pixPaymentSent, setPixPaymentSent] = useState(false);
 
+  // Validate customer data
+  const validateCustomerData = () => {
+    if (!customerData) {
+      return "Informações do cliente não fornecidas";
+    }
+    
+    if (!customerData.name || customerData.name.trim().length < 3) {
+      return "Nome completo é obrigatório (mínimo 3 caracteres)";
+    }
+    
+    if (!customerData.email || !customerData.email.includes('@')) {
+      return "E-mail inválido";
+    }
+    
+    const cpf = customerData.cpf ? customerData.cpf.replace(/\D/g, '') : '';
+    if (!cpf || cpf.length !== 11) {
+      return "CPF inválido";
+    }
+    
+    const phone = customerData.phone ? customerData.phone.replace(/\D/g, '') : '';
+    if (!phone || phone.length < 10) {
+      return "Telefone inválido";
+    }
+    
+    return null;
+  };
+
   // Generate PIX QR Code
   useEffect(() => {
     const generatePixQrCode = async () => {
-      if (!pixData) {
+      if (!pixData && !error) {
         setIsLoading(true);
+        
+        // Validate customer data first
+        const validationError = validateCustomerData();
+        if (validationError) {
+          setError(validationError);
+          setIsLoading(false);
+          toast({
+            title: "Erro de validação",
+            description: validationError,
+            variant: "destructive",
+            duration: 5000,
+          });
+          return;
+        }
         
         // Process PIX payment
         await processPixPayment(
           {
-            formState: { isDigitalProduct }, // Pass digital product flag
+            formState: { 
+              isDigitalProduct,
+              customerInfo: customerData 
+            },
             settings: {
               isEnabled: true,
               apiKey: '',
@@ -54,7 +99,7 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }:
               qrCode: paymentData.qrCode as string,
               qrCodeImage: paymentData.qrCodeImage as string,
               expirationDate: paymentData.expirationDate as string,
-              paymentId: paymentData.paymentId
+              paymentId: paymentData.paymentId as string
             });
           },
           (errorMessage: string) => {
@@ -73,7 +118,7 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }:
     };
     
     generatePixQrCode();
-  }, [isSandbox, onSubmit, toast, pixData]);
+  }, [isSandbox, onSubmit, toast, pixData, error, customerData]);
 
   // Submit the PIX data to create the order when data is ready
   useEffect(() => {

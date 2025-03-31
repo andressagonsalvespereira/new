@@ -1,9 +1,10 @@
 
-import React from 'react';
-import { QrCode, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { QrCode, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SimplifiedPixOptionProps {
   onSubmit: () => void;
@@ -24,9 +25,45 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
 }) => {
   const navigate = useNavigate();
   const { customization } = useCheckoutCustomization();
+  const [validationError, setValidationError] = useState<string | null>(null);
+  
+  const validateCustomerData = () => {
+    if (!customerData) {
+      return "Informações do cliente não fornecidas";
+    }
+    
+    if (!customerData.name || customerData.name.trim().length < 3) {
+      return "Nome completo é obrigatório (mínimo 3 caracteres)";
+    }
+    
+    if (!customerData.email || !customerData.email.includes('@')) {
+      return "E-mail inválido";
+    }
+    
+    const cpf = customerData.cpf ? customerData.cpf.replace(/\D/g, '') : '';
+    if (!cpf || cpf.length !== 11) {
+      return "CPF inválido";
+    }
+    
+    const phone = customerData.phone ? customerData.phone.replace(/\D/g, '') : '';
+    if (!phone || phone.length < 10) {
+      return "Telefone inválido";
+    }
+    
+    return null;
+  };
   
   const handlePixSubmit = () => {
-    console.log("Iniciando processamento PIX com dados:", { productData, customerData });
+    console.log("Validando dados do cliente para PIX:", customerData);
+    
+    const error = validateCustomerData();
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+    
+    setValidationError(null);
+    console.log("Dados validados, iniciando processamento PIX");
     
     // Primeiro registra o pedido
     onSubmit();
@@ -59,6 +96,15 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
       <p className="text-sm text-gray-600 mb-6">
         Escaneie o QR Code abaixo com o app do seu banco ou copie o código PIX
       </p>
+      
+      {validationError && (
+        <Alert className="mb-4 bg-red-50 border-red-200">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            {validationError}
+          </AlertDescription>
+        </Alert>
+      )}
       
       <Button
         onClick={handlePixSubmit}

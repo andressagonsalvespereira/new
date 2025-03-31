@@ -16,6 +16,15 @@ export const processPixPayment = async (
   try {
     const { formState, isSandbox, onSubmit } = props;
     
+    // Validate customer info if available
+    const customerInfo = formState.customerInfo;
+    if (customerInfo) {
+      // Basic validation for required fields
+      if (!customerInfo.name || !customerInfo.email || !customerInfo.cpf || !customerInfo.phone) {
+        throw new Error('Informações de cliente incompletas. Preencha todos os campos obrigatórios.');
+      }
+    }
+    
     // Em uma implementação real, isso chamaria a API do Asaas
     // 1. Criar cliente
     // 2. Criar cobrança PIX
@@ -26,6 +35,7 @@ export const processPixPayment = async (
     
     // Preparar dados de pagamento para o callback
     const paymentData: PaymentResult = {
+      success: true,
       method: 'pix',
       paymentId: pixData.paymentId,
       status: 'PENDING',
@@ -42,6 +52,6 @@ export const processPixPayment = async (
     onSuccess(paymentData);
   } catch (error) {
     console.error('Erro ao processar pagamento PIX:', error);
-    onError('Erro ao gerar QR Code PIX. Por favor, tente novamente.');
+    onError(error instanceof Error ? error.message : 'Erro ao gerar QR Code PIX. Por favor, tente novamente.');
   }
 };

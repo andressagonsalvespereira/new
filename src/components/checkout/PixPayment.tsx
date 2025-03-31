@@ -7,6 +7,7 @@ import PixCopyCode from './pix-payment/PixCopyCode';
 import PixInformation from './pix-payment/PixInformation';
 import LoadingState from './pix-payment/LoadingState';
 import ErrorState from './pix-payment/ErrorState';
+import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 
 interface PixPaymentProps {
   onSubmit: (data: any) => void;
@@ -15,11 +16,23 @@ interface PixPaymentProps {
 }
 
 const PixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }: PixPaymentProps) => {
+  // Get customer data from checkout form
+  const { formState } = useCheckoutForm();
+  
+  // Extract customer data
+  const customerData = {
+    name: formState.fullName,
+    email: formState.email,
+    cpf: formState.cpf,
+    phone: formState.phone
+  };
+  
   // Use our custom hook for PIX payment logic
   const { isLoading, error, pixData } = usePixPayment({ 
     onSubmit, 
     isSandbox,
-    isDigitalProduct
+    isDigitalProduct,
+    customerData
   });
   
   // Get customization for button styling
