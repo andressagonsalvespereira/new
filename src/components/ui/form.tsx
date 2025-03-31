@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
@@ -42,15 +43,22 @@ const FormField = <
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
-  const { getFieldState, formState } = useFormContext()
+  
+  // Safely handle potential null context
+  const formContext = useFormContext()
+  
+  if (!formContext) {
+    throw new Error("useFormField must be used within a <Form> component")
+  }
 
+  const { getFieldState, formState } = formContext
   const fieldState = getFieldState(fieldContext.name, formState)
 
   if (!fieldContext) {
     throw new Error("useFormField should be used within <FormField>")
   }
 
-  const { id } = itemContext
+  const { id } = itemContext || {}
 
   return {
     id,

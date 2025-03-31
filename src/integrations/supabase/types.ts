@@ -281,6 +281,7 @@ export type Database = {
           asaas_enabled: boolean | null
           created_at: string | null
           id: number
+          manual_card_status: string | null
           manual_credit_card: boolean | null
           sandbox_mode: boolean | null
           updated_at: string | null
@@ -291,6 +292,7 @@ export type Database = {
           asaas_enabled?: boolean | null
           created_at?: string | null
           id?: number
+          manual_card_status?: string | null
           manual_credit_card?: boolean | null
           sandbox_mode?: boolean | null
           updated_at?: string | null
@@ -301,6 +303,7 @@ export type Database = {
           asaas_enabled?: boolean | null
           created_at?: string | null
           id?: number
+          manual_card_status?: string | null
           manual_credit_card?: boolean | null
           sandbox_mode?: boolean | null
           updated_at?: string | null
