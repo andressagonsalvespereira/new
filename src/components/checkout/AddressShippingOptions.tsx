@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Truck, Package, CheckCircle2, CalendarClock } from 'lucide-react';
+import { Truck, Package, CheckCircle2, CalendarClock, Clock } from 'lucide-react';
 
 interface AddressShippingOptionsProps {
   selectedShipping: string | null;
@@ -17,39 +17,45 @@ const AddressShippingOptions = ({
   if (!selectedShipping) return null;
 
   return (
-    <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-3">
+    <div className="bg-white border border-green-100 rounded-md p-4 mt-4 shadow-sm">
       <h3 className="font-medium text-green-800 mb-3 flex items-center">
-        <Truck className="h-5 w-5 mr-2" />
+        <Truck className="h-5 w-5 mr-2 text-green-600" />
         Opções de Entrega
       </h3>
       
       <div 
-        className={`border rounded-md p-3 mb-2 flex items-start cursor-pointer transition-colors ${
-          selectedShipping === 'free' ? 'border-green-500 bg-white' : 'border-gray-200 hover:border-green-300'
+        className={`border rounded-md p-4 mb-2 flex items-start cursor-pointer transition-all ${
+          selectedShipping === 'free' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
         }`}
         onClick={() => onSelectShipping('free')}
       >
-        <div className={`rounded-full border flex-shrink-0 w-5 h-5 flex items-center justify-center mr-2 mt-0.5 ${
+        <div className={`rounded-full border flex-shrink-0 w-5 h-5 flex items-center justify-center mr-3 mt-0.5 ${
           selectedShipping === 'free' ? 'border-green-500 bg-green-500' : 'border-gray-400'
         }`}>
           {selectedShipping === 'free' && <CheckCircle2 className="h-4 w-4 text-white" />}
         </div>
         <div className="flex-grow">
-          <div className="font-medium">Frete Grátis</div>
-          <div className="text-sm text-gray-600 flex items-center">
+          <div className="font-medium text-gray-800">Frete Grátis</div>
+          <div className="text-sm text-gray-600 flex items-center mt-1">
             <Package className="h-4 w-4 mr-1 text-gray-500" />
             Prazo de entrega: 5-10 dias úteis
           </div>
           {deliveryEstimate && (
-            <div className="text-sm text-green-600 flex items-center mt-1 font-medium">
+            <div className="text-sm text-green-600 flex items-center mt-2 font-medium bg-green-50 p-2 rounded-md border border-green-100">
               <CalendarClock className="h-4 w-4 mr-1 text-green-500" />
-              {deliveryEstimate}
+              <span>{deliveryEstimate}</span>
             </div>
           )}
         </div>
-        <div className="text-green-600 font-bold">
-          R$ 0,00
+        <div className="text-green-600 font-bold flex items-center">
+          <span className="text-xs line-through text-gray-400 mr-1">R$ 15,00</span>
+          <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-bold">GRÁTIS</span>
         </div>
+      </div>
+      
+      <div className="text-xs text-gray-500 flex items-center justify-center mt-2">
+        <Clock className="h-3 w-3 mr-1 text-gray-400" />
+        Processamento do pedido em até 24 horas
       </div>
     </div>
   );
