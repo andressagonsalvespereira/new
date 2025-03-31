@@ -31,7 +31,17 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       
       if (error) throw error;
       
-      setProducts(data as Product[]);
+      // Map database format to our Product type
+      const formattedProducts: Product[] = data.map(item => ({
+        id: String(item.id), // Convert to string
+        name: item.name,
+        description: item.description || '',
+        price: Number(item.price),
+        imageUrl: item.image_url || '',
+        isDigital: item.is_digital || false
+      }));
+      
+      setProducts(formattedProducts);
       setLoading(false);
     } catch (err) {
       console.error('Error loading products:', err);
@@ -47,16 +57,34 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const addProduct = async (productData: CreateProductInput): Promise<Product> => {
     try {
+      // Transform our product data to match database schema
+      const dbProductData = {
+        name: productData.name,
+        description: productData.description,
+        price: productData.price,
+        image_url: productData.imageUrl,
+        is_digital: productData.isDigital
+      };
+      
       // Add product to Supabase
       const { data, error } = await supabase
         .from('products')
-        .insert([productData])
+        .insert([dbProductData])
         .select()
         .single();
       
       if (error) throw error;
       
-      const newProduct = data as Product;
+      // Convert back to our Product type
+      const newProduct: Product = {
+        id: String(data.id),
+        name: data.name,
+        description: data.description || '',
+        price: Number(data.price),
+        imageUrl: data.image_url || '',
+        isDigital: data.is_digital || false
+      };
+      
       setProducts(prev => [newProduct, ...prev]);
       
       toast({
@@ -78,17 +106,34 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const editProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
     try {
+      // Transform our product data to match database schema
+      const dbProductData: any = {};
+      
+      if (productData.name !== undefined) dbProductData.name = productData.name;
+      if (productData.description !== undefined) dbProductData.description = productData.description;
+      if (productData.price !== undefined) dbProductData.price = productData.price;
+      if (productData.imageUrl !== undefined) dbProductData.image_url = productData.imageUrl;
+      if (productData.isDigital !== undefined) dbProductData.is_digital = productData.isDigital;
+      
       // Update product in Supabase
       const { data, error } = await supabase
         .from('products')
-        .update(productData)
-        .eq('id', id)
+        .update(dbProductData)
+        .eq('id', parseInt(id)) // Convert string id to number
         .select()
         .single();
       
       if (error) throw error;
       
-      const updatedProduct = data as Product;
+      // Convert to our Product type
+      const updatedProduct: Product = {
+        id: String(data.id),
+        name: data.name,
+        description: data.description || '',
+        price: Number(data.price),
+        imageUrl: data.image_url || '',
+        isDigital: data.is_digital || false
+      };
       
       setProducts(prev => 
         prev.map(prod => 
@@ -119,7 +164,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('id', id);
+        .eq('id', parseInt(id)); // Convert string id to number
       
       if (error) throw error;
       
@@ -145,12 +190,21 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('id', id)
+        .eq('id', parseInt(id)) // Convert string id to number
         .maybeSingle();
       
       if (error) throw error;
+      if (!data) return undefined;
       
-      return data as Product;
+      // Convert to our Product type
+      return {
+        id: String(data.id),
+        name: data.name,
+        description: data.description || '',
+        price: Number(data.price),
+        imageUrl: data.image_url || '',
+        isDigital: data.is_digital || false
+      };
     } catch (err) {
       console.error('Error getting product by ID:', err);
       toast({

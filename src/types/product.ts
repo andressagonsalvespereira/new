@@ -21,8 +21,10 @@ export interface ProductContextType {
   loading: boolean;
   error: string | null;
   addProduct: (product: CreateProductInput) => Promise<Product>;
-  updateProduct: (id: string, product: CreateProductInput) => Promise<Product>;
+  editProduct: (id: string, product: Partial<Product>) => Promise<Product>;
+  removeProduct: (id: string) => Promise<void>;
+  getProductById: (id: string) => Promise<Product | undefined>;
+  refreshProducts: () => Promise<void>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<Product>;
   deleteProduct: (id: string) => Promise<void>;
-  getProductById: (id: string) => Promise<Product | null>;
-  getProducts: () => Promise<Product[]>;
 }
