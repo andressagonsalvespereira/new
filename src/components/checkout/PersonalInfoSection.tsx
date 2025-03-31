@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { validateCPF } from '@/utils/validators';
 
 interface PersonalInfoSectionProps {
@@ -37,6 +36,21 @@ const PersonalInfoSection = ({
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
       .replace(/(-\d{2})\d+?$/, '$1');
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+      setPhone(value);
+    }
+  };
+
+  const formatPhone = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .replace(/(-\d{4})\d+?$/, '$1');
   };
 
   return (
@@ -87,28 +101,15 @@ const PersonalInfoSection = ({
           </div>
           <div>
             <label htmlFor="phone" className="block text-sm mb-1">Celular</label>
-            <div className="flex flex-wrap sm:flex-nowrap gap-2">
-              <Select defaultValue="55">
-                <SelectTrigger className="w-32 h-9 border-gray-300 flex-shrink-0 text-xs px-2">
-                  <div className="flex items-center">
-                    <span className="mr-2 text-2xl">🇧🇷</span>
-                    <span className="ml-1">+55 Brasil</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="55">
-                    <div className="flex items-center text-xs">
-                      <span className="mr-2 text-2xl">🇧🇷</span>
-                      <span className="ml-1">+55 Brasil</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <span className="text-gray-500">+55</span>
+              </div>
               <Input
                 id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={`h-9 flex-1 ${formErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                value={formatPhone(phone)}
+                onChange={handlePhoneChange}
+                className={`h-9 pl-12 ${formErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="(00) 00000-0000"
               />
             </div>
