@@ -1,3 +1,4 @@
+
 import { AsaasSettings } from '@/types/asaas';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -73,8 +74,8 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
 
       // Set API key based on sandbox mode
       combined.apiKey = combined.sandboxMode
-        ? combined.sandboxApiKey
-        : combined.productionApiKey;
+        ? combined.sandboxApiKey || ''
+        : combined.productionApiKey || '';
 
       return combined;
     }
