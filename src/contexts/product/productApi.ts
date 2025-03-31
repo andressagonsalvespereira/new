@@ -6,16 +6,16 @@ import { generateSlug } from './slugUtils';
 // Interface para o tipo de dado retornado pelo Supabase
 interface LinhaSupabaseProduto {
   id: number;
-  nome: string;
-  descricao: string | null;
-  preco: number;
-  url_imagem: string | null;
-  digital: boolean;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  is_digital: boolean;
   slug: string;
-  criado_em: string;
-  atualizado_em: string;
-  usar_processamento_personalizado: boolean | null;
-  status_cartao_manual: string | null;
+  created_at: string;
+  updated_at: string;
+  use_custom_processing: boolean | null;
+  manual_card_status: string | null;
 }
 
 // Buscar produtos do Supabase
@@ -27,16 +27,18 @@ export const buscarProdutosAPI = async (): Promise<Product[]> => {
   
   if (error) throw error;
   
+  console.log('Dados brutos do Supabase:', data);
+  
   return (data as unknown as LinhaSupabaseProduto[]).map(item => ({
     id: String(item.id),
-    nome: item.nome || '',
-    descricao: item.descricao || '',
-    preco: Number(item.preco),
-    urlImagem: item.url_imagem || '',
-    digital: item.digital || false,
+    nome: item.name || '',
+    descricao: item.description || '',
+    preco: Number(item.price),
+    urlImagem: item.image_url || '',
+    digital: item.is_digital || false,
     slug: item.slug,
-    usarProcessamentoPersonalizado: item.usar_processamento_personalizado || false,
-    statusCartaoManual: item.status_cartao_manual || null
+    usarProcessamentoPersonalizado: item.use_custom_processing || false,
+    statusCartaoManual: item.manual_card_status || null
   }));
 };
 
@@ -70,14 +72,14 @@ export const adicionarProdutoAPI = async (produtoData: CriarProdutoInput): Promi
   
   return {
     id: String(produto.id),
-    nome: produto.nome || '',
-    descricao: produto.descricao || '',
-    preco: Number(produto.preco),
-    urlImagem: produto.url_imagem || '',
-    digital: produto.digital || false,
+    nome: produto.name || '',
+    descricao: produto.description || '',
+    preco: Number(produto.price),
+    urlImagem: produto.image_url || '',
+    digital: produto.is_digital || false,
     slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
-    statusCartaoManual: produto.status_cartao_manual || null
+    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
+    statusCartaoManual: produto.manual_card_status || null
   };
 };
 
@@ -114,14 +116,14 @@ export const editarProdutoAPI = async (id: string, produtoData: Partial<Product>
   
   return {
     id: String(produto.id),
-    nome: produto.nome || '',
-    descricao: produto.descricao || '',
-    preco: Number(produto.preco),
-    urlImagem: produto.url_imagem || '',
-    digital: produto.digital || false,
+    nome: produto.name || '',
+    descricao: produto.description || '',
+    preco: Number(produto.price),
+    urlImagem: produto.image_url || '',
+    digital: produto.is_digital || false,
     slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
-    statusCartaoManual: produto.status_cartao_manual || null
+    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
+    statusCartaoManual: produto.manual_card_status || null
   };
 };
 
@@ -151,14 +153,14 @@ export const obterProdutoPorIdAPI = async (id: string): Promise<Product | undefi
   
   return {
     id: String(produto.id),
-    nome: produto.nome || '',
-    descricao: produto.descricao || '',
-    preco: Number(produto.preco),
-    urlImagem: produto.url_imagem || '',
-    digital: produto.digital || false,
+    nome: produto.name || '',
+    descricao: produto.description || '',
+    preco: Number(produto.price),
+    urlImagem: produto.image_url || '',
+    digital: produto.is_digital || false,
     slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
-    statusCartaoManual: produto.status_cartao_manual || null
+    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
+    statusCartaoManual: produto.manual_card_status || null
   };
 };
 
@@ -178,13 +180,13 @@ export const obterProdutoPorSlugAPI = async (slug: string): Promise<Product | un
   
   return {
     id: String(produto.id),
-    nome: produto.nome || '',
-    descricao: produto.descricao || '',
-    preco: Number(produto.preco),
-    urlImagem: produto.url_imagem || '',
-    digital: produto.digital || false,
+    nome: produto.name || '',
+    descricao: produto.description || '',
+    preco: Number(produto.price),
+    urlImagem: produto.image_url || '',
+    digital: produto.is_digital || false,
     slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
-    statusCartaoManual: produto.status_cartao_manual || null
+    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
+    statusCartaoManual: produto.manual_card_status || null
   };
 };

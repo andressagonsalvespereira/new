@@ -25,6 +25,8 @@ export const useProductFetching = () => {
     try {
       const formattedProducts = await buscarProdutosAPI();
       console.log('Produtos carregados com sucesso:', formattedProducts.length);
+      console.log('Amostra do primeiro produto:', formattedProducts[0]);
+      
       setProducts(formattedProducts);
       
       // Sync local storage with latest data
@@ -37,6 +39,7 @@ export const useProductFetching = () => {
       // If we have a network error, try to load from local storage as fallback
       try {
         const localProducts = loadProducts();
+        console.log('Produtos carregados do armazenamento local:', localProducts.length);
         setProducts(localProducts);
         setNetworkError(true);
         toast({

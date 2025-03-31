@@ -11,11 +11,16 @@ interface ProductTableRowProps {
 }
 
 const ProductTableRow = ({ product, onEdit, onDelete }: ProductTableRowProps) => {
+  // Formatar o preço adequadamente, garantindo que seja um número válido
+  const formattedPrice = isNaN(product.preco) 
+    ? 'R$ 0,00' 
+    : `R$ ${product.preco.toFixed(2).replace('.', ',')}`;
+
   return (
     <TableRow key={product.id}>
-      <TableCell className="font-medium">{product.nome}</TableCell>
-      <TableCell className="max-w-xs truncate">{product.descricao}</TableCell>
-      <TableCell>R$ {product.preco.toFixed(2)}</TableCell>
+      <TableCell className="font-medium">{product.nome || 'Sem nome'}</TableCell>
+      <TableCell className="max-w-xs truncate">{product.descricao || 'Sem descrição'}</TableCell>
+      <TableCell>{formattedPrice}</TableCell>
       <TableCell>
         {product.urlImagem ? (
           <div className="h-10 w-10 overflow-hidden rounded-md">
