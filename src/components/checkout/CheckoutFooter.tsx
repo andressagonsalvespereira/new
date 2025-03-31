@@ -9,12 +9,10 @@ const CheckoutFooter = () => {
         <div className="border-t border-gray-200 pt-4 text-center">
           <p className="text-xs text-gray-500">&copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
           <p className="text-xs text-gray-500">Powered by <span className="text-green-600 font-medium">CheckoutSeguro</span></p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div>
-            <h3 className="text-sm font-semibold mb-3">Políticas</h3>
-            <ul className="space-y-2 text-xs text-gray-600">
+          
+          <div className="mt-3">
+            <h3 className="text-sm font-semibold mb-2">Políticas</h3>
+            <ul className="space-y-2 text-xs text-gray-600 inline-flex flex-col items-center">
               <li className="flex items-center">
                 <Shield className="h-3 w-3 mr-2 text-green-600" />
                 <a href="#" className="hover:underline">Política de Privacidade</a>
@@ -29,7 +27,9 @@ const CheckoutFooter = () => {
               </li>
             </ul>
           </div>
-          
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div>
             <h3 className="text-sm font-semibold mb-3">Segurança</h3>
             <div className="flex flex-col space-y-2">
