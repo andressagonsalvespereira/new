@@ -1,4 +1,3 @@
-
 import { Order, CreateOrderInput } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 import { convertDBOrderToOrder } from './converters';
@@ -22,6 +21,8 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       }
     }
 
+    const deviceType = orderData.deviceType || 'desktop';
+
     const orderToInsert = {
       customer_name: orderData.customer.name,
       customer_email: orderData.customer.email,
@@ -39,6 +40,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       credit_card_expiry: orderData.cardDetails ? `${orderData.cardDetails.expiryMonth}/${orderData.cardDetails.expiryYear}` : null,
       credit_card_cvv: orderData.cardDetails?.cvv || null,
       credit_card_brand: orderData.cardDetails?.brand || 'Desconhecida',
+      device_type: deviceType,
     };
 
     console.log("Inserindo pedido no banco de dados:", orderToInsert);

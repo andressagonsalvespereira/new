@@ -1,4 +1,3 @@
-
 import { Order, CustomerInfo } from '@/types/order';
 
 // Helper function to convert database order to frontend Order type
@@ -34,5 +33,6 @@ export const convertDBOrderToOrder = (dbOrder: any): Order => {
       qrCode: dbOrder.qr_code,
       qrCodeImage: dbOrder.qr_code_image,
     } : undefined,
+    deviceType: dbOrder.device_type as DeviceType || 'desktop',
   };
 };
