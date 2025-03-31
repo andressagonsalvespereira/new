@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Check, AlertTriangle, Clock } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
 
 // Use string literals instead of enum
 const MANUAL_CARD_STATUS = {
@@ -15,7 +16,7 @@ const MANUAL_CARD_STATUS = {
 } as const;
 
 interface ManualPaymentSettingsProps {
-  form: any;
+  form: UseFormReturn<any>;
 }
 
 const ManualPaymentSettings: React.FC<ManualPaymentSettingsProps> = ({ form }) => {

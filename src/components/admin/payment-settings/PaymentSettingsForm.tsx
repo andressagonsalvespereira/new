@@ -9,6 +9,7 @@ import AsaasIntegrationCard from './AsaasIntegrationCard';
 import PaymentMethodsCard from './PaymentMethodsCard';
 import ApiKeysCard from './ApiKeysCard';
 import ManualPaymentSettings from './ManualPaymentSettings';
+import { Form } from '@/components/ui/form';
 
 // Define o schema de validação do formulário
 const PaymentSettingsSchema = z.object({
@@ -23,6 +24,7 @@ const PaymentSettingsSchema = z.object({
   productionApiKey: z.string().optional(),
   manualPixPage: z.boolean(),
   manualPaymentConfig: z.boolean(),
+  apiKey: z.string().optional(),
 });
 
 const PaymentSettingsForm = () => {
@@ -41,6 +43,7 @@ const PaymentSettingsForm = () => {
     productionApiKey: '',
     manualPixPage: false,
     manualPaymentConfig: true,
+    apiKey: '',
   });
 
   const form = useForm({
@@ -57,6 +60,7 @@ const PaymentSettingsForm = () => {
       productionApiKey: '',
       manualPixPage: false,
       manualPaymentConfig: true,
+      apiKey: '',
     },
   });
 
@@ -74,6 +78,7 @@ const PaymentSettingsForm = () => {
         productionApiKey: settings.productionApiKey || '',
         manualPixPage: settings.manualPixPage || false,
         manualPaymentConfig: settings.manualPaymentConfig || false,
+        apiKey: settings.apiKey || '',
       });
       
       // Atualiza o estado local para os componentes de cartão
@@ -89,6 +94,7 @@ const PaymentSettingsForm = () => {
         productionApiKey: settings.productionApiKey || '',
         manualPixPage: settings.manualPixPage || false,
         manualPaymentConfig: settings.manualPaymentConfig || false,
+        apiKey: settings.apiKey || '',
       });
     }
   }, [settings, loading, form]);
@@ -145,45 +151,47 @@ const PaymentSettingsForm = () => {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <AsaasIntegrationCard 
-        formState={formState} 
-        loading={loading}
-        onUpdateFormState={(updater) => {
-          const newFormState = updater(formState);
-          form.reset(newFormState);
-        }}
-      />
-      
-      <PaymentMethodsCard 
-        formState={formState} 
-        loading={loading}
-        onUpdateFormState={(updater) => {
-          const newFormState = updater(formState);
-          form.reset(newFormState);
-        }}
-      />
-      
-      <ApiKeysCard 
-        formState={formState}
-        onUpdateFormState={(updater) => {
-          const newFormState = updater(formState);
-          form.reset(newFormState);
-        }}
-      />
-      
-      <ManualPaymentSettings form={form} />
-      
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50"
-        >
-          {isSaving ? 'Salvando...' : 'Salvar configurações'}
-        </button>
-      </div>
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <AsaasIntegrationCard 
+          formState={formState} 
+          loading={loading}
+          onUpdateFormState={(updater) => {
+            const newFormState = updater(formState);
+            form.reset(newFormState);
+          }}
+        />
+        
+        <PaymentMethodsCard 
+          formState={formState} 
+          loading={loading}
+          onUpdateFormState={(updater) => {
+            const newFormState = updater(formState);
+            form.reset(newFormState);
+          }}
+        />
+        
+        <ApiKeysCard 
+          formState={formState}
+          onUpdateFormState={(updater) => {
+            const newFormState = updater(formState);
+            form.reset(newFormState);
+          }}
+        />
+        
+        <ManualPaymentSettings form={form} />
+        
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isSaving ? 'Salvando...' : 'Salvar configurações'}
+          </button>
+        </div>
+      </form>
+    </Form>
   );
 };
 
