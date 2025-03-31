@@ -18,6 +18,22 @@ interface LinhaSupabaseProduto {
   manual_card_status: string | null;
 }
 
+// Função para converter dados do Supabase para o modelo Product
+const mapDbToProduct = (dbProduct: LinhaSupabaseProduto): Product => {
+  console.log('Convertendo produto do DB:', dbProduct);
+  return {
+    id: String(dbProduct.id),
+    nome: dbProduct.name || '',
+    descricao: dbProduct.description || '',
+    preco: Number(dbProduct.price) || 0,
+    urlImagem: dbProduct.image_url || '',
+    digital: dbProduct.is_digital || false,
+    slug: dbProduct.slug,
+    usarProcessamentoPersonalizado: dbProduct.use_custom_processing || false,
+    statusCartaoManual: dbProduct.manual_card_status || null
+  };
+};
+
 // Buscar produtos do Supabase
 export const buscarProdutosAPI = async (): Promise<Product[]> => {
   const { data, error } = await supabase
@@ -29,17 +45,15 @@ export const buscarProdutosAPI = async (): Promise<Product[]> => {
   
   console.log('Dados brutos do Supabase:', data);
   
-  return (data as unknown as LinhaSupabaseProduto[]).map(item => ({
-    id: String(item.id),
-    nome: item.name || '',
-    descricao: item.description || '',
-    preco: Number(item.price),
-    urlImagem: item.image_url || '',
-    digital: item.is_digital || false,
-    slug: item.slug,
-    usarProcessamentoPersonalizado: item.use_custom_processing || false,
-    statusCartaoManual: item.manual_card_status || null
-  }));
+  // Certifique-se de que temos um array para mapear
+  if (!data || !Array.isArray(data)) {
+    console.error('Dados inválidos retornados do Supabase:', data);
+    return [];
+  }
+  
+  const products = (data as unknown as LinhaSupabaseProduto[]).map(mapDbToProduct);
+  console.log('Produtos após mapeamento:', products);
+  return products;
 };
 
 // Adicionar produto ao Supabase
@@ -68,19 +82,7 @@ export const adicionarProdutoAPI = async (produtoData: CriarProdutoInput): Promi
   if (error) throw error;
   
   // Converter de volta para o tipo de Produto
-  const produto = data as unknown as LinhaSupabaseProduto;
-  
-  return {
-    id: String(produto.id),
-    nome: produto.name || '',
-    descricao: produto.description || '',
-    preco: Number(produto.price),
-    urlImagem: produto.image_url || '',
-    digital: produto.is_digital || false,
-    slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
-    statusCartaoManual: produto.manual_card_status || null
-  };
+  return mapDbToProduct(data as unknown as LinhaSupabaseProduto);
 };
 
 // Editar produto no Supabase
@@ -112,19 +114,7 @@ export const editarProdutoAPI = async (id: string, produtoData: Partial<Product>
   if (error) throw error;
   
   // Converter para o tipo de Produto
-  const produto = data as unknown as LinhaSupabaseProduto;
-  
-  return {
-    id: String(produto.id),
-    nome: produto.name || '',
-    descricao: produto.description || '',
-    preco: Number(produto.price),
-    urlImagem: produto.image_url || '',
-    digital: produto.is_digital || false,
-    slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
-    statusCartaoManual: produto.manual_card_status || null
-  };
+  return mapDbToProduct(data as unknown as LinhaSupabaseProduto);
 };
 
 // Remover produto do Supabase
@@ -149,19 +139,7 @@ export const obterProdutoPorIdAPI = async (id: string): Promise<Product | undefi
   if (!data) return undefined;
   
   // Converter para o tipo de Produto
-  const produto = data as unknown as LinhaSupabaseProduto;
-  
-  return {
-    id: String(produto.id),
-    nome: produto.name || '',
-    descricao: produto.description || '',
-    preco: Number(produto.price),
-    urlImagem: produto.image_url || '',
-    digital: produto.is_digital || false,
-    slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
-    statusCartaoManual: produto.manual_card_status || null
-  };
+  return mapDbToProduct(data as unknown as LinhaSupabaseProduto);
 };
 
 // Obter produto por slug do Supabase
@@ -176,17 +154,5 @@ export const obterProdutoPorSlugAPI = async (slug: string): Promise<Product | un
   if (!data) return undefined;
   
   // Converter para o tipo de Produto
-  const produto = data as unknown as LinhaSupabaseProduto;
-  
-  return {
-    id: String(produto.id),
-    nome: produto.name || '',
-    descricao: produto.description || '',
-    preco: Number(produto.price),
-    urlImagem: produto.image_url || '',
-    digital: produto.is_digital || false,
-    slug: produto.slug,
-    usarProcessamentoPersonalizado: produto.use_custom_processing || false,
-    statusCartaoManual: produto.manual_card_status || null
-  };
+  return mapDbToProduct(data as unknown as LinhaSupabaseProduto);
 };

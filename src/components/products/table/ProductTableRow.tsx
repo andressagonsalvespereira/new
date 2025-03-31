@@ -11,10 +11,13 @@ interface ProductTableRowProps {
 }
 
 const ProductTableRow = ({ product, onEdit, onDelete }: ProductTableRowProps) => {
+  // Debug log to see the actual product data
+  console.log('Product in TableRow:', product);
+  
   // Formatar o preço adequadamente, garantindo que seja um número válido
-  const formattedPrice = isNaN(product.preco) 
+  const formattedPrice = isNaN(Number(product.preco)) 
     ? 'R$ 0,00' 
-    : `R$ ${product.preco.toFixed(2).replace('.', ',')}`;
+    : `R$ ${Number(product.preco).toFixed(2).replace('.', ',')}`;
 
   return (
     <TableRow key={product.id}>
