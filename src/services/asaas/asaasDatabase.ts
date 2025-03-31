@@ -1,8 +1,7 @@
-
 import { AsaasSettings } from '@/types/asaas';
 import { supabase } from '@/integrations/supabase/client';
 
-// LocalStorage keys para fallback
+// LocalStorage keys for fallback
 const ASAAS_SETTINGS_KEY = 'asaasSettings';
 const ASAAS_CONFIG_KEY = 'asaasConfig';
 const ASAAS_PAYMENTS_KEY = 'asaasPayments';
@@ -23,17 +22,17 @@ const defaultSettings: AsaasSettings = {
   manualCardStatus: 'ANALYSIS'
 };
 
-// Função utilitária para normalizar o status do cartão
-const normalizeCardStatus = (status: string | null | undefined): 'APPROVED' | 'DENIED' | 'ANALYSIS' => {
+// Normalize card status to one of the valid enum values
+export const normalizeCardStatus = (status: string | null | undefined): 'APPROVED' | 'DENIED' | 'ANALYSIS' => {
   if (status === 'APPROVED') return 'APPROVED';
   if (status === 'DENIED') return 'DENIED';
-  return 'ANALYSIS'; // valor padrão
+  return 'ANALYSIS'; // Default value
 };
 
 // Get Asaas settings from Supabase or localStorage
 export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   try {
-    // Tenta buscar do Supabase primeiro
+    // Try to fetch from Supabase first
     const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('*')
@@ -44,7 +43,7 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
       console.error('Erro ao buscar configurações do Supabase:', settingsError);
     }
 
-    // Busca as chaves de API do Asaas
+    // Fetch Asaas API keys
     const { data: asaasConfigData, error: asaasConfigError } = await supabase
       .from('asaas_config')
       .select('*')
@@ -55,7 +54,7 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
       console.error('Erro ao buscar configurações de API do Asaas:', asaasConfigError);
     }
 
-    // Se encontrou dados no Supabase, use-os
+    // If found data in Supabase, use it
     if (settingsData) {
       const combined: AsaasSettings = {
         isEnabled: settingsData.asaas_enabled || false,
@@ -72,7 +71,7 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
         manualCardStatus: normalizeCardStatus(settingsData.manual_card_status)
       };
 
-      // Define a chave da API com base no modo sandbox
+      // Set API key based on sandbox mode
       combined.apiKey = combined.sandboxMode
         ? combined.sandboxApiKey
         : combined.productionApiKey;
@@ -80,7 +79,7 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
       return combined;
     }
 
-    // Fallback para localStorage se Supabase falhar
+    // Fallback to localStorage if Supabase fails
     const savedSettings = localStorage.getItem(ASAAS_SETTINGS_KEY);
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
@@ -106,7 +105,7 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
       manualCardStatus: normalizeCardStatus(settings.manualCardStatus)
     };
     
-    // Salva no Supabase
+    // Save to Supabase
     const { error: settingsError } = await supabase
       .from('settings')
       .update({
@@ -124,9 +123,10 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
 
     if (settingsError) {
       console.error('Erro ao salvar configurações no Supabase:', settingsError);
+      throw settingsError;
     }
 
-    // Salva as chaves de API
+    // Save API keys
     const { error: apiKeysError } = await supabase
       .from('asaas_config')
       .update({
@@ -137,13 +137,14 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
 
     if (apiKeysError) {
       console.error('Erro ao salvar chaves de API no Supabase:', apiKeysError);
+      throw apiKeysError;
     }
 
-    // Também salva no localStorage como backup
+    // Also save to localStorage as backup
     localStorage.setItem(ASAAS_SETTINGS_KEY, JSON.stringify(normalizedSettings));
   } catch (error) {
     console.error('Error saving Asaas settings:', error);
-    // Salva no localStorage como fallback
+    // Save to localStorage as fallback
     localStorage.setItem(ASAAS_SETTINGS_KEY, JSON.stringify(settings));
     throw error;
   }
@@ -207,9 +208,6 @@ export const saveAsaasConfig = async (sandboxApiKey: string, productionApiKey: s
     throw error;
   }
 };
-
-// Os métodos abaixo continuam utilizando localStorage para pagamentos
-// Em uma implementação real, eles também deveriam usar o Supabase
 
 // Get Asaas payments from localStorage
 export const getAsaasPayments = () => {

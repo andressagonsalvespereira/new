@@ -43,7 +43,10 @@ const AsaasSettings: React.FC = () => {
         allowCreditCard,
         allowPix,
         manualCreditCard: manualCardProcessing,
-        manualCardProcessing
+        manualCardProcessing,
+        manualPixPage: false,
+        manualPaymentConfig: false,
+        manualCardStatus: 'ANALYSIS'
       });
 
       toast({
