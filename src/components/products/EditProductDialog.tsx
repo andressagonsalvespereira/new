@@ -33,9 +33,12 @@ const EditProductDialog = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent aria-describedby={editDescriptionId}>
+      <DialogContent 
+        aria-describedby={editDescriptionId}
+        aria-labelledby="edit-product-title"
+      >
         <DialogHeader>
-          <DialogTitle>Edit Product</DialogTitle>
+          <DialogTitle id="edit-product-title">Edit Product</DialogTitle>
           <DialogDescription id={editDescriptionId}>
             Update the details of the existing product in your catalog.
           </DialogDescription>

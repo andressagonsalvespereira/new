@@ -41,9 +41,12 @@ const AddProductDialog = ({
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent aria-describedby={addDescriptionId}>
+      <DialogContent 
+        aria-describedby={addDescriptionId} 
+        aria-labelledby="add-product-title"
+      >
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle id="add-product-title">Add New Product</DialogTitle>
           <DialogDescription id={addDescriptionId}>
             Fill in the details of the new product you want to add to your catalog.
           </DialogDescription>
