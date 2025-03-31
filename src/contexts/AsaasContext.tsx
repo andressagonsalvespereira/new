@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { AsaasSettings, AsaasContextType } from '@/types/asaas';
-import { getAsaasSettings, saveAsaasSettings } from '@/services/asaas/asaasDatabase';
+import { getAsaasSettings, saveAsaasSettings } from '@/services/asaasService';
 
 const defaultSettings: AsaasSettings = {
   isEnabled: false,

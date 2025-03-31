@@ -62,9 +62,10 @@ export const usePaymentSettingsForm = () => {
     const subscription = form.watch((value) => {
       setFormState(formValuesToAsaasSettings(value as PaymentSettingsFormValues));
     });
+    
+    // Fix for unsubscribe issue
     return () => {
-      // Fix for unsubscribe not existing on never type
-      if (subscription && typeof subscription === 'function') {
+      if (typeof subscription === 'function') {
         subscription();
       } else if (subscription && typeof subscription === 'object' && 'unsubscribe' in subscription) {
         subscription.unsubscribe();

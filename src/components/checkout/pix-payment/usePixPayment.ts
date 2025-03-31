@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { processPixPayment } from '../utils/payment/pixProcessor';
 import { PaymentResult } from '../utils/payment/types';
+import { AsaasSettings } from '@/types/asaas';
 
 interface UsePixPaymentProps {
   onSubmit: (data: any) => void;
@@ -72,6 +72,22 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, c
           return;
         }
         
+        // Create complete settings object for the processor
+        const completeSettings: AsaasSettings = {
+          isEnabled: true,
+          apiKey: '',
+          allowPix: true,
+          allowCreditCard: true,
+          manualCreditCard: false,
+          sandboxMode: isSandbox,
+          sandboxApiKey: '',
+          productionApiKey: '',
+          manualCardProcessing: false,
+          manualPixPage: false,
+          manualPaymentConfig: false,
+          manualCardStatus: 'ANALYSIS'
+        };
+        
         // Process PIX payment
         await processPixPayment(
           {
@@ -79,14 +95,7 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, c
               isDigitalProduct,
               customerInfo: customerData 
             },
-            settings: {
-              isEnabled: true,
-              apiKey: '',
-              allowPix: true,
-              allowCreditCard: true,
-              manualCreditCard: false,
-              sandboxMode: isSandbox
-            },
+            settings: completeSettings,
             isSandbox,
             onSubmit: (data) => {
               // Store data temporarily but don't submit yet
@@ -118,7 +127,7 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, c
     };
     
     generatePixQrCode();
-  }, [isSandbox, onSubmit, toast, pixData, error, customerData]);
+  }, [isSandbox, onSubmit, toast, pixData, error, customerData, isDigitalProduct]);
 
   // Submit the PIX data to create the order when data is ready
   useEffect(() => {

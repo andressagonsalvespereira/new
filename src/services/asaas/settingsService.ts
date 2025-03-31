@@ -8,26 +8,39 @@ import { AsaasSettings } from '@/types/asaas';
  */
 export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   try {
-    const { data, error } = await supabase
+    // First, query the settings table
+    const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (settingsError) throw settingsError;
+
+    // Then, query the asaas_config table for API keys
+    const { data: configData, error: configError } = await supabase
+      .from('asaas_config')
+      .select('*')
+      .single();
+
+    if (configError && configError.code !== 'PGRST116') {
+      // PGRST116 is "no rows returned" - this is OK if there's no config yet
+      console.warn('No Asaas config found, using defaults for API keys');
+    }
 
     return {
-      isEnabled: data.asaas_enabled ?? false,
-      apiKey: data.sandbox_mode ? data.sandbox_api_key || '' : data.production_api_key || '',
-      allowPix: data.allow_pix ?? true,
-      allowCreditCard: data.allow_credit_card ?? true,
-      manualCreditCard: data.manual_credit_card ?? false,
-      sandboxMode: data.sandbox_mode ?? true,
-      sandboxApiKey: data.sandbox_api_key || '',
-      productionApiKey: data.production_api_key || '',
-      manualCardProcessing: data.manual_card_processing ?? false,
-      manualPixPage: data.manual_pix_page ?? false,
-      manualPaymentConfig: data.manual_payment_config ?? false,
-      manualCardStatus: (data.manual_card_status as 'APPROVED' | 'DENIED' | 'ANALYSIS') || 'ANALYSIS'
+      isEnabled: settingsData.asaas_enabled ?? false,
+      apiKey: settingsData.sandbox_mode ? 
+        (configData?.sandbox_api_key || '') : (configData?.production_api_key || ''),
+      allowPix: settingsData.allow_pix ?? true,
+      allowCreditCard: settingsData.allow_credit_card ?? true,
+      manualCreditCard: settingsData.manual_credit_card ?? false,
+      sandboxMode: settingsData.sandbox_mode ?? true,
+      sandboxApiKey: configData?.sandbox_api_key || '',
+      productionApiKey: configData?.production_api_key || '',
+      manualCardProcessing: settingsData.manual_card_processing ?? false,
+      manualPixPage: settingsData.manual_pix_page ?? false,
+      manualPaymentConfig: settingsData.manual_payment_config ?? false,
+      manualCardStatus: (settingsData.manual_card_status as 'APPROVED' | 'DENIED' | 'ANALYSIS') || 'ANALYSIS'
     };
   } catch (error) {
     console.error('Error fetching Asaas settings:', error);
@@ -42,7 +55,8 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
  */
 export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> => {
   try {
-    const { error } = await supabase
+    // First, save the settings
+    const { error: settingsError } = await supabase
       .from('settings')
       .upsert({
         asaas_enabled: settings.isEnabled,
@@ -50,15 +64,24 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
         allow_credit_card: settings.allowCreditCard,
         manual_credit_card: settings.manualCreditCard,
         sandbox_mode: settings.sandboxMode,
-        sandbox_api_key: settings.sandboxApiKey,
-        production_api_key: settings.productionApiKey,
         manual_card_processing: settings.manualCardProcessing,
         manual_pix_page: settings.manualPixPage,
         manual_payment_config: settings.manualPaymentConfig,
         manual_card_status: settings.manualCardStatus
       }, { onConflict: 'id' });
 
-    if (error) throw error;
+    if (settingsError) throw settingsError;
+
+    // Then, save the API keys in the asaas_config table
+    const { error: configError } = await supabase
+      .from('asaas_config')
+      .upsert({
+        sandbox_api_key: settings.sandboxApiKey,
+        production_api_key: settings.productionApiKey,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+    if (configError) throw configError;
   } catch (error) {
     console.error('Error saving Asaas settings:', error);
     throw error;
