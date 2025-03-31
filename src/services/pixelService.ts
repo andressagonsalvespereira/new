@@ -141,7 +141,7 @@ const initializeFacebookPixel = (pixelId: string): void => {
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
     
     // Initialize with pixel ID
-    if (window.fbq) {
+    if (typeof window.fbq === 'function') {
       window.fbq('init', pixelId);
     }
     
