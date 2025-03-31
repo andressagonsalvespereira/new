@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Clock, Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,6 +73,14 @@ const CheckoutHeader = () => {
 
   return (
     <>
+      <header className="bg-gradient-to-r from-black to-gray-800 text-white py-3 px-4 text-center">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-base md:text-lg">
+            {customization.header_message} <span className="font-bold text-yellow-300">{formatTime(timeLeft.minutes, timeLeft.seconds)}</span>
+          </div>
+        </div>
+      </header>
+      
       {customization.show_banner && customization.banner_image_url && (
         <div className="w-full">
           <img 
@@ -81,16 +90,6 @@ const CheckoutHeader = () => {
           />
         </div>
       )}
-      <header className="bg-gradient-to-r from-black to-gray-800 text-white py-3 px-4 text-center">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-red-600 rounded-md py-2 px-4 inline-flex items-center justify-center space-x-3 shadow-lg animate-pulse">
-            <Timer className="h-5 w-5 text-yellow-300" />
-            <div className="text-base md:text-lg font-bold">
-              {customization.header_message} <span className="font-bold text-yellow-300">{formatTime(timeLeft.minutes, timeLeft.seconds)}</span>
-            </div>
-          </div>
-        </div>
-      </header>
     </>
   );
 };
