@@ -128,9 +128,10 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
     }
   };
 
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNumber(e.target.value);
-    if (e.target.value.trim() && street && neighborhood && city && state) {
+  // Fix: Change the function to handle string input rather than event
+  const handleNumberChange = (value: string) => {
+    setNumber(value);
+    if (value.trim() && street && neighborhood && city && state) {
       setShowShippingOptions(true);
       setSelectedShipping('free');
       

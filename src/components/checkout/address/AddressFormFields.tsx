@@ -1,20 +1,21 @@
 
 import React from 'react';
-import AddressInput from '../AddressInput';
+import { Input } from '@/components/ui/input';
+import AddressField from '@/components/checkout/address/AddressField';
 
-interface AddressFormFieldsProps {
+interface AddressFieldsProps {
   street: string;
-  setStreet: (value: string) => void;
+  setStreet: React.Dispatch<React.SetStateAction<string>>;
   number: string;
   setNumber: (value: string) => void;
   complement: string;
-  setComplement: (value: string) => void;
+  setComplement: React.Dispatch<React.SetStateAction<string>>;
   neighborhood: string;
-  setNeighborhood: (value: string) => void;
+  setNeighborhood: React.Dispatch<React.SetStateAction<string>>;
   city: string;
-  setCity: (value: string) => void;
+  setCity: React.Dispatch<React.SetStateAction<string>>;
   state: string;
-  setState: (value: string) => void;
+  setState: React.Dispatch<React.SetStateAction<string>>;
   errors: Record<string, string>;
   disabled?: boolean;
 }
@@ -34,69 +35,73 @@ const AddressFormFields = ({
   setState,
   errors,
   disabled = false
-}: AddressFormFieldsProps) => {
+}: AddressFieldsProps) => {
+  // Modified handler to extract the value and pass it to the parent component
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNumber(e.target.value);
+  };
+
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <AddressInput
+      <div className="grid grid-cols-2 gap-3">
+        <AddressField
           id="street"
-          label="Rua"
+          label="Endereço"
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          placeholder="Rua/Avenida"
           error={errors.street}
           disabled={disabled}
+          placeholder="Rua, Avenida, etc."
         />
-        
-        <AddressInput
+        <AddressField
           id="number"
           label="Número"
           value={number}
-          onChange={(e) => setNumber(e.target.value)}
-          placeholder="123"
+          onChange={handleNumberChange}
           error={errors.number}
           disabled={disabled}
+          placeholder="123"
         />
       </div>
       
-      <AddressInput
-        id="complement"
-        label="Complemento (opcional)"
-        value={complement}
-        onChange={(e) => setComplement(e.target.value)}
-        placeholder="Apto, Bloco, etc"
-        disabled={disabled}
-      />
+      <div className="grid grid-cols-1 gap-3">
+        <AddressField
+          id="complement"
+          label="Complemento (opcional)"
+          value={complement}
+          onChange={(e) => setComplement(e.target.value)}
+          disabled={disabled}
+          placeholder="Apto, Bloco, Casa, etc."
+        />
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <AddressInput
+      <div className="grid grid-cols-3 gap-3">
+        <AddressField
           id="neighborhood"
           label="Bairro"
           value={neighborhood}
           onChange={(e) => setNeighborhood(e.target.value)}
-          placeholder="Bairro"
           error={errors.neighborhood}
           disabled={disabled}
+          placeholder="Seu bairro"
         />
-        
-        <AddressInput
+        <AddressField
           id="city"
           label="Cidade"
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          placeholder="Cidade"
           error={errors.city}
           disabled={disabled}
+          placeholder="Sua cidade"
         />
-        
-        <AddressInput
+        <AddressField
           id="state"
           label="Estado"
           value={state}
           onChange={(e) => setState(e.target.value)}
-          placeholder="UF"
           error={errors.state}
           disabled={disabled}
+          placeholder="UF"
         />
       </div>
     </>
