@@ -1,9 +1,13 @@
+
 // Arquivo mantido para compatibilidade com versões anteriores
 // Reexporta os processadores de pagamento do novo sistema
 
 import { processCardPayment } from './payment/cardProcessor';
 import { processPixPayment } from './payment/pixProcessor';
 import { PaymentProcessorProps } from './payment/types';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { AsaasSettings } from '@/types/asaas';
 
 // Reexportar a função de processamento de cartão para manter compatibilidade
 export { processCardPayment };
@@ -13,6 +17,15 @@ export type { PaymentProcessorProps };
 
 // Exportar função de processamento PIX para uso futuro
 export { processPixPayment };
+
+// Interface para valores do formulário
+export interface FormValues {
+  personalInfo: any;
+  productId: string;
+  productName: string;
+  productPrice: number;
+  cardData?: any;
+}
 
 // Processa pagamento
 export const processPayment = async (
@@ -24,8 +37,7 @@ export const processPayment = async (
   setError: (error: string) => void,
   setPaymentStatus: (status: string | null) => void,
   setIsSubmitting: (isSubmitting: boolean) => void,
-  navigate: ReturnType<typeof useNavigate>,
-  toast: ReturnType<typeof useToast>['toast']
+  navigate: ReturnType<typeof useNavigate>
 ) => {
   if (!settings) {
     console.error("Settings not available");
@@ -55,8 +67,7 @@ export const processPayment = async (
         setError,
         setPaymentStatus,
         setIsSubmitting,
-        navigate,
-        toast
+        navigate
       );
     } else {
       setError('Dados de cartão não fornecidos');
@@ -70,7 +81,6 @@ export const processPayment = async (
       setPaymentStatus,
       setIsSubmitting,
       navigate,
-      toast,
       onSubmit
     );
   } else {

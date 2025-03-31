@@ -15,15 +15,22 @@ export interface CardFormData {
   cvv: string;
 }
 
-interface CardFormProps {
+export interface CardFormProps {
   onSubmit: (data: CardFormData) => void;
+  isSubmitting?: boolean;
+  buttonText?: string;
   loading?: boolean;
 }
 
-const CardForm: React.FC<CardFormProps> = ({ onSubmit, loading = false }) => {
+const CardForm: React.FC<CardFormProps> = ({ 
+  onSubmit, 
+  loading = false, 
+  isSubmitting = false,
+  buttonText = "Pagar com Cartão"
+}) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<CardFormData>({
+  const { register, handleSubmit, formState } = useForm<CardFormData>({
     defaultValues: {
       cardName: '',
       cardNumber: '',
@@ -138,7 +145,7 @@ const CardForm: React.FC<CardFormProps> = ({ onSubmit, loading = false }) => {
         ) : (
           <span className="flex items-center">
             <CreditCard className="mr-2 h-5 w-5" />
-            Pagar com Cartão
+            {buttonText}
           </span>
         )}
       </Button>

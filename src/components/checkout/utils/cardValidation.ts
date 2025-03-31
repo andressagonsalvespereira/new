@@ -1,5 +1,6 @@
 
 // Arquivo dedicado à validação de cartões de crédito
+import { z } from "zod";
 
 export interface CardValidationErrors {
   cardName?: string;
@@ -8,6 +9,15 @@ export interface CardValidationErrors {
   expiryYear?: string;
   cvv?: string;
 }
+
+// Zod schema for card validation
+export const CardSchema = z.object({
+  cardName: z.string().min(1, "Nome no cartão é obrigatório"),
+  cardNumber: z.string().min(16, "Número do cartão inválido").max(19, "Número do cartão inválido"),
+  expiryMonth: z.string().min(1, "Mês de validade é obrigatório").max(2, "Mês inválido"),
+  expiryYear: z.string().min(4, "Ano de validade é obrigatório").max(4, "Ano inválido"),
+  cvv: z.string().min(3, "CVV inválido").max(4, "CVV inválido")
+});
 
 /**
  * Valida os dados do cartão de crédito

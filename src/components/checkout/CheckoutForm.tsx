@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
@@ -32,8 +33,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
       setError,
       setPaymentStatus,
       setIsSubmitting,
-      navigate,
-      toast
+      navigate
     );
   };
 

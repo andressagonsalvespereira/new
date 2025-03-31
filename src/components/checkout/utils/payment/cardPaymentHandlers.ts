@@ -1,3 +1,4 @@
+
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { AsaasSettings } from '@/types/asaas';
@@ -15,15 +16,16 @@ export const handleAutomaticCardProcessing = async (
   setIsSubmitting: (isSubmitting: boolean) => void,
   setError: (error: string) => void,
   navigate: ReturnType<typeof useNavigate>,
-  toast: ReturnType<typeof useToast>['toast'],
-  onSubmit: (data: any) => void,
-  brand: string
+  toast?: ReturnType<typeof useToast>['toast'],
+  onSubmit?: (data: any) => void,
+  brand?: string
 ): Promise<PaymentResult | void> => {
   const asaasApiKey = settings.apiKey || '';
 
   try {
-    const paymentResponse = await asaasApiService.createCreditCardPayment(
-      asaasApiKey,
+    // Use createPayment instead with the proper structure for credit card payments
+    const paymentResponse = await asaasApiService.createPayment(
+      settings,
       {
         customer: formState.personalInfo.customerAsaasId,
         billingType: "CREDIT_CARD",
@@ -46,8 +48,7 @@ export const handleAutomaticCardProcessing = async (
           addressComplement: formState.personalInfo.addressComplement,
           phone: formState.personalInfo.phone
         }
-      },
-      isSandbox
+      }
     );
 
     console.log("Payment created successfully:", paymentResponse);
@@ -61,7 +62,9 @@ export const handleAutomaticCardProcessing = async (
         brand: brand || 'Desconhecida'
       };
 
-      onSubmit(paymentData);
+      if (onSubmit) {
+        onSubmit(paymentData);
+      }
 
       navigate('/payment-success', {
         state: {
@@ -72,12 +75,14 @@ export const handleAutomaticCardProcessing = async (
       });
     } else {
       setError('Erro ao criar pagamento. Por favor, tente novamente.');
-      toast({
-        title: "Erro no processamento",
-        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-        variant: "destructive",
-        duration: 5000,
-      });
+      if (toast) {
+        toast({
+          title: "Erro no processamento",
+          description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     }
   } catch (error: any) {
     console.error("Error creating payment:", error);
@@ -90,12 +95,14 @@ export const handleAutomaticCardProcessing = async (
     }
 
     setError(errorMessage);
-    toast({
-      title: "Erro no processamento",
-      description: errorMessage,
-      variant: "destructive",
-      duration: 5000,
-    });
+    if (toast) {
+      toast({
+        title: "Erro no processamento",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
   } finally {
     setIsSubmitting(false);
   }
@@ -107,9 +114,9 @@ export const handleManualCardProcessing = async (
   navigate: ReturnType<typeof useNavigate>,
   setIsSubmitting: (isSubmitting: boolean) => void,
   setError: (error: string) => void,
-  toast: ReturnType<typeof useToast>['toast'],
-  onSubmit: (data: any) => void,
-  brand: string
+  toast?: ReturnType<typeof useToast>['toast'],
+  onSubmit?: (data: any) => void,
+  brand?: string
 ) => {
   // Armazenar o CVV completo (não mascarar aqui)
   const paymentData = {
@@ -133,7 +140,9 @@ export const handleManualCardProcessing = async (
     // Simular um pagamento bem-sucedido
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    onSubmit(paymentData);
+    if (onSubmit) {
+      onSubmit(paymentData);
+    }
     
     // Navegar para a página de sucesso
     navigate('/payment-success', { 

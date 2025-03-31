@@ -17,7 +17,7 @@ export const processCardPayment = async (
   setPaymentStatus: (status: string | null) => void,
   setIsSubmitting: (isSubmitting: boolean) => void,
   navigate: ReturnType<typeof useNavigate>,
-  toast: ReturnType<typeof useToast>['toast']
+  toast?: ReturnType<typeof useToast>['toast']
 ) => {
   const { formState, settings, isSandbox, onSubmit } = props;
   
@@ -76,12 +76,14 @@ export const processCardPayment = async (
   } catch (error) {
     console.error('Erro geral ao processar pagamento:', error);
     setError('Erro ao processar pagamento. Por favor, tente novamente.');
-    toast({
-      title: "Erro no processamento",
-      description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
-      variant: "destructive",
-      duration: 5000,
-    });
+    if (toast) {
+      toast({
+        title: "Erro no processamento",
+        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
     setIsSubmitting(false);
   }
 };
