@@ -5,60 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { supabase } from '@/integrations/supabase/client';
 import VisitorStats from '@/components/dashboard/VisitorStats';
 import PaymentStats from '@/components/dashboard/PaymentStats';
 import VisitorsChart from '@/components/dashboard/VisitorsChart';
 import PaymentMethodsChart from '@/components/dashboard/PaymentMethodsChart';
-
-interface DashboardStats {
-  productCount: number;
-  orderCount: number;
-  recentOrders: any[];
-}
+import { fetchDashboardStats, DashboardStats, formatCurrency, formatDate } from '@/utils/dashboardDataUtils';
 
 const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    productCount: 0,
-    orderCount: 0,
-    recentOrders: []
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchDashboardData() {
+    async function loadDashboardData() {
       try {
         setLoading(true);
-        
-        // Get product count
-        const { count: productCount, error: productError } = await supabase
-          .from('products')
-          .select('*', { count: 'exact', head: true });
-        
-        if (productError) throw productError;
-        
-        // Get order count
-        const { count: orderCount, error: orderError } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true });
-        
-        if (orderError) throw orderError;
-        
-        // Get recent orders
-        const { data: recentOrders, error: recentOrdersError } = await supabase
-          .from('orders')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-        
-        if (recentOrdersError) throw recentOrdersError;
-        
-        setStats({
-          productCount: productCount || 0,
-          orderCount: orderCount || 0,
-          recentOrders: recentOrders || []
-        });
+        const dashboardStats = await fetchDashboardStats();
+        setStats(dashboardStats);
       } catch (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
         toast({
@@ -71,20 +34,24 @@ const Dashboard: React.FC = () => {
       }
     }
     
-    fetchDashboardData();
+    loadDashboardData();
   }, [toast]);
 
   // Find a product for quick checkout testing
-  const testProductId = stats.recentOrders[0]?.product_id || "1";
+  const testProductId = stats?.recentOrders[0]?.product_id || "1";
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         
-        <VisitorStats />
-        
-        <PaymentStats />
+        <PaymentStats 
+          pixGenerated={stats?.pixOrders || 0}
+          pixCompleted={stats?.pixCompleted || 0}
+          cardCaptured={stats?.cardOrders || 0}
+          totalValue={stats?.totalRevenue || 0}
+          loading={loading}
+        />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Stats Cards */}
@@ -94,7 +61,7 @@ const Dashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {loading ? '...' : stats.productCount}
+                {loading ? '...' : stats?.totalOrders || 0}
               </p>
             </CardContent>
             <CardFooter>
@@ -110,7 +77,7 @@ const Dashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {loading ? '...' : stats.orderCount}
+                {loading ? '...' : stats?.totalOrders || 0}
               </p>
             </CardContent>
             <CardFooter>
@@ -122,8 +89,11 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <VisitorsChart />
-          <PaymentMethodsChart />
+          <VisitorsChart visitorsData={stats?.visitorsData || []} loading={loading} />
+          <PaymentMethodsChart 
+            data={stats?.paymentMethodsDistribution || []} 
+            loading={loading} 
+          />
         </div>
         
         {/* Test Checkout Buttons */}
@@ -149,11 +119,11 @@ const Dashboard: React.FC = () => {
           <CardContent>
             {loading ? (
               <p>Carregando pedidos recentes...</p>
-            ) : stats.recentOrders.length === 0 ? (
+            ) : stats?.recentOrders.length === 0 ? (
               <p className="text-gray-500">Nenhum pedido recente encontrado</p>
             ) : (
               <div className="space-y-4">
-                {stats.recentOrders.map((order) => (
+                {stats?.recentOrders.map((order) => (
                   <div key={order.id} className="border-b pb-3">
                     <div className="flex justify-between">
                       <div>
@@ -161,7 +131,7 @@ const Dashboard: React.FC = () => {
                         <p className="text-sm text-gray-500">{order.product_name}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">R$ {order.price.toFixed(2)}</p>
+                        <p className="font-medium">{formatCurrency(Number(order.price))}</p>
                         <p className={
                           order.status === 'Pago' 
                             ? 'text-sm text-green-600' 
