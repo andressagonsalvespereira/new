@@ -11,7 +11,8 @@ import {
   ShoppingCart,
   Tag,
   BarChart,
-  Users
+  Users,
+  Layout
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,6 +98,12 @@ const AdminSidebar: React.FC = () => {
           href="/admin/pixel-settings" 
           isActive={isActive('/admin/pixel-settings')}
         />
+        <SidebarItem 
+          icon={Layout} 
+          label="Personalizar Checkout" 
+          href="/admin/checkout-customization" 
+          isActive={isActive('/admin/checkout-customization')}
+        />
 
         <div className="pt-4 border-t border-blue-700 mt-4">
           <p className="px-4 text-xs uppercase text-blue-300 font-semibold mb-2">
@@ -131,4 +138,3 @@ const AdminSidebar: React.FC = () => {
 };
 
 export default AdminSidebar;
-

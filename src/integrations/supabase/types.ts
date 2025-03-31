@@ -77,6 +77,42 @@ export type Database = {
           },
         ]
       }
+      checkout_customization: {
+        Row: {
+          banner_image_url: string | null
+          button_color: string | null
+          button_text_color: string | null
+          created_at: string | null
+          header_message: string | null
+          heading_color: string | null
+          id: number
+          show_banner: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          banner_image_url?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
+          created_at?: string | null
+          header_message?: string | null
+          heading_color?: string | null
+          id?: never
+          show_banner?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          banner_image_url?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
+          created_at?: string | null
+          header_message?: string | null
+          heading_color?: string | null
+          id?: never
+          show_banner?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string | null
