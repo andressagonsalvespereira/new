@@ -9,6 +9,7 @@ export interface AsaasSettings {
   sandboxApiKey?: string;
   productionApiKey?: string;
   manualCardProcessing?: boolean;
+  manualPixPage?: boolean;
   // Add isSandbox for compatibility
   isSandbox?: boolean;
 }

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CreditCard, QrCode, AlertCircle as AlertCircleIcon } from 'lucide-react';
 import { AsaasSettings } from '@/types/asaas';
 
@@ -50,6 +50,27 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
             </p>
           </div>
         </div>
+        
+        {/* Manual PIX Processing Option */}
+        {formState.allowPix && (
+          <div className="mt-4 pl-8 border-l-2 border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Página de PIX Manual</Label>
+                <p className="text-sm text-muted-foreground">
+                  Ativar página de PIX manual para que os clientes possam copiar o código e pagar por fora do sistema
+                </p>
+              </div>
+              <Switch
+                checked={formState.manualPixPage || false}
+                onCheckedChange={(checked) => 
+                  onUpdateFormState(prev => ({ ...prev, manualPixPage: checked }))
+                }
+                disabled={loading || !formState.isEnabled || !formState.allowPix}
+              />
+            </div>
+          </div>
+        )}
         
         <div className="flex items-start space-x-3">
           <Checkbox
