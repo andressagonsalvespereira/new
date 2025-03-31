@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +30,7 @@ const Checkout = () => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSearchingCep, setIsSearchingCep] = useState(false);
 
   const productDetails = {
     name: "Caneleira Gold",
@@ -64,6 +66,7 @@ const Checkout = () => {
     setCep(formattedCep);
     
     if (formattedCep.replace(/\D/g, '').length === 8) {
+      setIsSearchingCep(true);
       try {
         const response = await fetch(`https://viacep.com.br/ws/${formattedCep.replace(/\D/g, '')}/json/`);
         const data = await response.json();
@@ -76,17 +79,38 @@ const Checkout = () => {
           
           // Clear previous errors for these fields
           const newErrors = {...formErrors};
+          delete newErrors.cep;
           delete newErrors.street;
           delete newErrors.neighborhood;
           delete newErrors.city;
           delete newErrors.state;
           setFormErrors(newErrors);
+          
+          toast({
+            title: "CEP encontrado",
+            description: "Endereço preenchido automaticamente",
+            duration: 3000,
+          });
         } else {
           setFormErrors(prev => ({...prev, cep: 'CEP não encontrado'}));
+          toast({
+            title: "CEP não encontrado",
+            description: "Por favor, verifique o CEP informado ou preencha o endereço manualmente",
+            variant: "destructive",
+            duration: 5000,
+          });
         }
       } catch (error) {
         console.error('Erro ao buscar CEP:', error);
         setFormErrors(prev => ({...prev, cep: 'Erro ao buscar CEP'}));
+        toast({
+          title: "Erro ao buscar CEP",
+          description: "Houve um problema ao consultar o CEP. Por favor, preencha o endereço manualmente",
+          variant: "destructive",
+          duration: 5000,
+        });
+      } finally {
+        setIsSearchingCep(false);
       }
     }
   };
@@ -171,6 +195,7 @@ const Checkout = () => {
           state={state}
           setState={setState}
           formErrors={formErrors}
+          isSearchingCep={isSearchingCep}
         />
         
         <PaymentMethodSection 
