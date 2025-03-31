@@ -11,7 +11,7 @@ interface CheckoutCustomization {
   button_color: string;
   button_text_color: string;
   heading_color: string;
-  button_text: string; // Added button_text property
+  button_text?: string; // Make button_text optional to handle both old and new db schemas
 }
 
 interface CheckoutCustomizationContextType {
@@ -60,12 +60,13 @@ export const CheckoutCustomizationProvider: React.FC<CheckoutCustomizationProvid
         throw fetchError;
       }
 
-      // If button_text is not present in the data, set a default value
-      if (!data.button_text) {
-        data.button_text = 'Finalizar Pagamento';
-      }
+      // Set a default button_text if not present in the data
+      const customizationData = {
+        ...data,
+        button_text: data.button_text || 'Finalizar Pagamento'
+      };
 
-      setCustomization(data as CheckoutCustomization);
+      setCustomization(customizationData as CheckoutCustomization);
     } catch (err) {
       console.error('Error fetching checkout customization:', err);
       setError('Falha ao carregar configurações de personalização do checkout');
@@ -87,13 +88,40 @@ export const CheckoutCustomizationProvider: React.FC<CheckoutCustomizationProvid
         throw new Error('No customization record found to update');
       }
 
+      // Filter out any properties that don't exist in the database
+      // This is to prevent errors when trying to save properties that don't exist in the schema
+      const { data: tableInfo } = await supabase
+        .from('checkout_customization')
+        .select('*')
+        .limit(1);
+
+      // Create an object with only the properties that exist in the database schema
+      const filteredData: Record<string, any> = {};
+      if (tableInfo && tableInfo.length > 0) {
+        const schemaKeys = Object.keys(tableInfo[0]);
+        
+        for (const key in data) {
+          if (schemaKeys.includes(key)) {
+            filteredData[key] = data[key as keyof typeof data];
+          }
+        }
+      } else {
+        // Fallback to a safer update with known columns
+        const safeKeys = ['header_message', 'banner_image_url', 'show_banner', 'button_color', 'button_text_color', 'heading_color'];
+        for (const key of safeKeys) {
+          if (key in data) {
+            filteredData[key] = data[key as keyof typeof data];
+          }
+        }
+      }
+
+      // Add the updated_at timestamp
+      filteredData.updated_at = new Date().toISOString();
+
       // Use 'any' to bypass type checking for the table name
       const { error: updateError } = await (supabase as any)
         .from('checkout_customization')
-        .update({
-          ...data,
-          updated_at: new Date().toISOString()
-        })
+        .update(filteredData)
         .eq('id', customization.id);
 
       if (updateError) {
