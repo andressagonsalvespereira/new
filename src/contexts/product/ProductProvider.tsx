@@ -5,7 +5,14 @@ import { ProductProviderProps } from './productContextTypes';
 import { useProductFetching } from './hooks/useProductFetching';
 import { useProductOperations } from './hooks/useProductOperations';
 
+// Add a debug log to see how many times this component renders
 export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) => {
+  // Debug log to track component mounting
+  React.useEffect(() => {
+    console.log('ProductProvider mounted');
+    return () => console.log('ProductProvider unmounted');
+  }, []);
+
   const {
     products,
     setProducts,

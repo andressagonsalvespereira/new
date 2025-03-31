@@ -32,6 +32,12 @@ const Products: React.FC = () => {
     handleDeleteProduct,
   } = useProductManagement();
   
+  // Added key to console log to check if component mounts multiple times
+  React.useEffect(() => {
+    console.log('Products page mounted');
+    return () => console.log('Products page unmounted');
+  }, []);
+  
   return (
     <AdminLayout>
       <div className="container py-6">

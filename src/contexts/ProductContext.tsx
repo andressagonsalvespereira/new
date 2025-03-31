@@ -1,3 +1,5 @@
 
 // This file now re-exports from the product directory to maintain compatibility
-export { ProductProvider, useProducts } from './product';
+// We need to make sure we're using the same instances everywhere
+export { ProductProvider } from './product/ProductProvider';
+export { useProducts } from './product/useProducts';
