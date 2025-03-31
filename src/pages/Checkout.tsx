@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { CreditCard, QrCode, AlertCircle, CheckCircle2, Truck } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -22,9 +21,7 @@ const Checkout = () => {
   const [addressInfo, setAddressInfo] = useState<AddressData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Function to determine product details based on slug
   const getProductDetails = () => {
-    // This would come from an API in a real application
     const products = {
       'assinatura-mensal-cineflick-card': {
         name: 'Assinatura Mensal CineFlick',
@@ -50,17 +47,14 @@ const Checkout = () => {
 
   const productDetails = getProductDetails();
 
-  // Handle customer info submission
   const handleCustomerInfoChange = (data: CustomerData) => {
     setCustomerInfo(data);
   };
 
-  // Handle address info submission
   const handleAddressInfoChange = (data: AddressData) => {
     setAddressInfo(data);
   };
 
-  // Handle complete checkout submission
   const handleCompleteCheckout = () => {
     if (!customerInfo) {
       toast({
@@ -82,7 +76,6 @@ const Checkout = () => {
 
     setIsProcessing(true);
     
-    // Combine all data for submission
     const completeData = {
       customer: customerInfo,
       address: addressInfo,
@@ -90,7 +83,6 @@ const Checkout = () => {
       product: productDetails
     };
     
-    // Simulate payment processing
     toast({
       title: "Pagamento recebido",
       description: `Seu pagamento está sendo processado.`,
@@ -99,7 +91,6 @@ const Checkout = () => {
     
     console.log('Complete payment data:', completeData);
     
-    // Simulate success after 1.5 seconds
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
@@ -108,7 +99,6 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
-      {/* Header */}
       <header className="bg-white shadow-sm py-4 px-4 md:px-6 border-b">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <h1 className="text-xl md:text-2xl font-bold text-blue-600">CineFlick</h1>
@@ -116,7 +106,6 @@ const Checkout = () => {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="flex-grow py-8 px-4 md:px-6">
         <div className="max-w-5xl mx-auto">
           {isSuccess ? (
@@ -172,166 +161,137 @@ const Checkout = () => {
               </CardFooter>
             </Card>
           ) : (
-            <>
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-1">{productDetails.name}</h2>
-                <p className="text-gray-600">{productDetails.description}</p>
-                
-                <div className="mt-4 bg-blue-50 border border-blue-100 rounded-md p-4 flex items-start">
-                  <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
-                    <AlertCircle className="h-4 w-4 text-blue-600" />
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <div className="mb-8">
+                  <div className="bg-black text-white p-3 mb-4 flex items-center">
+                    <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">1</span>
+                    <h2 className="font-medium text-lg">Informações Pessoais</h2>
                   </div>
-                  <div>
-                    <p className="text-sm text-blue-700 font-medium">Ambiente de Testes</p>
-                    <p className="text-sm text-blue-600">
-                      Esta é uma página de demonstração. Os pagamentos não serão processados.
-                    </p>
+                  <CustomerInfoForm 
+                    onSubmit={handleCustomerInfoChange} 
+                    isCompleted={false} 
+                  />
+                </div>
+                
+                <div className="mb-8">
+                  <div className="bg-black text-white p-3 mb-4 flex items-center">
+                    <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">2</span>
+                    <h2 className="font-medium text-lg">Endereço de Entrega</h2>
+                  </div>
+                  <AddressForm
+                    onSubmit={handleAddressInfoChange}
+                    isCompleted={false}
+                  />
+                </div>
+                
+                <div>
+                  <div className="bg-black text-white p-3 mb-4 flex items-center">
+                    <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">3</span>
+                    <h2 className="font-medium text-lg">Forma de Pagamento</h2>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <RadioGroup
+                      defaultValue="card"
+                      className="flex flex-col space-y-3 mb-4"
+                      onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
+                    >
+                      <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+                        <RadioGroupItem value="card" id="card" />
+                        <Label htmlFor="card" className="flex items-center cursor-pointer">
+                          <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                          <span>Cartão de Crédito</span>
+                        </Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
+                        <RadioGroupItem value="pix" id="pix" />
+                        <Label htmlFor="pix" className="flex items-center cursor-pointer">
+                          <QrCode className="h-5 w-5 mr-2 text-green-600" />
+                          <span>PIX</span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  
+                    {paymentMethod === 'card' && (
+                      <CheckoutForm onSubmit={() => {}} />
+                    )}
+                    
+                    {paymentMethod === 'pix' && (
+                      <PixPayment onSubmit={() => {}} />
+                    )}
+                  </div>
+
+                  <div className="mt-8">
+                    <Button 
+                      onClick={handleCompleteCheckout} 
+                      className="w-full py-6 text-lg" 
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? 'Processando pagamento...' : `Pagar R$ ${productDetails.price.toFixed(2)}`}
+                    </Button>
                   </div>
                 </div>
               </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  {/* Customer information form - always visible */}
-                  <div className="mb-8">
-                    <div className="bg-black text-white p-3 mb-4 flex items-center">
-                      <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
-                        1
-                      </span>
-                      <h2 className="font-medium text-lg">Informações Pessoais</h2>
-                    </div>
-                    <CustomerInfoForm 
-                      onSubmit={handleCustomerInfoChange} 
-                      isCompleted={false} 
-                    />
-                  </div>
-                  
-                  {/* Address form - always visible */}
-                  <div className="mb-8">
-                    <div className="bg-black text-white p-3 mb-4 flex items-center">
-                      <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
-                        2
-                      </span>
-                      <h2 className="font-medium text-lg">Endereço de Entrega</h2>
-                    </div>
-                    <AddressForm
-                      onSubmit={handleAddressInfoChange}
-                      isCompleted={false}
-                    />
-                  </div>
-                  
-                  {/* Payment methods - always visible */}
-                  <div>
-                    <div className="bg-black text-white p-3 mb-4 flex items-center">
-                      <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
-                        3
-                      </span>
-                      <h2 className="font-medium text-lg">Forma de Pagamento</h2>
-                    </div>
-                    
-                    <div className="mb-6">
-                      <RadioGroup
-                        defaultValue="card"
-                        className="flex flex-col space-y-3 mb-4"
-                        onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
-                      >
-                        <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
-                          <RadioGroupItem value="card" id="card" />
-                          <Label htmlFor="card" className="flex items-center cursor-pointer">
-                            <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
-                            <span>Cartão de Crédito</span>
-                          </Label>
+              
+              <div className="md:col-span-1">
+                <Card className="bg-gray-50 border-gray-200 sticky top-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Resumo da compra</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4 pt-0">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{productDetails.name}</span>
+                        <span>R$ {productDetails.price.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Frequência</span>
+                        <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                          {productDetails.interval}
+                        </span>
+                      </div>
+                      
+                      {addressInfo?.shippingOption && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Frete</span>
+                          <span className="text-green-600 font-medium">Grátis</span>
                         </div>
-                        
-                        <div className="flex items-center space-x-2 border p-3 rounded-md hover:bg-gray-50 cursor-pointer">
-                          <RadioGroupItem value="pix" id="pix" />
-                          <Label htmlFor="pix" className="flex items-center cursor-pointer">
-                            <QrCode className="h-5 w-5 mr-2 text-green-600" />
-                            <span>PIX</span>
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    
-                      {paymentMethod === 'card' && (
-                        <CheckoutForm onSubmit={() => {}} />
                       )}
                       
-                      {paymentMethod === 'pix' && (
-                        <PixPayment onSubmit={() => {}} />
+                      {addressInfo && (
+                        <div className="pt-3 border-t border-gray-200">
+                          <h4 className="text-sm font-medium mb-2">Endereço de entrega:</h4>
+                          <p className="text-xs text-gray-600">
+                            {`${addressInfo.street}, ${addressInfo.number}`}
+                            {addressInfo.complement && `, ${addressInfo.complement}`}<br/>
+                            {`${addressInfo.neighborhood}, ${addressInfo.city} - ${addressInfo.state}`}<br/>
+                            {`CEP: ${addressInfo.cep}`}
+                          </p>
+                          
+                          {addressInfo.shippingOption && (
+                            <div className="mt-2 text-xs flex items-center text-green-700">
+                              <Truck className="h-3 w-3 mr-1" />
+                              <span>Entrega em 5-10 dias úteis</span>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-
-                    <div className="mt-8">
-                      <Button 
-                        onClick={handleCompleteCheckout} 
-                        className="w-full py-6 text-lg" 
-                        disabled={isProcessing}
-                      >
-                        {isProcessing ? 'Processando pagamento...' : `Pagar R$ ${productDetails.price.toFixed(2)}`}
-                      </Button>
+                    <div className="border-t border-gray-200 my-4"></div>
+                    <div className="flex justify-between font-medium">
+                      <span>Total</span>
+                      <span className="text-xl">R$ {productDetails.price.toFixed(2)}</span>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="md:col-span-1">
-                  <Card className="bg-gray-50 border-gray-200 sticky top-6">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg">Resumo da compra</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pb-4 pt-0">
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">{productDetails.name}</span>
-                          <span>R$ {productDetails.price.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Frequência</span>
-                          <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                            {productDetails.interval}
-                          </span>
-                        </div>
-                        
-                        {addressInfo?.shippingOption && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Frete</span>
-                            <span className="text-green-600 font-medium">Grátis</span>
-                          </div>
-                        )}
-                        
-                        {addressInfo && (
-                          <div className="pt-3 border-t border-gray-200">
-                            <h4 className="text-sm font-medium mb-2">Endereço de entrega:</h4>
-                            <p className="text-xs text-gray-600">
-                              {`${addressInfo.street}, ${addressInfo.number}`}
-                              {addressInfo.complement && `, ${addressInfo.complement}`}<br/>
-                              {`${addressInfo.neighborhood}, ${addressInfo.city} - ${addressInfo.state}`}<br/>
-                              {`CEP: ${addressInfo.cep}`}
-                            </p>
-                            
-                            {addressInfo.shippingOption && (
-                              <div className="mt-2 text-xs flex items-center text-green-700">
-                                <Truck className="h-3 w-3 mr-1" />
-                                <span>Entrega em 5-10 dias úteis</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div className="border-t border-gray-200 my-4"></div>
-                      <div className="flex justify-between font-medium">
-                        <span>Total</span>
-                        <span className="text-xl">R$ {productDetails.price.toFixed(2)}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
-            </>
+            </div>
           )}
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-200 py-4 px-4 md:px-6 mt-auto">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:justify-between items-center text-sm text-gray-500">
           <div className="mb-3 md:mb-0">
