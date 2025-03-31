@@ -6,6 +6,8 @@ import AddressSection from '@/components/checkout/AddressSection';
 import PaymentMethodSection from '@/components/checkout/PaymentMethodSection';
 import OrderSummarySection from '@/components/checkout/OrderSummarySection';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { useOrders } from '@/contexts/OrderContext';
+import { CreateOrderInput, CardDetails, PixDetails } from '@/types/order';
 
 interface CheckoutProgressProps {
   paymentMethod: 'card' | 'pix';
@@ -21,6 +23,7 @@ interface ProductDetailsType {
   description: string;
   image: string;
   isDigital: boolean;
+  id: string;
 }
 
 const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
@@ -47,6 +50,48 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
     setSelectedShipping,
     handleCepChange,
   } = useCheckoutForm();
+  
+  const { addOrder } = useOrders();
+
+  // Função para criar o pedido após pagamento bem-sucedido
+  const createOrder = async (
+    paymentId: string, 
+    status: 'pending' | 'confirmed',
+    cardDetails?: CardDetails,
+    pixDetails?: PixDetails
+  ) => {
+    try {
+      const orderData: CreateOrderInput = {
+        customer: {
+          name: formState.fullName,
+          email: formState.email,
+          cpf: formState.cpf,
+          phone: formState.phone,
+          address: {
+            street: formState.street,
+            number: formState.number,
+            complement: formState.complement,
+            neighborhood: formState.neighborhood,
+            city: formState.city,
+            state: formState.state,
+            postalCode: formState.cep.replace(/\D/g, '')
+          }
+        },
+        productId: productDetails.id,
+        productName: productDetails.name,
+        productPrice: productDetails.price,
+        paymentMethod,
+        paymentStatus: status,
+        paymentId,
+        cardDetails,
+        pixDetails
+      };
+
+      await addOrder(orderData);
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error);
+    }
+  };
 
   return (
     <>
@@ -88,6 +133,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
       <PaymentMethodSection 
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
+        createOrder={createOrder}
       />
       
       <OrderSummarySection 

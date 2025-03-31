@@ -85,8 +85,8 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
     setIsSubmitting(true);
     
     try {
-      // In a real implementation, this would call the Asaas API
-      // First create a customer
+      // Em uma implementação real, isso chamaria a API do Asaas
+      // Primeiro criar um cliente
       const customerData = {
         name: formState.fullName,
         email: formState.email,
@@ -101,11 +101,11 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         state: formState.state
       };
 
-      // Simulate customer creation for demo
+      // Simular criação de cliente para demonstração
       // const customer = await asaasService.createCustomer(customerData, isSandbox);
-      const customer = { id: 'cus_000005118652' }; // Simulated customer ID
+      const customer = { id: 'cus_000005118652' }; // ID de cliente simulado
       
-      // Then create a payment with credit card
+      // Então criar um pagamento com cartão de crédito
       const today = new Date();
       
       const paymentData = {
@@ -132,11 +132,11 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         }
       };
 
-      // Simulate payment processing for demo
+      // Simular processamento de pagamento para demonstração
       // const payment = await asaasService.createPayment(paymentData, isSandbox);
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simulate a successful or failed payment (70% success rate for demo)
+      // Simular um pagamento bem-sucedido ou falho (70% de taxa de sucesso para demonstração)
       const isSuccessful = Math.random() > 0.3;
       const simulatedPayment = { 
         id: 'pay_000012345678',
@@ -148,18 +148,24 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
       
       setPaymentStatus(simulatedPayment.status);
       
+      // Preparar dados para registro do pedido
+      onSubmit({
+        method: 'card',
+        paymentId: simulatedPayment.id,
+        status: simulatedPayment.status,
+        timestamp: new Date().toISOString(),
+        cardNumber: formatCardNumber(cardNumber),
+        expiryMonth,
+        expiryYear,
+        cvv: '***',
+        brand: simulatedPayment.creditCard.creditCardBrand
+      });
+      
       if (simulatedPayment.status === 'CONFIRMED') {
         toast({
           title: "Pagamento aprovado!",
           description: `Pagamento com ${simulatedPayment.creditCard.creditCardBrand} processado com sucesso.`,
           duration: 5000,
-        });
-        
-        onSubmit({
-          method: 'card',
-          paymentId: simulatedPayment.id,
-          status: simulatedPayment.status,
-          timestamp: new Date().toISOString()
         });
       } else {
         setError('Pagamento recusado. Por favor, verifique os dados do cartão ou tente outro método de pagamento.');

@@ -6,7 +6,7 @@ import PaymentForm from '@/components/payments/PaymentForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, QrCode, ExternalLink, Settings } from 'lucide-react';
+import { CreditCard, QrCode, ExternalLink, Settings, ShoppingCart } from 'lucide-react';
 import { useAsaas } from '@/contexts/AsaasContext';
 
 const Payments = () => {
@@ -20,12 +20,20 @@ const Payments = () => {
           <p className="text-muted-foreground">Create a new payment transaction</p>
         </div>
         
-        <Link to="/admin/settings/payment">
-          <Button variant="outline" className="flex items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            Payment Settings
-          </Button>
-        </Link>
+        <div className="flex space-x-2">
+          <Link to="/admin/orders">
+            <Button variant="outline" className="flex items-center">
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              View Orders
+            </Button>
+          </Link>
+          <Link to="/admin/settings/payment">
+            <Button variant="outline" className="flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              Payment Settings
+            </Button>
+          </Link>
+        </div>
       </div>
       
       <div className="mb-6 space-y-2">

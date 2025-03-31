@@ -11,6 +11,7 @@ import {
   Sliders,
   DollarSign,
   Package,
+  ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,7 @@ export const Sidebar = () => {
           <SidebarItem icon={Users} label="Customers" href="/customers" />
           <SidebarItem icon={CreditCard} label="Payments" href="/payments" />
           <SidebarItem icon={Package} label="Products" href="/admin/products" />
+          <SidebarItem icon={ShoppingCart} label="Orders" href="/admin/orders" />
         </div>
         
         <div className="mt-6 pt-6 border-t border-gray-200">

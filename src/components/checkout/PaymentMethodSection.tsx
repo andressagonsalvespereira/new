@@ -7,13 +7,24 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import PixPayment from '@/components/checkout/PixPayment';
 import { useAsaas } from '@/contexts/AsaasContext';
+import { CardDetails, PixDetails } from '@/types/order';
 
 interface PaymentMethodSectionProps {
   paymentMethod: 'card' | 'pix';
   setPaymentMethod: React.Dispatch<React.SetStateAction<'card' | 'pix'>>;
+  createOrder?: (
+    paymentId: string, 
+    status: 'pending' | 'confirmed',
+    cardDetails?: CardDetails,
+    pixDetails?: PixDetails
+  ) => Promise<void>;
 }
 
-const PaymentMethodSection = ({ paymentMethod, setPaymentMethod }: PaymentMethodSectionProps) => {
+const PaymentMethodSection = ({ 
+  paymentMethod, 
+  setPaymentMethod,
+  createOrder
+}: PaymentMethodSectionProps) => {
   const { settings, loading } = useAsaas();
   const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +38,42 @@ const PaymentMethodSection = ({ paymentMethod, setPaymentMethod }: PaymentMethod
       }
     }
   }, [loading, settings, setPaymentMethod]);
+
+  const handleCardSubmit = async (data: any) => {
+    // Exemplo de dados de cartão mascarados para armazenamento seguro
+    if (createOrder) {
+      const cardDetails: CardDetails = {
+        number: data.cardNumber.replace(/\d(?=\d{4})/g, '*'),
+        expiryMonth: data.expiryMonth,
+        expiryYear: data.expiryYear,
+        cvv: '***',
+        brand: data.brand || 'Visa'
+      };
+      
+      await createOrder(
+        data.paymentId || 'mock-payment-id', 
+        data.status === 'CONFIRMED' ? 'confirmed' : 'pending',
+        cardDetails
+      );
+    }
+  };
+
+  const handlePixSubmit = async (data: any) => {
+    if (createOrder) {
+      const pixDetails: PixDetails = {
+        qrCode: data.qrCode,
+        qrCodeImage: data.qrCodeImage,
+        expirationDate: data.expirationDate
+      };
+      
+      await createOrder(
+        data.paymentId || 'mock-payment-id', 
+        'pending',
+        undefined,
+        pixDetails
+      );
+    }
+  };
 
   if (loading) {
     return (
@@ -106,14 +153,14 @@ const PaymentMethodSection = ({ paymentMethod, setPaymentMethod }: PaymentMethod
         
         {settings.allowCreditCard && paymentMethod === 'card' && (
           <CheckoutForm 
-            onSubmit={() => {}} 
+            onSubmit={handleCardSubmit}
             isSandbox={settings.isSandbox}
           />
         )}
         
         {settings.allowPix && paymentMethod === 'pix' && (
           <PixPayment 
-            onSubmit={() => {}} 
+            onSubmit={handlePixSubmit}
             isSandbox={settings.isSandbox}
           />
         )}

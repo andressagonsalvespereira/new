@@ -1,12 +1,10 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, Copy, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Check, Copy, Loader2, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import asaasService from '@/services/asaasService';
-import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 
 interface PixPaymentProps {
   onSubmit: (data: any) => void;
@@ -15,106 +13,75 @@ interface PixPaymentProps {
 
 const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
   const { toast } = useToast();
-  const { formState } = useCheckoutForm();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [pixGenerated, setPixGenerated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pixData, setPixData] = useState<{
+    qrCode: string;
+    qrCodeImage: string;
+    expirationDate: string;
+    paymentId: string;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
-  const [pixCopiaECola, setPixCopiaECola] = useState<string | null>(null);
-  const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
 
-  const handleGenerateQRCode = async () => {
-    setIsGenerating(true);
+  // Gerar QR Code PIX
+  useEffect(() => {
+    const generatePixQrCode = async () => {
+      if (!pixData) {
+        setIsLoading(true);
+        try {
+          // Em uma implementação real, isso seria uma chamada à API do Asaas
+          // const customer = await asaasService.createCustomer(customerData, isSandbox);
+          // const payment = await asaasService.createPixPayment(paymentData, isSandbox);
+          // const pixQrCode = await asaasService.getPixQRCode(payment.id, isSandbox);
+          
+          // Simulação de dados para demonstração
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          const mockPixData = {
+            qrCode: '00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426655440000',
+            qrCodeImage: 'https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426655440000',
+            expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            paymentId: 'pay_' + Math.random().toString(36).substr(2, 9)
+          };
+          
+          setPixData(mockPixData);
+          
+          // Enviar dados do pagamento para processamento
+          onSubmit({
+            method: 'pix',
+            paymentId: mockPixData.paymentId,
+            status: 'PENDING',
+            qrCode: mockPixData.qrCode,
+            qrCodeImage: mockPixData.qrCodeImage,
+            expirationDate: mockPixData.expirationDate,
+            timestamp: new Date().toISOString()
+          });
+          
+        } catch (error) {
+          console.error('Error generating PIX QR code:', error);
+          setError('Erro ao gerar QR Code PIX. Por favor, tente novamente.');
+          toast({
+            title: "Erro no processamento",
+            description: "Houve um problema ao gerar o QR Code PIX. Por favor, tente novamente.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
     
-    try {
-      // In a real implementation, this would call the Asaas API
-      // First create a customer
-      const customerData = {
-        name: formState.fullName,
-        email: formState.email,
-        cpfCnpj: formState.cpf.replace(/[^\d]/g, ''),
-        phone: formState.phone.replace(/[^\d]/g, ''),
-        address: formState.street,
-        addressNumber: formState.number,
-        complement: formState.complement,
-        province: formState.neighborhood,
-        postalCode: formState.cep.replace(/[^\d]/g, ''),
-        city: formState.city,
-        state: formState.state
-      };
+    generatePixQrCode();
+  }, [isSandbox, onSubmit, toast, pixData]);
 
-      // Simulate customer creation for demo
-      // const customer = await asaasService.createCustomer(customerData, isSandbox);
-      const customer = { id: 'cus_000005118652' }; // Simulated customer ID
-      
-      // Then create a payment with PIX
-      const today = new Date();
-      const dueDate = new Date(today.setDate(today.getDate() + 1))
-        .toISOString().split('T')[0];
-      
-      const paymentData = {
-        customer: customer.id,
-        billingType: 'PIX' as const,
-        value: 120.00,
-        dueDate: dueDate,
-        description: 'Sua compra na loja'
-      };
-
-      // Simulate payment creation for demo
-      // const payment = await asaasService.createPayment(paymentData, isSandbox);
-      const payment = { 
-        id: 'pay_000012345678',
-        status: 'PENDING'
-      }; // Simulated payment response
-      
-      setPaymentId(payment.id);
-      
-      // Get the PIX QR code
-      // In a real implementation, uncomment this code
-      // const pixQrCode = await asaasService.getPixQrCode(payment.id, isSandbox);
-      // setQrCodeImage(`data:image/png;base64,${pixQrCode.encodedImage}`);
-      // setPixCopiaECola(pixQrCode.payload);
-      
-      // Simulate QR code for demo
-      setQrCodeImage('/placeholder.svg');
-      setPixCopiaECola('00020101021226880014br.gov.bcb.pix2566qrcode-pix.asaas.com/pixs/42b639b0-ca4b-441c-8a94-aca45aacc5050215Pagamento9953040000530398654071.005802BR5925Test Name6008Sao Paulo62070503***6304D3FF');
-      
-      setPixGenerated(true);
-      
-      toast({
-        title: "Código PIX gerado com sucesso",
-        description: "Utilize o QR code ou a chave PIX para realizar o pagamento",
-        duration: 5000,
-      });
-      
-      onSubmit({
-        method: 'pix',
-        paymentId: payment.id,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Error generating PIX QR code:', error);
-      toast({
-        title: "Erro ao gerar código PIX",
-        description: "Houve um problema ao gerar o código PIX. Por favor, tente novamente.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleCopyPixKey = () => {
-    if (pixCopiaECola) {
-      navigator.clipboard.writeText(pixCopiaECola);
+  const copyToClipboard = () => {
+    if (pixData?.qrCode) {
+      navigator.clipboard.writeText(pixData.qrCode);
       setCopied(true);
-      
       toast({
-        title: "Chave PIX copiada",
-        description: "A chave PIX foi copiada para a área de transferência",
+        title: "Código copiado",
+        description: "O código PIX foi copiado para a área de transferência",
         duration: 3000,
       });
       
@@ -122,139 +89,77 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
     }
   };
 
-  const checkPaymentStatus = async () => {
-    if (!paymentId) return;
-    
-    setIsCheckingPayment(true);
-    try {
-      // In a real implementation, this would check the payment status
-      // const paymentInfo = await asaasService.checkPaymentStatus(paymentId, isSandbox);
-      // setPaymentStatus(paymentInfo.status);
-      
-      // Simulate payment status check
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const simulatedStatus = Math.random() > 0.5 ? 'RECEIVED' : 'PENDING';
-      setPaymentStatus(simulatedStatus);
-      
-      if (simulatedStatus === 'RECEIVED') {
-        toast({
-          title: "Pagamento recebido!",
-          description: "Seu pagamento foi confirmado com sucesso.",
-          duration: 5000,
-        });
-      } else {
-        toast({
-          title: "Pagamento pendente",
-          description: "Ainda não identificamos seu pagamento. Por favor, aguarde ou tente novamente.",
-          duration: 5000,
-        });
-      }
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-      toast({
-        title: "Erro ao verificar pagamento",
-        description: "Não foi possível verificar o status do pagamento no momento.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    } finally {
-      setIsCheckingPayment(false);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+        <p>Gerando QR Code PIX...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!pixData) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-col items-center">
-      {!pixGenerated ? (
-        <>
-          <div className="w-48 h-48 bg-gray-100 flex items-center justify-center mb-4 rounded-lg border border-dashed border-gray-300">
-            <QrCode className="h-16 w-16 text-gray-400" />
+    <div className="flex flex-col items-center p-4">
+      <div className="mb-4 text-center">
+        <h3 className="font-medium mb-2">Pague com PIX</h3>
+        <p className="text-sm text-gray-600">
+          Escaneie o QR Code abaixo com o app do seu banco ou copie o código PIX
+        </p>
+      </div>
+
+      <div className="w-64 h-64 bg-white p-2 border rounded-lg mb-4 flex items-center justify-center">
+        {pixData.qrCodeImage ? (
+          <img 
+            src={pixData.qrCodeImage} 
+            alt="QR Code PIX" 
+            className="w-full h-full"
+          />
+        ) : (
+          <QrCode className="w-12 h-12 text-gray-400" />
+        )}
+      </div>
+
+      <div className="w-full mb-4">
+        <p className="text-xs text-gray-500 mb-2">Código PIX (Copia e Cola):</p>
+        <div className="relative">
+          <div className="p-3 bg-gray-50 border rounded-md text-gray-800 text-xs font-mono break-all">
+            {pixData.qrCode}
           </div>
-          <p className="text-center text-sm text-gray-500 mb-6 max-w-md">
-            Clique no botão abaixo para gerar um código PIX. 
-            Você poderá escanear o QR code ou copiar a chave PIX para realizar o pagamento.
-          </p>
           <Button
-            onClick={handleGenerateQRCode}
-            disabled={isGenerating}
-            className="w-full bg-green-600 hover:bg-green-700 text-white h-10"
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            onClick={copyToClipboard}
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Gerando código...
-              </>
+            {copied ? (
+              <Check className="h-4 w-4 text-green-600" />
             ) : (
-              'Gerar Código PIX'
+              <Copy className="h-4 w-4" />
             )}
           </Button>
-        </>
-      ) : (
-        <>
-          <div className="w-48 h-48 bg-white flex items-center justify-center mb-4 rounded-lg border-2 border-dashed border-gray-300 relative p-4">
-            {qrCodeImage && (
-              <img 
-                src={qrCodeImage} 
-                alt="QR Code PIX" 
-                className="max-w-full max-h-full"
-              />
-            )}
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200 w-full max-w-md mb-6">
-            <p className="text-sm text-gray-600 mb-2">Chave PIX:</p>
-            <div className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
-              <span className="text-sm font-mono text-gray-800 truncate mr-2">
-                {pixCopiaECola ? pixCopiaECola.substring(0, 30) + '...' : '...'}
-              </span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 px-2 border-gray-300" 
-                onClick={handleCopyPixKey}
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Você tem 30 minutos para concluir o pagamento com esta chave
-            </p>
-          </div>
-          
-          {paymentStatus === 'RECEIVED' ? (
-            <Alert className="mb-6 max-w-md bg-green-50 border-green-200">
-              <Check className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-700">
-                Pagamento confirmado! Obrigado pela sua compra.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <>
-              <Alert variant="default" className="mb-4 max-w-md bg-yellow-50 border-yellow-200">
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-700">
-                  Após o pagamento, clique no botão abaixo para verificar se seu pagamento foi recebido.
-                </AlertDescription>
-              </Alert>
-              
-              <Button
-                onClick={checkPaymentStatus}
-                disabled={isCheckingPayment}
-                className="w-full max-w-md mb-6"
-                variant="outline"
-              >
-                {isCheckingPayment ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verificando pagamento...
-                  </>
-                ) : (
-                  'Verificar Pagamento'
-                )}
-              </Button>
-            </>
-          )}
-        </>
-      )}
+        </div>
+      </div>
+
+      <Alert className="mb-4 bg-blue-50 border-blue-200">
+        <AlertCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800 text-sm">
+          O pagamento via PIX é instantâneo. Após o pagamento, você receberá a confirmação em seu e-mail.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };
