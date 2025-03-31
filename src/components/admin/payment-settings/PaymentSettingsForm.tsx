@@ -10,7 +10,7 @@ import PaymentMethodsCard from './PaymentMethodsCard';
 import ApiKeysCard from './ApiKeysCard';
 import ManualPaymentSettings from './ManualPaymentSettings';
 
-// Import the string constants rather than the enum to avoid type errors
+// Define o schema de validação do formulário
 const PaymentSettingsSchema = z.object({
   isEnabled: z.boolean(),
   manualCardProcessing: z.boolean(),
@@ -76,7 +76,7 @@ const PaymentSettingsForm = () => {
         manualPaymentConfig: settings.manualPaymentConfig || false,
       });
       
-      // Update the local form state for card components
+      // Atualiza o estado local para os componentes de cartão
       setFormState({
         isEnabled: settings.isEnabled,
         manualCardProcessing: settings.manualCardProcessing || false,
@@ -93,7 +93,7 @@ const PaymentSettingsForm = () => {
     }
   }, [settings, loading, form]);
 
-  // Update formState when form values change
+  // Atualiza formState quando os valores do formulário mudam
   useEffect(() => {
     const subscription = form.watch((value) => {
       setFormState(value as typeof formState);
@@ -104,22 +104,22 @@ const PaymentSettingsForm = () => {
   const onSubmit = async (data: z.infer<typeof PaymentSettingsSchema>) => {
     setIsSaving(true);
     try {
-      // Calculate the apiKey based on sandbox mode
+      // Calcula a apiKey com base no modo sandbox
       const apiKey = data.sandboxMode 
         ? data.sandboxApiKey || ''
         : data.productionApiKey || '';
         
       await updateSettings({
         isEnabled: data.isEnabled,
-        apiKey: apiKey, // Add the required apiKey property
+        apiKey, // Garante que apiKey seja sempre incluído
         manualCardProcessing: data.manualCardProcessing,
         manualCardStatus: data.manualCardStatus,
         manualCreditCard: data.manualCreditCard,
         allowPix: data.allowPix,
         allowCreditCard: data.allowCreditCard,
         sandboxMode: data.sandboxMode,
-        sandboxApiKey: data.sandboxApiKey,
-        productionApiKey: data.productionApiKey,
+        sandboxApiKey: data.sandboxApiKey || '',
+        productionApiKey: data.productionApiKey || '',
         manualPixPage: data.manualPixPage,
         manualPaymentConfig: data.manualPaymentConfig,
       });

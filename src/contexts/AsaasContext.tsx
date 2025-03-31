@@ -37,32 +37,19 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load settings from localStorage on mount
+    // Carrega as configurações do localStorage na montagem
     const loadSettings = () => {
       try {
         const savedSettings = localStorage.getItem('asaasSettings');
         if (savedSettings) {
           const parsedSettings = JSON.parse(savedSettings);
-          // Ensure the manualCardProcessing property exists in saved settings
+          // Garante que todas as propriedades existam nas configurações salvas
           setSettings({
-            ...parsedSettings,
-            manualCreditCard: parsedSettings.manualCreditCard !== undefined 
-              ? parsedSettings.manualCreditCard 
-              : defaultSettings.manualCreditCard,
-            manualCardProcessing: parsedSettings.manualCardProcessing !== undefined
-              ? parsedSettings.manualCardProcessing
-              : defaultSettings.manualCardProcessing,
-            manualPixPage: parsedSettings.manualPixPage !== undefined
-              ? parsedSettings.manualPixPage
-              : defaultSettings.manualPixPage,
-            manualPaymentConfig: parsedSettings.manualPaymentConfig !== undefined
-              ? parsedSettings.manualPaymentConfig
-              : defaultSettings.manualPaymentConfig,
-            manualCardStatus: parsedSettings.manualCardStatus !== undefined
-              ? parsedSettings.manualCardStatus
-              : defaultSettings.manualCardStatus,
-            // Ensure apiKey is defined
-            apiKey: parsedSettings.apiKey || ''
+            ...defaultSettings, // Usa os valores padrão como base
+            ...parsedSettings,   // Sobrescreve com os valores salvos
+            // Garante que apiKey seja definida
+            apiKey: parsedSettings.apiKey || '',
+            manualCardStatus: parsedSettings.manualCardStatus || defaultSettings.manualCardStatus,
           });
         }
         setLoading(false);
@@ -78,8 +65,8 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
 
   const saveSettings = async (newSettings: AsaasSettings) => {
     try {
-      // In a real implementation, this would call an API to save settings
-      // For now, save to localStorage
+      // Em uma implementação real, isso chamaria uma API para salvar as configurações
+      // Por enquanto, salva no localStorage
       localStorage.setItem('asaasSettings', JSON.stringify(newSettings));
       setSettings(newSettings);
       
@@ -104,7 +91,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
     }
   };
 
-  const updateSettings = saveSettings; // Alias for updateSettings
+  const updateSettings = saveSettings; // Alias para updateSettings
 
   return (
     <AsaasContext.Provider
