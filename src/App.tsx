@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Contexts
@@ -21,6 +22,7 @@ import PixelSettings from './pages/admin/PixelSettings';
 import Checkout from './pages/Checkout';
 import QuickCheckout from './pages/QuickCheckout';
 import PaymentFailed from './pages/PaymentFailed';
+import PaymentSuccess from './pages/PaymentSuccess';
 import PixPaymentManual from './pages/PixPaymentManual';
 
 // Component imports
@@ -58,6 +60,7 @@ function App() {
                   {/* Keep the old ID-based route for backward compatibility */}
                   <Route path="/quick-checkout/:productId" element={<QuickCheckout />} />
                   <Route path="/payment-failed" element={<PaymentFailed />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/pix-payment-manual" element={<PixPaymentManual />} />
                   
                   {/* Catch all */}

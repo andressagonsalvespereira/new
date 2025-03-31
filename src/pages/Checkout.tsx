@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProductCheckout } from '@/hooks/useProductCheckout';
-import { Loader2, ShoppingBag, ArrowLeft, Check } from 'lucide-react';
+import { Loader2, ShoppingBag, ArrowLeft } from 'lucide-react';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
@@ -21,7 +21,6 @@ const Checkout = () => {
   
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isOrderSubmitted, setIsOrderSubmitted] = useState(false);
 
   React.useEffect(() => {
     trackPageView();
@@ -83,47 +82,17 @@ const Checkout = () => {
   const handlePayment = () => {
     setIsProcessing(true);
     
-    // Simulação de processamento de pagamento
+    // Esta função agora só é chamada para finalizar o processamento após o registro do pedido
     setTimeout(() => {
       setIsProcessing(false);
-      setIsOrderSubmitted(true);
       
       toast({
         title: "Pedido concluído!",
         description: "Seu pagamento foi processado com sucesso.",
         variant: "default",
       });
-    }, 2000);
+    }, 1000);
   };
-  
-  // Se o pedido foi concluído, mostrar mensagem de sucesso
-  if (isOrderSubmitted) {
-    return (
-      <CheckoutContainer>
-        <Card className="mb-6 shadow-sm">
-          <CardContent className="py-6">
-            <div className="text-center">
-              <div className="bg-green-100 text-green-700 rounded-full p-3 inline-flex mb-4">
-                <Check className="h-10 w-10" />
-              </div>
-              <h2 className="text-2xl font-bold text-green-700 mb-3">Pedido Concluído!</h2>
-              <p className="text-gray-600 mb-4">
-                Obrigado por sua compra. Você receberá um e-mail com os detalhes do pedido.
-              </p>
-              
-              <Button 
-                onClick={() => navigate('/')}
-                className="mt-4"
-                variant="outline"
-              >
-                Voltar para a página inicial
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </CheckoutContainer>
-    );
-  }
   
   return (
     <CheckoutContainer>

@@ -2,16 +2,47 @@
 import React from 'react';
 import { QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface SimplifiedPixOptionProps {
   onSubmit: () => void;
   isProcessing?: boolean;
+  productData?: {
+    productId: string;
+    productName: string;
+    productPrice: number;
+  };
+  customerData?: any;
 }
 
 const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({ 
   onSubmit, 
-  isProcessing = false 
+  isProcessing = false,
+  productData,
+  customerData
 }) => {
+  const navigate = useNavigate();
+  
+  const handlePixSubmit = () => {
+    // Primeiro registra o pedido
+    onSubmit();
+    
+    // Em seguida, redireciona para a tela de pagamento PIX
+    setTimeout(() => {
+      navigate('/pix-payment-manual', { 
+        state: { 
+          orderData: {
+            productId: productData?.productId,
+            productName: productData?.productName,
+            productPrice: productData?.productPrice,
+            paymentMethod: 'PIX'
+          },
+          customerData
+        } 
+      });
+    }, 500);
+  };
+
   return (
     <div className="p-4 text-center">
       <h3 className="text-lg font-medium mb-2">Pague com PIX</h3>
@@ -20,7 +51,7 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
       </p>
       
       <Button
-        onClick={onSubmit}
+        onClick={handlePixSubmit}
         disabled={isProcessing}
         className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md"
       >

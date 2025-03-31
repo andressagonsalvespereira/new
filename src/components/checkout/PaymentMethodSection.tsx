@@ -81,13 +81,19 @@ const PaymentMethodSection = ({
   const handlePixSubmit = async (data: any) => {
     // Check if Asaas integration is enabled
     if (!settings.isEnabled && paymentMethod === 'pix') {
-      // If Asaas is disabled, redirect to manual PIX payment page
-      navigate('/pix-payment-manual', {
-        state: {
-          customer: customerData,
-          product: productDetails
-        }
-      });
+      if (createOrder) {
+        // Se formos criar o pedido antes, faça isso aqui
+        await createOrder(
+          `pix-${Date.now()}`, 
+          'pending',
+          undefined,
+          {
+            qrCode: "PIX_CODE_PLACEHOLDER",
+            qrCodeImage: "",
+            expirationDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+          }
+        );
+      }
       return;
     }
     
@@ -109,7 +115,11 @@ const PaymentMethodSection = ({
 
   // Handle PIX option click - show the PIX payment form
   const handlePixOptionClick = () => {
-    setShowPixPayment(true);
+    if (settings.isEnabled) {
+      setShowPixPayment(true);
+    } else {
+      handlePixSubmit({});
+    }
   };
 
   if (loading) {
@@ -123,6 +133,13 @@ const PaymentMethodSection = ({
       </div>
     );
   }
+
+  // Preparar dados do produto para os componentes de pagamento
+  const productData = productDetails ? {
+    productId: productDetails.id,
+    productName: productDetails.name,
+    productPrice: productDetails.price
+  } : undefined;
 
   // If Asaas is disabled, show simplified payment options
   if (!settings.isEnabled) {
@@ -152,6 +169,8 @@ const PaymentMethodSection = ({
           <SimplifiedPixOption 
             onSubmit={handlePixOptionClick} 
             isProcessing={isProcessing}
+            productData={productData}
+            customerData={customerData}
           />
         )}
         
@@ -192,6 +211,8 @@ const PaymentMethodSection = ({
           <SimplifiedPixOption 
             onSubmit={handlePixOptionClick} 
             isProcessing={isProcessing}
+            productData={productData}
+            customerData={customerData}
           />
         )}
         

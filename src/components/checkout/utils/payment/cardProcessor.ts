@@ -39,29 +39,44 @@ export const processCardPayment = async (
   setError('');
   setIsSubmitting(true);
   
-  // Verificar se o processamento manual de cartão está ativado
-  if (settings.manualCardProcessing) {
-    return handleManualCardProcessing(
+  try {
+    // Verificar se o processamento manual de cartão está ativado
+    if (settings.manualCardProcessing) {
+      await handleManualCardProcessing(
+        cardData,
+        formState,
+        navigate,
+        setIsSubmitting,
+        setError,
+        toast,
+        onSubmit
+      );
+      return;
+    }
+    
+    await handleAutomaticCardProcessing(
       cardData,
       formState,
-      navigate,
+      settings,
+      isSandbox,
+      setPaymentStatus,
       setIsSubmitting,
       setError,
-      toast
+      navigate,
+      toast,
+      onSubmit
     );
+  } catch (error) {
+    console.error('Erro geral ao processar pagamento:', error);
+    setError('Erro ao processar pagamento. Por favor, tente novamente.');
+    toast({
+      title: "Erro no processamento",
+      description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+      variant: "destructive",
+      duration: 5000,
+    });
+    setIsSubmitting(false);
   }
-  
-  return handleAutomaticCardProcessing(
-    cardData,
-    formState,
-    settings,
-    isSandbox,
-    setPaymentStatus,
-    setIsSubmitting,
-    setError,
-    toast,
-    onSubmit
-  );
 };
 
 /**
@@ -73,7 +88,8 @@ const handleManualCardProcessing = async (
   navigate: ReturnType<typeof useNavigate>,
   setIsSubmitting: (isSubmitting: boolean) => void,
   setError: (error: string) => void,
-  toast: ReturnType<typeof useToast>['toast']
+  toast: ReturnType<typeof useToast>['toast'],
+  onSubmit: (data: PaymentResult) => void
 ) => {
   try {
     // Preparar dados para a página de revisão manual
@@ -94,9 +110,9 @@ const handleManualCardProcessing = async (
         } : undefined
       },
       orderData: {
-        productId: 'prod-001', // Substituir com ID do produto real do contexto ou props
-        productName: 'Product Name', // Substituir com nome do produto real do contexto ou props
-        productPrice: 120.00 // Substituir com preço do produto real do contexto ou props
+        productId: formState.productId || 'prod-001', 
+        productName: formState.productName || 'Product Name',
+        productPrice: formState.productPrice || 120.00
       },
       cardData: {
         number: cardData.cardNumber.replace(/\s+/g, ''),
@@ -106,9 +122,32 @@ const handleManualCardProcessing = async (
         brand: 'VISA' // Padrão ou detectar a partir dos primeiros dígitos
       }
     };
+
+    // Preparar e enviar dados do pedido para registro
+    const paymentResult: PaymentResult = {
+      method: 'card',
+      paymentId: `manual-${Date.now()}`,
+      status: 'PENDING',
+      timestamp: new Date().toISOString(),
+      cardNumber: formatCardNumber(cardData.cardNumber),
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear,
+      cvv: '***',
+      brand: 'VISA'
+    };
+
+    // Registrar pedido antes de redirecionar
+    await onSubmit(paymentResult);
     
-    // Redirecionar para a página de revisão manual com os dados do pagamento
-    navigate('/payment-failed', { state: paymentData });
+    // Redirecionar para a página de pagamento manual com os dados
+    setTimeout(() => {
+      navigate('/payment-failed', { 
+        state: { 
+          ...paymentData,
+          paymentResult 
+        } 
+      });
+    }, 1000);
     
   } catch (error) {
     console.error('Erro ao processar pagamento manual com cartão:', error);
@@ -119,7 +158,6 @@ const handleManualCardProcessing = async (
       variant: "destructive",
       duration: 5000,
     });
-  } finally {
     setIsSubmitting(false);
   }
 };
@@ -135,6 +173,7 @@ const handleAutomaticCardProcessing = async (
   setPaymentStatus: (status: string | null) => void,
   setIsSubmitting: (isSubmitting: boolean) => void,
   setError: (error: string) => void,
+  navigate: ReturnType<typeof useNavigate>,
   toast: ReturnType<typeof useToast>['toast'],
   onSubmit: (data: PaymentResult) => void
 ) => {
@@ -164,7 +203,7 @@ const handleAutomaticCardProcessing = async (
     setPaymentStatus(simulatedPayment.status);
     
     // Preparar dados para registro do pedido
-    onSubmit({
+    const paymentResult: PaymentResult = {
       method: 'card',
       paymentId: simulatedPayment.id,
       status: simulatedPayment.status,
@@ -174,7 +213,10 @@ const handleAutomaticCardProcessing = async (
       expiryYear: cardData.expiryYear,
       cvv: '***',
       brand: simulatedPayment.creditCard.creditCardBrand
-    });
+    };
+
+    // Registrar o pedido antes de redirecionar
+    await onSubmit(paymentResult);
     
     if (simulatedPayment.status === 'CONFIRMED') {
       toast({
@@ -182,6 +224,22 @@ const handleAutomaticCardProcessing = async (
         description: `Pagamento com ${simulatedPayment.creditCard.creditCardBrand} processado com sucesso.`,
         duration: 5000,
       });
+      
+      // Direcionar para a página de sucesso
+      setTimeout(() => {
+        navigate('/payment-success', { 
+          state: { 
+            customerData,
+            orderData: {
+              productId: formState.productId,
+              productName: formState.productName,
+              productPrice: formState.productPrice,
+              paymentMethod: 'CREDIT_CARD'
+            },
+            paymentResult
+          } 
+        });
+      }, 1000);
     } else {
       setError('Pagamento recusado. Por favor, verifique os dados do cartão ou tente outro método de pagamento.');
       toast({
@@ -190,6 +248,21 @@ const handleAutomaticCardProcessing = async (
         variant: "destructive",
         duration: 5000,
       });
+      
+      // Direcionar para a página de erro de pagamento
+      setTimeout(() => {
+        navigate('/payment-failed', { 
+          state: { 
+            customerData,
+            orderData: {
+              productId: formState.productId,
+              productName: formState.productName,
+              productPrice: formState.productPrice,
+            },
+            paymentResult
+          } 
+        });
+      }, 1000);
     }
   } catch (error) {
     console.error('Erro ao processar pagamento com cartão de crédito:', error);
@@ -200,7 +273,6 @@ const handleAutomaticCardProcessing = async (
       variant: "destructive",
       duration: 5000,
     });
-  } finally {
     setIsSubmitting(false);
   }
 };
