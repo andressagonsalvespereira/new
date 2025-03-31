@@ -18,10 +18,10 @@ interface OrderSummarySectionProps {
 
 const OrderSummarySection = ({ productDetails, handlePayment, isProcessing }: OrderSummarySectionProps) => {
   return (
-    <div className="mb-8">
+    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex items-center mb-4">
-        <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">4</div>
-        <h2 className="font-medium">Sua Compra</h2>
+        <div className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">4</div>
+        <h2 className="font-medium">Resumo da Compra</h2>
         <div className="ml-auto text-sm font-medium">Total: <span className="text-red-600">R$ {productDetails.price.toFixed(2)}</span></div>
       </div>
       
