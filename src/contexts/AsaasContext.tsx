@@ -1,21 +1,15 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-
-export type AsaasSettings = {
-  isEnabled: boolean;
-  isSandbox: boolean;
-  allowPix: boolean;
-  allowCreditCard: boolean;
-  manualCardProcessing: boolean; // Added new setting
-};
+import { AsaasSettings } from '@/types/asaas';
 
 const defaultSettings: AsaasSettings = {
   isEnabled: true,
-  isSandbox: true,
+  apiKey: '',
   allowPix: true,
   allowCreditCard: true,
-  manualCardProcessing: false, // Default is disabled
+  manualCreditCard: false,
+  sandboxMode: true,
 };
 
 type AsaasContextType = {
@@ -51,9 +45,9 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
           // Ensure the manualCardProcessing property exists in saved settings
           setSettings({
             ...parsedSettings,
-            manualCardProcessing: parsedSettings.manualCardProcessing !== undefined 
-              ? parsedSettings.manualCardProcessing 
-              : defaultSettings.manualCardProcessing
+            manualCreditCard: parsedSettings.manualCreditCard !== undefined 
+              ? parsedSettings.manualCreditCard 
+              : defaultSettings.manualCreditCard
           });
         }
         setLoading(false);

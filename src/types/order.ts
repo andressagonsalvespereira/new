@@ -1,3 +1,4 @@
+
 export type PaymentMethod = 'PIX' | 'CREDIT_CARD';
 export type PaymentStatus = 'Aguardando' | 'Pago' | 'Recusado' | 'Reembolsado' | 'Cancelado' | 'Aguardando Análise Manual' | 'Aguardando Confirmação Manual';
 
