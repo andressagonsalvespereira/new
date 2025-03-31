@@ -8,12 +8,15 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import PixPayment from '@/components/checkout/PixPayment';
+import CustomerInfoForm, { CustomerData } from '@/components/checkout/CustomerInfoForm';
 
 const Checkout = () => {
   const { slug } = useParams();
   const { toast } = useToast();
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState<CustomerData | null>(null);
+  const [customerInfoCompleted, setCustomerInfoCompleted] = useState(false);
 
   // Function to determine product details based on slug
   const getProductDetails = () => {
@@ -43,8 +46,27 @@ const Checkout = () => {
 
   const productDetails = getProductDetails();
 
+  // Handle customer info submission
+  const handleCustomerInfoSubmit = (data: CustomerData) => {
+    setCustomerInfo(data);
+    setCustomerInfoCompleted(true);
+    
+    toast({
+      title: "Informações salvas",
+      description: "Seus dados foram salvos com sucesso",
+      duration: 3000,
+    });
+  };
+
   // Mock function to handle payment submission
   const handlePaymentSubmit = (data: any) => {
+    // Combine customer info with payment data
+    const completeData = {
+      ...data,
+      customer: customerInfo,
+      product: productDetails
+    };
+    
     // Simulate payment processing
     toast({
       title: "Pagamento recebido",
@@ -52,7 +74,7 @@ const Checkout = () => {
       duration: 5000,
     });
     
-    console.log('Payment data:', data);
+    console.log('Complete payment data:', completeData);
     
     // Simulate success after 1.5 seconds
     setTimeout(() => {
@@ -94,6 +116,14 @@ const Checkout = () => {
                 </p>
                 <div className="bg-gray-50 p-4 rounded-lg mb-4 max-w-md mx-auto">
                   <h4 className="font-medium text-lg mb-2">Resumo do pedido</h4>
+                  <div className="flex justify-between mb-2">
+                    <span>Cliente:</span>
+                    <span>{customerInfo?.fullName}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span>Email:</span>
+                    <span>{customerInfo?.email}</span>
+                  </div>
                   <div className="flex justify-between mb-2">
                     <span>Produto:</span>
                     <span>{productDetails.name}</span>
@@ -138,31 +168,48 @@ const Checkout = () => {
 
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                  {/* Payment methods tabs */}
-                  <Tabs 
-                    defaultValue="card" 
-                    className="w-full"
-                    onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
-                  >
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                      <TabsTrigger value="card" className="flex items-center">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        <span>Cartão de Crédito</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="pix" className="flex items-center">
-                        <QrCode className="mr-2 h-4 w-4" />
-                        <span>PIX</span>
-                      </TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="card">
-                      <CheckoutForm onSubmit={handlePaymentSubmit} />
-                    </TabsContent>
-                    
-                    <TabsContent value="pix">
-                      <PixPayment onSubmit={handlePaymentSubmit} />
-                    </TabsContent>
-                  </Tabs>
+                  {/* Customer information form */}
+                  <CustomerInfoForm 
+                    onSubmit={handleCustomerInfoSubmit} 
+                    isCompleted={customerInfoCompleted} 
+                  />
+                  
+                  {/* Payment methods tabs - only visible after customer info is completed */}
+                  {customerInfoCompleted && (
+                    <div className="transition-all duration-300">
+                      <div className="bg-black text-white p-3 mb-4 flex items-center">
+                        <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
+                          2
+                        </span>
+                        <h2 className="font-medium text-lg">Forma de Pagamento</h2>
+                      </div>
+                      
+                      <Tabs 
+                        defaultValue="card" 
+                        className="w-full"
+                        onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
+                      >
+                        <TabsList className="grid w-full grid-cols-2 mb-6">
+                          <TabsTrigger value="card" className="flex items-center">
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            <span>Cartão de Crédito</span>
+                          </TabsTrigger>
+                          <TabsTrigger value="pix" className="flex items-center">
+                            <QrCode className="mr-2 h-4 w-4" />
+                            <span>PIX</span>
+                          </TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="card">
+                          <CheckoutForm onSubmit={handlePaymentSubmit} />
+                        </TabsContent>
+                        
+                        <TabsContent value="pix">
+                          <PixPayment onSubmit={handlePaymentSubmit} />
+                        </TabsContent>
+                      </Tabs>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="md:col-span-1">
