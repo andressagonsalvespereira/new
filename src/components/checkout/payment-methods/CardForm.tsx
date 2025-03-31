@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -149,6 +149,11 @@ const CardForm: React.FC<CardFormProps> = ({
           </span>
         )}
       </Button>
+      
+      <div className="flex items-center justify-center text-xs text-gray-500 mt-2">
+        <Lock className="h-3 w-3 mr-1" />
+        <span>🔒 Compra 100% segura e protegida com criptografia SSL</span>
+      </div>
     </form>
   );
 };
