@@ -1,3 +1,4 @@
+
 export interface AsaasSettings {
   isEnabled: boolean;
   apiKey: string;
@@ -10,6 +11,7 @@ export interface AsaasSettings {
   manualCardProcessing?: boolean;
   manualPixPage?: boolean;
   manualPaymentConfig?: boolean;
+  manualCardStatus?: 'APPROVED' | 'DENIED' | 'ANALYSIS';
   // Add isSandbox for compatibility
   isSandbox?: boolean;
   // Add isLoading property

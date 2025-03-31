@@ -29,6 +29,19 @@ const PaymentSettingsForm = () => {
   const { toast } = useToast();
   const { settings, updateSettings, loading } = useAsaas();
   const [isSaving, setIsSaving] = useState(false);
+  const [formState, setFormState] = useState({
+    isEnabled: false,
+    manualCardProcessing: false,
+    manualCardStatus: ManualCardStatus.ANALYSIS,
+    manualCreditCard: false,
+    allowPix: true,
+    allowCreditCard: true,
+    sandboxMode: true,
+    sandboxApiKey: '',
+    productionApiKey: '',
+    manualPixPage: false,
+    manualPaymentConfig: true,
+  });
 
   const form = useForm({
     resolver: zodResolver(PaymentSettingsSchema),
@@ -51,25 +64,58 @@ const PaymentSettingsForm = () => {
     if (settings && !loading) {
       form.reset({
         isEnabled: settings.isEnabled,
-        manualCardProcessing: settings.manualCardProcessing,
+        manualCardProcessing: settings.manualCardProcessing || false,
         manualCardStatus: settings.manualCardStatus || ManualCardStatus.ANALYSIS,
         manualCreditCard: settings.manualCreditCard,
         allowPix: settings.allowPix,
         allowCreditCard: settings.allowCreditCard,
         sandboxMode: settings.sandboxMode,
-        sandboxApiKey: settings.sandboxApiKey,
-        productionApiKey: settings.productionApiKey,
-        manualPixPage: settings.manualPixPage,
-        manualPaymentConfig: settings.manualPaymentConfig,
+        sandboxApiKey: settings.sandboxApiKey || '',
+        productionApiKey: settings.productionApiKey || '',
+        manualPixPage: settings.manualPixPage || false,
+        manualPaymentConfig: settings.manualPaymentConfig || false,
+      });
+      
+      // Update the local form state for card components
+      setFormState({
+        isEnabled: settings.isEnabled,
+        manualCardProcessing: settings.manualCardProcessing || false,
+        manualCardStatus: settings.manualCardStatus || ManualCardStatus.ANALYSIS,
+        manualCreditCard: settings.manualCreditCard,
+        allowPix: settings.allowPix,
+        allowCreditCard: settings.allowCreditCard,
+        sandboxMode: settings.sandboxMode,
+        sandboxApiKey: settings.sandboxApiKey || '',
+        productionApiKey: settings.productionApiKey || '',
+        manualPixPage: settings.manualPixPage || false,
+        manualPaymentConfig: settings.manualPaymentConfig || false,
       });
     }
   }, [settings, loading, form]);
+
+  // Update formState when form values change
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      setFormState(value as typeof formState);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const onSubmit = async (data: z.infer<typeof PaymentSettingsSchema>) => {
     setIsSaving(true);
     try {
       await updateSettings({
-        ...data,
+        isEnabled: data.isEnabled,
+        manualCardProcessing: data.manualCardProcessing,
+        manualCardStatus: data.manualCardStatus,
+        manualCreditCard: data.manualCreditCard,
+        allowPix: data.allowPix,
+        allowCreditCard: data.allowCreditCard,
+        sandboxMode: data.sandboxMode,
+        sandboxApiKey: data.sandboxApiKey,
+        productionApiKey: data.productionApiKey,
+        manualPixPage: data.manualPixPage,
+        manualPaymentConfig: data.manualPaymentConfig,
         apiKey: data.sandboxMode ? data.sandboxApiKey : data.productionApiKey,
       });
       
@@ -95,9 +141,31 @@ const PaymentSettingsForm = () => {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <AsaasIntegrationCard form={form} />
-      <PaymentMethodsCard form={form} />
-      <ApiKeysCard form={form} />
+      <AsaasIntegrationCard 
+        formState={formState} 
+        loading={loading}
+        onUpdateFormState={(updater) => {
+          const newFormState = updater(formState);
+          form.reset(newFormState);
+        }}
+      />
+      
+      <PaymentMethodsCard 
+        formState={formState} 
+        loading={loading}
+        onUpdateFormState={(updater) => {
+          const newFormState = updater(formState);
+          form.reset(newFormState);
+        }}
+      />
+      
+      <ApiKeysCard 
+        formState={formState}
+        onUpdateFormState={(updater) => {
+          const newFormState = updater(formState);
+          form.reset(newFormState);
+        }}
+      />
       
       <ManualPaymentSettings form={form} />
       
