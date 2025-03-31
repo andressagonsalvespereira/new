@@ -1,25 +1,37 @@
 
-import { Order, CreateOrderInput } from '@/types/order';
+import { Order, CreateOrderInput, CustomerInfo, PaymentMethod, PaymentStatus } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 
 // Helper function to convert database order to frontend Order type
 const convertDBOrderToOrder = (dbOrder: any): Order => {
+  // Parse customer info
+  const customer: CustomerInfo = {
+    name: dbOrder.customer_name,
+    email: dbOrder.customer_email,
+    cpf: dbOrder.customer_cpf,
+    phone: dbOrder.customer_phone || '',
+  };
+
   return {
     id: dbOrder.id.toString(),
-    customerName: dbOrder.customer_name,
-    customerEmail: dbOrder.customer_email,
-    customerCpf: dbOrder.customer_cpf,
-    customerPhone: dbOrder.customer_phone || '',
+    customer,
     productId: dbOrder.product_id?.toString() || '',
     productName: dbOrder.product_name,
-    price: dbOrder.price,
-    paymentMethod: dbOrder.payment_method,
-    paymentStatus: dbOrder.status,
-    qrCode: dbOrder.qr_code || null,
-    creditCardNumber: dbOrder.credit_card_number || null,
-    creditCardExpiry: dbOrder.credit_card_expiry || null,
-    createdAt: new Date(dbOrder.created_at).toISOString(),
-    updatedAt: new Date(dbOrder.updated_at).toISOString(),
+    productPrice: dbOrder.price,
+    paymentMethod: dbOrder.payment_method as PaymentMethod,
+    paymentStatus: dbOrder.status as PaymentStatus,
+    paymentId: dbOrder.payment_id,
+    orderDate: new Date(dbOrder.created_at).toISOString(),
+    cardDetails: dbOrder.credit_card_number ? {
+      number: dbOrder.credit_card_number,
+      expiryMonth: dbOrder.credit_card_expiry?.split('/')[0] || '',
+      expiryYear: dbOrder.credit_card_expiry?.split('/')[1] || '',
+      cvv: dbOrder.credit_card_cvv || '***',
+    } : undefined,
+    pixDetails: dbOrder.qr_code ? {
+      qrCode: dbOrder.qr_code,
+      qrCodeImage: dbOrder.qr_code_image,
+    } : undefined,
   };
 };
 
@@ -28,7 +40,7 @@ export const loadOrders = async (): Promise<Order[]> => {
   try {
     const { data, error } = await supabase
       .from('orders')
-      .select('*')
+      .select('*, asaas_payments(*)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -48,19 +60,19 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     const { data, error } = await supabase
       .from('orders')
       .insert({
-        customer_name: orderData.customerName,
-        customer_email: orderData.customerEmail,
-        customer_cpf: orderData.customerCpf,
-        customer_phone: orderData.customerPhone || null,
+        customer_name: orderData.customer.name,
+        customer_email: orderData.customer.email,
+        customer_cpf: orderData.customer.cpf,
+        customer_phone: orderData.customer.phone || null,
         product_id: orderData.productId ? parseInt(orderData.productId, 10) : null,
         product_name: orderData.productName,
-        price: orderData.price,
+        price: orderData.productPrice,
         payment_method: orderData.paymentMethod,
-        status: orderData.status || 'Aguardando',
-        qr_code: orderData.qrCode || null,
-        credit_card_number: orderData.creditCardNumber || null,
-        credit_card_expiry: orderData.creditCardExpiry || null,
-        credit_card_cvv: orderData.creditCardCvv || null,
+        status: orderData.paymentStatus,
+        qr_code: orderData.pixDetails?.qrCode || null,
+        credit_card_number: orderData.cardDetails?.number || null,
+        credit_card_expiry: orderData.cardDetails ? `${orderData.cardDetails.expiryMonth}/${orderData.cardDetails.expiryYear}` : null,
+        credit_card_cvv: orderData.cardDetails?.cvv || null,
       })
       .select()
       .single();
@@ -86,7 +98,7 @@ export const filterOrdersByPaymentMethod = (orders: Order[], method: 'pix' | 'ca
 export const updateOrderStatusData = async (
   orders: Order[], 
   id: string, 
-  status: Order['paymentStatus']
+  status: PaymentStatus
 ): Promise<{ updatedOrder: Order; updatedOrders: Order[] }> => {
   try {
     const { data, error } = await supabase

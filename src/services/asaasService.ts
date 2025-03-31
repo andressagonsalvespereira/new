@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,6 +9,11 @@ export interface AsaasSettings {
   allowCreditCard: boolean;
   manualCreditCard: boolean;
   sandboxMode: boolean;
+}
+
+export interface AsaasConfig {
+  sandboxApiKey: string | null;
+  productionApiKey: string | null;
 }
 
 const DEFAULT_SETTINGS: AsaasSettings = {
@@ -22,28 +28,91 @@ const DEFAULT_SETTINGS: AsaasSettings = {
 // Obtém as configurações do Asaas do Supabase
 export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   try {
-    const { data, error } = await supabase
+    // Obter as configurações gerais
+    const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('*')
       .limit(1)
       .single();
     
-    if (error) {
-      console.error('Erro ao obter configurações do Asaas:', error);
+    if (settingsError) {
+      console.error('Erro ao obter configurações do Asaas:', settingsError);
       return DEFAULT_SETTINGS;
     }
     
+    // Obter as chaves de API
+    const { data: configData, error: configError } = await supabase
+      .from('asaas_config')
+      .select('*')
+      .limit(1)
+      .single();
+    
+    let apiKey = '';
+    if (!configError && configData) {
+      apiKey = settingsData.sandbox_mode 
+        ? configData.sandbox_api_key || '' 
+        : configData.production_api_key || '';
+    }
+    
     return {
-      isEnabled: data.asaas_enabled || false,
-      apiKey: '', // A API key deve ser armazenada em uma variável de ambiente no backend
-      allowPix: data.allow_pix || true,
-      allowCreditCard: data.allow_credit_card || true,
-      manualCreditCard: data.manual_credit_card || false,
-      sandboxMode: data.sandbox_mode || true
+      isEnabled: settingsData.asaas_enabled || false,
+      apiKey,
+      allowPix: settingsData.allow_pix || true,
+      allowCreditCard: settingsData.allow_credit_card || true,
+      manualCreditCard: settingsData.manual_credit_card || false,
+      sandboxMode: settingsData.sandbox_mode || true
     };
   } catch (error) {
     console.error('Erro ao obter configurações do Asaas:', error);
     return DEFAULT_SETTINGS;
+  }
+};
+
+// Obtém as chaves de API do Asaas do Supabase
+export const getAsaasConfig = async (): Promise<AsaasConfig> => {
+  try {
+    const { data, error } = await supabase
+      .from('asaas_config')
+      .select('*')
+      .limit(1)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao obter chaves de API do Asaas:', error);
+      return { sandboxApiKey: null, productionApiKey: null };
+    }
+    
+    return {
+      sandboxApiKey: data.sandbox_api_key,
+      productionApiKey: data.production_api_key
+    };
+  } catch (error) {
+    console.error('Erro ao obter chaves de API do Asaas:', error);
+    return { sandboxApiKey: null, productionApiKey: null };
+  }
+};
+
+// Salva as chaves de API do Asaas no Supabase
+export const saveAsaasConfig = async (config: AsaasConfig): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('asaas_config')
+      .update({
+        sandbox_api_key: config.sandboxApiKey,
+        production_api_key: config.productionApiKey,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', 1);
+    
+    if (error) {
+      console.error('Erro ao salvar chaves de API do Asaas:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar chaves de API do Asaas:', error);
+    return false;
   }
 };
 
@@ -73,6 +142,7 @@ export const saveAsaasSettings = async (settings: Partial<AsaasSettings>): Promi
   }
 };
 
+// Interfaces para integração com a API Asaas
 export interface AsaasCustomer {
   name: string;
   email: string;
@@ -142,6 +212,65 @@ export interface AsaasPixQrCodeResponse {
   expirationDate: string;
 }
 
+// Salvar dados de pagamento no Supabase
+export const saveAsaasPayment = async (
+  orderId: number, 
+  paymentId: string, 
+  method: 'PIX' | 'CREDIT_CARD', 
+  status: string,
+  qrCode?: string,
+  qrCodeImage?: string
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('asaas_payments')
+      .insert({
+        order_id: orderId,
+        payment_id: paymentId,
+        method,
+        status,
+        qr_code: qrCode,
+        qr_code_image: qrCodeImage
+      });
+    
+    if (error) {
+      console.error('Erro ao salvar dados de pagamento Asaas:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar dados de pagamento Asaas:', error);
+    return false;
+  }
+};
+
+// Atualizar status do pagamento no Supabase
+export const updateAsaasPaymentStatus = async (
+  paymentId: string, 
+  status: string
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('asaas_payments')
+      .update({
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('payment_id', paymentId);
+    
+    if (error) {
+      console.error('Erro ao atualizar status do pagamento Asaas:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar status do pagamento Asaas:', error);
+    return false;
+  }
+};
+
 // Asaas service to handle API calls
 class AsaasService {
   private getSandboxUrl() {
@@ -152,31 +281,33 @@ class AsaasService {
     return 'https://www.asaas.com/api/v3';
   }
 
-  private getApiKey(isSandbox: boolean) {
-    // In a real implementation, these would be environment variables or securely stored
+  private async getApiKey(isSandbox: boolean) {
+    const config = await getAsaasConfig();
     return isSandbox 
-      ? 'SANDBOX_API_KEY' // Replace with actual sandbox key from environment
-      : 'PRODUCTION_API_KEY'; // Replace with actual production key from environment
+      ? config.sandboxApiKey || '' 
+      : config.productionApiKey || '';
   }
 
   private getBaseUrl(isSandbox: boolean) {
     return isSandbox ? this.getSandboxUrl() : this.getProductionUrl();
   }
 
-  private getHeaders(isSandbox: boolean) {
+  private async getHeaders(isSandbox: boolean) {
+    const apiKey = await this.getApiKey(isSandbox);
     return {
       'Content-Type': 'application/json',
-      'access_token': this.getApiKey(isSandbox),
+      'access_token': apiKey,
     };
   }
 
   // Create a customer in Asaas
   async createCustomer(customer: AsaasCustomer, isSandbox: boolean): Promise<any> {
     try {
+      const headers = await this.getHeaders(isSandbox);
       const response = await axios.post(
         `${this.getBaseUrl(isSandbox)}/customers`,
         customer,
-        { headers: this.getHeaders(isSandbox) }
+        { headers }
       );
       return response.data;
     } catch (error) {
@@ -188,10 +319,11 @@ class AsaasService {
   // Create a payment in Asaas
   async createPayment(payment: AsaasPayment, isSandbox: boolean): Promise<AsaasPaymentResponse> {
     try {
+      const headers = await this.getHeaders(isSandbox);
       const response = await axios.post(
         `${this.getBaseUrl(isSandbox)}/payments`,
         payment,
-        { headers: this.getHeaders(isSandbox) }
+        { headers }
       );
       return response.data;
     } catch (error) {
@@ -203,9 +335,10 @@ class AsaasService {
   // Get the PIX QR code for a payment
   async getPixQrCode(paymentId: string, isSandbox: boolean): Promise<AsaasPixQrCodeResponse> {
     try {
+      const headers = await this.getHeaders(isSandbox);
       const response = await axios.get(
         `${this.getBaseUrl(isSandbox)}/payments/${paymentId}/pixQrCode`,
-        { headers: this.getHeaders(isSandbox) }
+        { headers }
       );
       return response.data;
     } catch (error) {
@@ -217,9 +350,10 @@ class AsaasService {
   // Check the payment status
   async checkPaymentStatus(paymentId: string, isSandbox: boolean): Promise<AsaasPaymentResponse> {
     try {
+      const headers = await this.getHeaders(isSandbox);
       const response = await axios.get(
         `${this.getBaseUrl(isSandbox)}/payments/${paymentId}`,
-        { headers: this.getHeaders(isSandbox) }
+        { headers }
       );
       return response.data;
     } catch (error) {

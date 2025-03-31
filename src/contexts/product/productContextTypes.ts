@@ -11,6 +11,8 @@ export interface ProductContextType {
   removeProduct: (id: string) => Promise<void>;
   getProductById: (id: string) => Promise<Product | undefined>;
   refreshProducts: () => Promise<void>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<Product>;
+  deleteProduct: (id: string) => Promise<void>;
 }
 
 export interface ProductProviderProps {

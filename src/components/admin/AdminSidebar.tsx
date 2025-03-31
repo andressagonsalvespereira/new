@@ -9,7 +9,8 @@ import {
   QrCode, 
   LogOut, 
   ShoppingCart,
-  Tag
+  Tag,
+  CreditCard as CreditCardIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,10 +67,16 @@ const AdminSidebar: React.FC = () => {
           isActive={isActive('/admin/dashboard')}
         />
         <SidebarItem 
-          icon={Settings} 
+          icon={CreditCardIcon} 
           label="Configurações do Asaas" 
+          href="/admin/asaas-settings" 
+          isActive={isActive('/admin/asaas-settings')}
+        />
+        <SidebarItem 
+          icon={Settings} 
+          label="Configurações de Pagamento" 
           href="/admin/settings/payment" 
-          isActive={isActive('/admin/settings')}
+          isActive={isActive('/admin/settings/payment')}
         />
         <SidebarItem 
           icon={Package} 

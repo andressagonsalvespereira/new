@@ -12,6 +12,7 @@ import { useAsaas } from '@/contexts/AsaasContext';
 import { useProducts } from '@/contexts/ProductContext';
 import { useOrders } from '@/contexts/OrderContext';
 import { usePixel } from '@/contexts/PixelContext';
+import { CustomerInfo } from '@/types/order';
 
 const QuickCheckout = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -24,8 +25,8 @@ const QuickCheckout = () => {
   
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
-  const [customerDetails, setCustomerDetails] = useState({
+  const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('CREDIT_CARD');
+  const [customerDetails, setCustomerDetails] = useState<CustomerInfo>({
     name: '',
     email: '',
     cpf: '',
@@ -80,15 +81,12 @@ const QuickCheckout = () => {
       };
       
       const newOrder = await addOrder({
+        customer: customerDetails,
         productId: product.id,
         productName: product.name,
         productPrice: product.price,
-        customerName: customerDetails.name,
-        customerEmail: customerDetails.email,
-        customerPhone: customerDetails.phone,
-        customerCpf: customerDetails.cpf,
         paymentMethod: paymentMethod,
-        status: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando'
+        paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando'
       });
       
       setIsOrderSubmitted(true);
@@ -105,10 +103,10 @@ const QuickCheckout = () => {
         }]
       });
       
-      if (paymentMethod === 'pix' || paymentData.status === 'CONFIRMED') {
+      if (paymentMethod === 'PIX' || paymentData.status === 'CONFIRMED') {
         toast({
           title: "Pedido realizado com sucesso!",
-          description: paymentMethod === 'pix' 
+          description: paymentMethod === 'PIX' 
             ? "Utilize o QR code PIX para finalizar o pagamento." 
             : "Seu pagamento foi aprovado.",
           duration: 5000,
@@ -220,11 +218,11 @@ const QuickCheckout = () => {
                   {settings.allowCreditCard && (
                     <button
                       className={`flex-1 py-2 px-4 rounded-md border ${
-                        paymentMethod === 'card' 
+                        paymentMethod === 'CREDIT_CARD' 
                           ? 'border-blue-500 bg-blue-50 text-blue-700' 
                           : 'border-gray-300 text-gray-700'
                       }`}
-                      onClick={() => setPaymentMethod('card')}
+                      onClick={() => setPaymentMethod('CREDIT_CARD')}
                     >
                       Cartão de Crédito
                     </button>
@@ -233,28 +231,27 @@ const QuickCheckout = () => {
                   {settings.allowPix && (
                     <button
                       className={`flex-1 py-2 px-4 rounded-md border ${
-                        paymentMethod === 'pix' 
+                        paymentMethod === 'PIX' 
                           ? 'border-blue-500 bg-blue-50 text-blue-700' 
                           : 'border-gray-300 text-gray-700'
                       }`}
-                      onClick={() => setPaymentMethod('pix')}
+                      onClick={() => setPaymentMethod('PIX')}
                     >
                       PIX
                     </button>
                   )}
                 </div>
                 
-                {paymentMethod === 'card' && (
+                {paymentMethod === 'CREDIT_CARD' && (
                   <CheckoutForm 
                     onSubmit={handlePaymentSubmit} 
                     isSandbox={settings.sandboxMode} 
                   />
                 )}
                 
-                {paymentMethod === 'pix' && (
+                {paymentMethod === 'PIX' && (
                   <PixPayment 
                     onSubmit={handlePaymentSubmit}
-                    productPrice={product.price}
                     isSandbox={settings.sandboxMode}
                   />
                 )}
@@ -266,11 +263,11 @@ const QuickCheckout = () => {
                 Pedido Realizado com Sucesso!
               </h3>
               <p className="text-gray-600 mb-4">
-                {paymentMethod === 'pix' 
+                {paymentMethod === 'PIX' 
                   ? 'Utilize o QR code PIX abaixo para finalizar seu pagamento.' 
                   : 'Seu pagamento foi processado com sucesso. Você receberá um e-mail com os detalhes do pedido.'}
               </p>
-              {paymentMethod === 'card' && (
+              {paymentMethod === 'CREDIT_CARD' && (
                 <Button
                   onClick={() => navigate('/')}
                   className="bg-green-600 hover:bg-green-700"
