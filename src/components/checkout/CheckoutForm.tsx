@@ -9,7 +9,7 @@ import { useAsaas } from '@/contexts/AsaasContext';
 import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
-import { processCardPayment } from './utils/payment/cardProcessor';
+import { processCardPayment } from './utils/payment/card/cardProcessor';
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => void;
@@ -30,7 +30,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
       { isEnabled: settings?.isEnabled, manualCardProcessing: settings?.manualCardProcessing });
     
     try {
-      // Processar pagamento com cartão usando o utilitário
+      // Process payment with card using the utility with object parameter
       await processCardPayment({
         cardData,
         props: { 

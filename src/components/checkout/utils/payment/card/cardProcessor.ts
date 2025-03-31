@@ -54,7 +54,7 @@ export const processCardPayment = async ({
         setError,
         toast,
         onSubmit,
-        brand
+        brand: brand || 'Unknown' // Ensure brand is a string
       });
     }
     
@@ -69,7 +69,7 @@ export const processCardPayment = async ({
       navigate,
       toast,
       onSubmit,
-      brand
+      brand: brand || 'Unknown' // Ensure brand is a string
     });
   } catch (error) {
     console.error('Erro geral ao processar pagamento:', error);

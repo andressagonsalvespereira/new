@@ -19,7 +19,7 @@ export const processCardPayment = async (
   // Import this dynamically to avoid circular dependencies
   const { processCardPayment: newProcessor } = await import('./card/cardProcessor');
   
-  // Call the refactored implementation with the same parameters
+  // Call the refactored implementation with the parameters as an object
   return newProcessor({
     cardData,
     props,

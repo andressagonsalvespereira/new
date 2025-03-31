@@ -32,10 +32,12 @@ export const CardSchema = z.object({
       const month = parseInt(val, 10);
       return !isNaN(month) && month >= 1 && month <= 12;
     }, "Mês inválido (1-12)")
-    .refine((month, ctx) => {
-      const year = parseInt(ctx.data.expiryYear, 10);
+    .refine((val) => {
+      const month = parseInt(val, 10);
+      // Get current context in a different way
+      const year = parseInt(z.getContext().data?.expiryYear, 10);
       // If it's the current year, month must be current or future
-      if (year === currentYear && parseInt(month, 10) < currentMonth) {
+      if (year === currentYear && month < currentMonth) {
         return false;
       }
       return true;
@@ -78,4 +80,39 @@ export const formatCardNumber = (value: string): string => {
  */
 export const maskCardNumber = (cardNumber: string): string => {
   return cardNumber.replace(/\d(?=\d{4})/g, '*');
+};
+
+/**
+ * Validates a credit card form
+ * @returns Validation errors or null if valid
+ */
+export const validateCardForm = (
+  cardName: string,
+  cardNumber: string,
+  expiryMonth: string,
+  expiryYear: string,
+  cvv: string
+): CardValidationErrors | null => {
+  try {
+    // Use the Zod schema to validate the card details
+    CardSchema.parse({
+      cardName,
+      cardNumber,
+      expiryMonth,
+      expiryYear,
+      cvv
+    });
+    return null; // No errors if validation passes
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors: CardValidationErrors = {};
+      error.errors.forEach((err) => {
+        const field = err.path[0] as keyof CardValidationErrors;
+        errors[field] = err.message;
+      });
+      return errors;
+    }
+    // Fallback error object if not a ZodError
+    return { cardName: "Erro de validação desconhecido" };
+  }
 };
