@@ -1,15 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { CreditCard } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { CardSchema } from '@/components/checkout/utils/cardValidation';
-import { detectCardBrand } from '@/components/checkout/utils/payment/cardDetection';
-import { Progress } from '@/components/ui/progress';
-import { validateCVV } from '@/utils/validators';
+import React from 'react';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
+import { useCardForm } from './hooks/useCardForm';
+import CardNameField from './form-fields/CardNameField';
+import CardNumberField from './form-fields/CardNumberField';
+import CardExpiryFields from './form-fields/CardExpiryFields';
+import CVVField from './form-fields/CVVField';
+import CardSubmitButton from './buttons/CardSubmitButton';
 
 export interface CardFormData {
   cardName: string;
@@ -32,103 +29,8 @@ const CardForm: React.FC<CardFormProps> = ({
   isSubmitting = false,
   buttonText = "Pagar com Cartão"
 }) => {
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [cardBrand, setCardBrand] = useState<string>('');
   const { customization } = useCheckoutCustomization();
-  
-  const { register, handleSubmit, formState, watch, setValue } = useForm<CardFormData>({
-    defaultValues: {
-      cardName: '',
-      cardNumber: '',
-      expiryMonth: '',
-      expiryYear: '',
-      cvv: ''
-    }
-  });
-
-  const cardNumber = watch('cardNumber');
-  const expiryMonth = watch('expiryMonth');
-  const expiryYear = watch('expiryYear');
-  const cvv = watch('cvv');
-
-  useEffect(() => {
-    if (cardNumber && cardNumber.length >= 4) {
-      const brand = detectCardBrand(cardNumber);
-      setCardBrand(brand);
-    } else {
-      setCardBrand('');
-    }
-  }, [cardNumber]);
-
-  // Restrict month to 2 digits
-  useEffect(() => {
-    if (expiryMonth) {
-      const month = expiryMonth.replace(/\D/g, '');
-      if (month.length > 2) {
-        setValue('expiryMonth', month.substring(0, 2));
-      }
-
-      // Make sure month is between 1-12
-      if (month.length === 2) {
-        const monthValue = parseInt(month);
-        if (monthValue > 12) {
-          setValue('expiryMonth', '12');
-        } else if (monthValue < 1) {
-          setValue('expiryMonth', '01');
-        }
-      }
-    }
-  }, [expiryMonth, setValue]);
-
-  // Restrict year to 2 digits
-  useEffect(() => {
-    if (expiryYear) {
-      const year = expiryYear.replace(/\D/g, '');
-      if (year.length > 2) {
-        setValue('expiryYear', year.substring(0, 2));
-      }
-    }
-  }, [expiryYear, setValue]);
-
-  // Validate CVV
-  useEffect(() => {
-    if (cvv) {
-      const cleanCvv = cvv.replace(/\D/g, '');
-      if (cleanCvv.length > 3) {
-        setValue('cvv', cleanCvv.substring(0, 3));
-      }
-    }
-  }, [cvv, setValue]);
-
-  const validateForm = (data: CardFormData) => {
-    try {
-      CardSchema.parse(data);
-      
-      // Validate CVV is not 000
-      if (!validateCVV(data.cvv)) {
-        setErrors({ cvv: 'CVV inválido (não pode ser 000)' });
-        return false;
-      }
-      
-      setErrors({});
-      return true;
-    } catch (error: any) {
-      const formattedErrors: Record<string, string> = {};
-      error.errors.forEach((err: any) => {
-        if (err.path) {
-          formattedErrors[err.path[0]] = err.message;
-        }
-      });
-      setErrors(formattedErrors);
-      return false;
-    }
-  };
-
-  const processSubmit = (data: CardFormData) => {
-    if (validateForm(data)) {
-      onSubmit(data);
-    }
-  };
+  const { register, handleSubmit, processSubmit, errors, cardBrand, watch } = useCardForm(onSubmit);
 
   // Get button styles from customization
   const buttonStyle = {
@@ -136,105 +38,51 @@ const CardForm: React.FC<CardFormProps> = ({
     color: customization?.button_text_color || '#ffffff'
   };
 
+  // Use custom button text from customization if available
+  const displayButtonText = customization?.button_text || buttonText;
+
   return (
     <form onSubmit={handleSubmit(processSubmit)} className="space-y-4">
-      <div className="space-y-1">
-        <Label htmlFor="cardName">Nome no cartão</Label>
-        <Input
-          id="cardName"
-          placeholder="Nome como aparece no cartão"
-          {...register('cardName')}
-          disabled={loading || isSubmitting}
-          className={errors.cardName ? "border-red-500" : ""}
-        />
-        {errors.cardName && <p className="text-xs text-red-500">{errors.cardName}</p>}
-      </div>
+      <CardNameField 
+        value={watch('cardName')}
+        onChange={(e) => register('cardName').onChange(e)}
+        disabled={loading || isSubmitting}
+        error={errors.cardName}
+      />
 
-      <div className="space-y-1">
-        <Label htmlFor="cardNumber" className="flex items-center justify-between">
-          <span>Número do cartão</span>
-          {cardBrand && (
-            <span className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-1 rounded">
-              {cardBrand}
-            </span>
-          )}
-        </Label>
-        <Input
-          id="cardNumber"
-          placeholder="0000 0000 0000 0000"
-          {...register('cardNumber')}
-          disabled={loading || isSubmitting}
-          className={errors.cardNumber ? "border-red-500" : ""}
-        />
-        {errors.cardNumber && <p className="text-xs text-red-500">{errors.cardNumber}</p>}
-      </div>
+      <CardNumberField 
+        value={watch('cardNumber')}
+        onChange={(e) => register('cardNumber').onChange(e)}
+        disabled={loading || isSubmitting}
+        error={errors.cardNumber}
+        cardBrand={cardBrand}
+      />
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-1">
-          <Label htmlFor="expiryMonth">Mês</Label>
-          <Input
-            id="expiryMonth"
-            placeholder="MM"
-            {...register('expiryMonth')}
-            disabled={loading || isSubmitting}
-            className={errors.expiryMonth ? "border-red-500" : ""}
-            maxLength={2}
-          />
-          {errors.expiryMonth && <p className="text-xs text-red-500">{errors.expiryMonth}</p>}
-        </div>
+        <CardExpiryFields 
+          monthValue={watch('expiryMonth')}
+          yearValue={watch('expiryYear')}
+          onMonthChange={(e) => register('expiryMonth').onChange(e)}
+          onYearChange={(e) => register('expiryYear').onChange(e)}
+          disabled={loading || isSubmitting}
+          monthError={errors.expiryMonth}
+          yearError={errors.expiryYear}
+        />
         
-        <div className="space-y-1">
-          <Label htmlFor="expiryYear">Ano</Label>
-          <Input
-            id="expiryYear"
-            placeholder="AA"
-            {...register('expiryYear')}
-            disabled={loading || isSubmitting}
-            className={errors.expiryYear ? "border-red-500" : ""}
-            maxLength={2}
-          />
-          {errors.expiryYear && <p className="text-xs text-red-500">{errors.expiryYear}</p>}
-        </div>
-        
-        <div className="space-y-1">
-          <Label htmlFor="cvv">CVV</Label>
-          <Input
-            id="cvv"
-            type="text"
-            placeholder="123"
-            {...register('cvv')}
-            disabled={loading || isSubmitting}
-            className={errors.cvv ? "border-red-500" : ""}
-            maxLength={3}
-          />
-          {errors.cvv && <p className="text-xs text-red-500">{errors.cvv}</p>}
-        </div>
+        <CVVField 
+          value={watch('cvv')}
+          onChange={(e) => register('cvv').onChange(e)}
+          disabled={loading || isSubmitting}
+          error={errors.cvv}
+        />
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full" 
-        disabled={loading || isSubmitting}
-        style={buttonStyle}
-      >
-        {loading || isSubmitting ? (
-          <div className="w-full">
-            <div className="flex items-center justify-center mb-2">
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-            <span>Processando pagamento...</span>
-            <Progress value={65} className="h-1 mt-2" />
-          </div>
-        ) : (
-          <span className="flex items-center">
-            <CreditCard className="mr-2 h-5 w-5" />
-            {customization?.button_text || buttonText}
-          </span>
-        )}
-      </Button>
+      <CardSubmitButton 
+        isLoading={loading}
+        isSubmitting={isSubmitting}
+        buttonText={displayButtonText}
+        buttonStyle={buttonStyle}
+      />
     </form>
   );
 };
