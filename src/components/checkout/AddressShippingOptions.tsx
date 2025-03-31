@@ -21,8 +21,8 @@ const AddressShippingOptions = ({
       </h3>
       
       <div 
-        className={`border rounded-md p-3 mb-3 flex items-start cursor-pointer transition-colors ${
-          selectedShipping === 'free' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+        className={`border rounded-md p-3 mb-2 flex items-start cursor-pointer transition-colors ${
+          selectedShipping === 'free' ? 'border-green-500 bg-white' : 'border-gray-200 hover:border-green-300'
         }`}
         onClick={() => onSelectShipping('free')}
       >
