@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,6 +14,8 @@ export interface CheckoutFormState {
   city: string;
   state: string;
   formErrors: Record<string, string>;
+  selectedShipping: string | null;
+  deliveryEstimate: string | null;
 }
 
 export function useCheckoutForm() {
@@ -32,6 +33,8 @@ export function useCheckoutForm() {
     city: '',
     state: '',
     formErrors: {},
+    selectedShipping: null,
+    deliveryEstimate: null,
   });
   const [isSearchingCep, setIsSearchingCep] = useState(false);
 
@@ -95,6 +98,12 @@ export function useCheckoutForm() {
   const setFormErrors = (errors: Record<string, string>) => 
     setFormState(prev => ({ ...prev, formErrors: errors }));
 
+  const setSelectedShipping = (value: string | null) =>
+    setFormState(prev => ({ ...prev, selectedShipping: value }));
+    
+  const setDeliveryEstimate = (value: string | null) =>
+    setFormState(prev => ({ ...prev, deliveryEstimate: value }));
+
   // Address search functionality
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedCep = formatCEP(e.target.value);
@@ -112,8 +121,23 @@ export function useCheckoutForm() {
             street: data.logradouro || '',
             neighborhood: data.bairro || '',
             city: data.localidade || '',
-            state: data.uf || ''
+            state: data.uf || '',
+            selectedShipping: 'free',
           }));
+          
+          // Calcular prazo de entrega estimado
+          const today = new Date();
+          // Adicionar 5-10 dias úteis (simples)
+          const deliveryDate = new Date(today);
+          deliveryDate.setDate(today.getDate() + 7); // Média de 7 dias
+          
+          const formattedDate = deliveryDate.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          
+          setDeliveryEstimate(`Chegará em ${formattedDate}`);
           
           // Clear previous errors for these fields
           const newErrors = {...formState.formErrors};
@@ -186,6 +210,7 @@ export function useCheckoutForm() {
     setNeighborhood,
     setCity,
     setState,
+    setSelectedShipping,
     handleCepChange,
     validateForm
   };

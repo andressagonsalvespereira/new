@@ -20,6 +20,7 @@ interface ProductDetailsType {
   price: number;
   description: string;
   image: string;
+  isDigital: boolean;
 }
 
 const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
@@ -43,6 +44,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
     setNeighborhood,
     setCity,
     setState,
+    setSelectedShipping,
     handleCepChange,
   } = useCheckoutForm();
 
@@ -77,6 +79,10 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         setState={setState}
         formErrors={formState.formErrors}
         isSearchingCep={isSearchingCep}
+        isDigitalProduct={productDetails.isDigital}
+        selectedShipping={formState.selectedShipping}
+        setSelectedShipping={setSelectedShipping}
+        deliveryEstimate={formState.deliveryEstimate}
       />
       
       <PaymentMethodSection 

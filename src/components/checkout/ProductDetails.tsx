@@ -6,6 +6,7 @@ export interface ProductDetailsType {
   price: number;
   description: string;
   image: string;
+  isDigital: boolean;
 }
 
 // This component doesn't render anything but provides a central place to define product details
@@ -14,6 +15,7 @@ export const getProductDetails = (): ProductDetailsType => {
     name: "Caneleira Gold",
     price: 59.90,
     description: 'Proteção premium para suas pernas',
-    image: '/lovable-uploads/1664640d-4609-448d-9936-1d17bb6ed55a.png'
+    image: '/lovable-uploads/1664640d-4609-448d-9936-1d17bb6ed55a.png',
+    isDigital: false // Altere para true para testar produtos digitais
   };
 };
