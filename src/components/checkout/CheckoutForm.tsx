@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
@@ -9,7 +8,7 @@ import { useAsaas } from '@/contexts/AsaasContext';
 import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
-import { processCardPayment } from './utils/paymentProcessor';
+import { processCardPayment } from './utils/payment/cardProcessor';
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => void;
