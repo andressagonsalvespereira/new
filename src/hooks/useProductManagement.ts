@@ -1,110 +1,60 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
-import { useToast } from '@/hooks/use-toast';
-import { Product, CriarProdutoInput } from '@/types/product';
-
-const estadoInicialFormulario: CriarProdutoInput = {
-  nome: '',
-  descricao: '',
-  preco: 0,
-  urlImagem: '',
-  digital: false,
-  usarProcessamentoPersonalizado: false,
-  statusCartaoManual: 'ANALISE'
-};
+import { Product } from '@/types/product';
+import { useProductForm } from './useProductForm';
+import { useProductDialogs } from './useProductDialogs';
+import { useProductPagination } from './useProductPagination';
+import { useProductOperations } from './useProductOperations';
 
 export const useGerenciamentoProdutos = () => {
-  const [dialogoAdicaoAberto, definirDialogoAdicaoAberto] = useState(false);
-  const [dialogoEdicaoAberto, definirDialogoEdicaoAberto] = useState(false);
-  const [dialogoRemocaoAberto, definirDialogoRemocaoAberto] = useState(false);
-  const [produtoEmEdicao, definirProdutoEmEdicao] = useState<Product | null>(null);
-  const [produtoParaRemover, definirProdutoParaRemover] = useState<Product | null>(null);
-  const [dadosFormulario, definirDadosFormulario] = useState<CriarProdutoInput>(estadoInicialFormulario);
-  
-  // Pagination state
-  const [paginaAtual, definirPaginaAtual] = useState(1);
-  const [tamanhoPagina, definirTamanhoPagina] = useState(5);
-
-  const { toast: exibirNotificacao } = useToast();
+  // Obtém os produtos e estado do contexto
   const { 
-    addProduct: adicionarProduto, 
-    updateProduct: atualizarProduto, 
-    deleteProduct: removerProduto, 
     products: produtos, 
     loading: carregando, 
     error: erro,
-    refreshProducts: atualizarProdutos,
     isOffline: estaOffline
   } = useProducts();
 
-  // Reset to first page when products change (e.g., after add/delete)
-  useEffect(() => {
-    definirPaginaAtual(1);
-  }, [produtos.length]);
+  // Hooks especializados
+  const { 
+    dadosFormulario, 
+    definirDadosFormulario, 
+    redefinirFormulario,
+    manipularMudancaInput,
+    manipularMudancaSwitch,
+    manipularMudancaProcessamentoPersonalizado,
+    manipularMudancaStatusCartaoManual
+  } = useProductForm();
 
-  const redefinirFormulario = useCallback(() => {
-    definirDadosFormulario(estadoInicialFormulario);
-  }, []);
+  const {
+    dialogoAdicaoAberto,
+    definirDialogoAdicaoAberto,
+    dialogoEdicaoAberto,
+    definirDialogoEdicaoAberto,
+    dialogoRemocaoAberto,
+    definirDialogoRemocaoAberto,
+    produtoEmEdicao,
+    definirProdutoEmEdicao,
+    produtoParaRemover,
+    definirProdutoParaRemover
+  } = useProductDialogs();
 
-  const manipularMudancaInput = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name: nome, value: valor } = e.target;
-    
-    if (nome === 'preco') {
-      definirDadosFormulario(prev => ({
-        ...prev,
-        [nome]: parseFloat(valor) || 0
-      }));
-    } else {
-      definirDadosFormulario(prev => ({
-        ...prev,
-        [nome]: valor
-      }));
-    }
-  }, []);
+  const {
+    paginaAtual,
+    tamanhoPagina,
+    handleMudancaPagina
+  } = useProductPagination(produtos.length);
 
-  const manipularMudancaSwitch = useCallback((checked: boolean) => {
-    definirDadosFormulario(prev => ({
-      ...prev,
-      digital: checked
-    }));
-  }, []);
+  const {
+    handleAdicionarProduto,
+    handleAtualizarProduto,
+    handleRemoverProduto,
+    atualizarProdutos
+  } = useProductOperations();
 
-  const manipularMudancaProcessamentoPersonalizado = useCallback((checked: boolean) => {
-    definirDadosFormulario(prev => ({
-      ...prev,
-      usarProcessamentoPersonalizado: checked
-    }));
-  }, []);
-
-  const manipularMudancaStatusCartaoManual = useCallback((value: string) => {
-    definirDadosFormulario(prev => ({
-      ...prev,
-      statusCartaoManual: value
-    }));
-  }, []);
-
-  const handleAdicionarProduto = async () => {
-    try {
-      await adicionarProduto(dadosFormulario);
-      redefinirFormulario();
-      definirDialogoAdicaoAberto(false);
-
-      exibirNotificacao({
-        title: "Sucesso",
-        description: "Produto adicionado com sucesso",
-      });
-    } catch (erro) {
-      console.error('Erro ao adicionar produto:', erro);
-      exibirNotificacao({
-        title: "Erro",
-        description: "Falha ao adicionar produto",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEditarClique = useCallback((produto: Product) => {
+  // Lidar com o clique no botão editar
+  const handleEditarClique = (produto: Product) => {
     definirProdutoEmEdicao(produto);
     definirDadosFormulario({
       nome: produto.nome,
@@ -116,62 +66,59 @@ export const useGerenciamentoProdutos = () => {
       statusCartaoManual: produto.statusCartaoManual || 'ANALISE'
     });
     definirDialogoEdicaoAberto(true);
-  }, []);
+  };
 
-  const handleRemoverClique = useCallback((produto: Product) => {
+  // Lidar com o clique no botão excluir
+  const handleRemoverClique = (produto: Product) => {
     definirProdutoParaRemover(produto);
     definirDialogoRemocaoAberto(true);
-  }, []);
+  };
 
-  const handleAtualizarProduto = async () => {
+  // Manipuladores para operações CRUD
+  const handleAddProduct = async () => {
+    const sucesso = await handleAdicionarProduto(dadosFormulario);
+    if (sucesso) {
+      redefinirFormulario();
+      definirDialogoAdicaoAberto(false);
+    }
+  };
+
+  const handleUpdateProduct = async () => {
     if (!produtoEmEdicao) return;
-
-    try {
-      await atualizarProduto(produtoEmEdicao.id, dadosFormulario);
+    
+    const sucesso = await handleAtualizarProduto(produtoEmEdicao.id, dadosFormulario);
+    if (sucesso) {
       definirDialogoEdicaoAberto(false);
       definirProdutoEmEdicao(null);
-
-      exibirNotificacao({
-        title: "Sucesso",
-        description: "Produto atualizado com sucesso",
-      });
-    } catch (erro) {
-      console.error('Erro ao atualizar produto:', erro);
-      exibirNotificacao({
-        title: "Erro",
-        description: "Falha ao atualizar produto",
-        variant: "destructive",
-      });
     }
   };
 
-  const handleRemoverProduto = async () => {
+  const handleDeleteProduct = async () => {
     if (!produtoParaRemover) return;
     
-    try {
-      await removerProduto(produtoParaRemover.id);
+    const sucesso = await handleRemoverProduto(produtoParaRemover.id);
+    if (sucesso) {
       definirDialogoRemocaoAberto(false);
       definirProdutoParaRemover(null);
-      
-      exibirNotificacao({
-        title: "Sucesso",
-        description: "Produto removido com sucesso",
-      });
-    } catch (erro) {
-      console.error('Erro ao remover produto:', erro);
-      exibirNotificacao({
-        title: "Erro",
-        description: "Falha ao remover produto",
-        variant: "destructive",
-      });
     }
-  };
-
-  const handleMudancaPagina = (pagina: number) => {
-    definirPaginaAtual(pagina);
   };
 
   return {
+    // Estado dos produtos
+    products: produtos,
+    loading: carregando,
+    error: erro,
+    isOffline: estaOffline,
+    
+    // Estado do formulário
+    formData: dadosFormulario,
+    handleInputChange: manipularMudancaInput,
+    handleSwitchChange: manipularMudancaSwitch,
+    handleUseCustomProcessingChange: manipularMudancaProcessamentoPersonalizado,
+    handleManualCardStatusChange: manipularMudancaStatusCartaoManual,
+    resetForm: redefinirFormulario,
+    
+    // Estado dos diálogos
     isAddDialogOpen: dialogoAdicaoAberto,
     setIsAddDialogOpen: definirDialogoAdicaoAberto,
     isEditDialogOpen: dialogoEdicaoAberto,
@@ -180,23 +127,16 @@ export const useGerenciamentoProdutos = () => {
     setIsDeleteDialogOpen: definirDialogoRemocaoAberto,
     editingProduct: produtoEmEdicao,
     productToDelete: produtoParaRemover,
-    formData: dadosFormulario,
-    products: produtos,
-    loading: carregando,
-    error: erro,
-    isOffline: estaOffline,
-    handleInputChange: manipularMudancaInput,
-    handleSwitchChange: manipularMudancaSwitch,
-    handleUseCustomProcessingChange: manipularMudancaProcessamentoPersonalizado,
-    handleManualCardStatusChange: manipularMudancaStatusCartaoManual,
-    handleAddProduct: handleAdicionarProduto,
+    
+    // Manipuladores de ações
+    handleAddProduct,
     handleEditClick: handleEditarClique,
     handleDeleteClick: handleRemoverClique,
-    handleUpdateProduct: handleAtualizarProduto,
-    handleDeleteProduct: handleRemoverProduto,
+    handleUpdateProduct,
+    handleDeleteProduct,
     refreshProducts: atualizarProdutos,
-    resetForm: redefinirFormulario,
-    // Pagination
+    
+    // Paginação
     currentPage: paginaAtual,
     pageSize: tamanhoPagina,
     handlePageChange: handleMudancaPagina
