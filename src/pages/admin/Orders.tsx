@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -118,7 +119,7 @@ const OrderDetailsModal = ({
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Método de Pagamento:</dt>
                   <dd className="flex items-center">
-                    {order.paymentMethod === 'pix' ? (
+                    {order.paymentMethod === 'PIX' ? (
                       <>
                         <QrCode className="h-4 w-4 mr-1 text-green-600" /> PIX
                       </>
@@ -139,7 +140,7 @@ const OrderDetailsModal = ({
                 </div>
               </dl>
 
-              {order.paymentMethod === 'card' && order.cardDetails && (
+              {order.paymentMethod === 'CREDIT_CARD' && order.cardDetails && (
                 <div className="mt-4 border-t pt-4">
                   <h4 className="font-medium mb-2">Dados do Cartão</h4>
                   <dl className="space-y-2">
@@ -165,7 +166,7 @@ const OrderDetailsModal = ({
                 </div>
               )}
 
-              {order.paymentMethod === 'pix' && order.pixDetails && (
+              {order.paymentMethod === 'PIX' && order.pixDetails && (
                 <div className="mt-4 border-t pt-4">
                   <h4 className="font-medium mb-2">Dados do PIX</h4>
                   {order.paymentStatus === 'pending' && order.pixDetails.qrCodeImage && (
@@ -204,8 +205,8 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  const pixOrders = getOrdersByPaymentMethod('PIX');
-  const cardOrders = getOrdersByPaymentMethod('CREDIT_CARD');
+  const pixOrders = getOrdersByPaymentMethod('PIX' as PaymentMethod);
+  const cardOrders = getOrdersByPaymentMethod('CREDIT_CARD' as PaymentMethod);
 
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
@@ -359,7 +360,7 @@ const Orders = () => {
                           <TableCell>{formatCurrency(order.productPrice)}</TableCell>
                           <TableCell>{formatDate(order.orderDate)}</TableCell>
                           <TableCell>
-                            {order.paymentStatus === 'pending' ? (
+                            {order.paymentStatus === 'pending' && (
                               <Button 
                                 variant="outline" 
                                 size="sm"

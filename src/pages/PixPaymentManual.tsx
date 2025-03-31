@@ -101,7 +101,7 @@ const PixPaymentManual = () => {
 
   return (
     <>
-      <CheckoutHeader productName={product.name} />
+      <CheckoutHeader title={product.name} />
       
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <Card className="shadow-sm">

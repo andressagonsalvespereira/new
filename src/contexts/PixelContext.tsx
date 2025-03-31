@@ -41,8 +41,8 @@ export const PixelProvider: React.FC<PixelProviderProps> = ({ children }) => {
         
         // Verifica se temos configurações e se algum pixel está habilitado
         if (settings && (
-          (settings.google.enabled && settings.google.tagId) || 
-          (settings.facebook.enabled && settings.facebook.pixelId)
+          (settings.googlePixelEnabled && settings.googlePixelId) || 
+          (settings.metaPixelEnabled && settings.metaPixelId)
         )) {
           await initializePixels();
           setIsInitialized(true);
@@ -58,7 +58,7 @@ export const PixelProvider: React.FC<PixelProviderProps> = ({ children }) => {
   // Rastreia visualizações de página quando a localização muda
   useEffect(() => {
     if (isInitialized) {
-      trackPageView(location.pathname);
+      trackPageView();
     }
   }, [location.pathname, isInitialized]);
 

@@ -138,7 +138,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       editProduct, 
       removeProduct,
       getProductById,
-      refreshProducts: fetchProducts
+      refreshProducts: fetchProducts,
+      updateProduct: editProduct,
+      deleteProduct: removeProduct
     }}>
       {children}
     </ProductContext.Provider>
