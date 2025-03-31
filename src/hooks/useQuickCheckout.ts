@@ -98,31 +98,31 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
         ...paymentData,
         cvv: paymentData.cvv ? '***' : undefined, // Mask CVV in logs
         method: paymentMethod,
-        isDigitalProduct: product.isDigital || product.digital,
-        useCustomProcessing: product.useCustomProcessing || product.usarProcessamentoPersonalizado,
-        manualCardStatus: product.manualCardStatus || product.statusCartaoManual
+        isDigitalProduct: product.digital,
+        useCustomProcessing: product.usarProcessamentoPersonalizado,
+        manualCardStatus: product.statusCartaoManual
       });
       
       const newOrder = await addOrder({
         customer: customerDetails,
         productId: product.id,
-        productName: product.nome || product.name,
-        productPrice: product.preco || product.price,
+        productName: product.nome,
+        productPrice: product.preco,
         paymentMethod: paymentMethod,
         paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando',
-        isDigitalProduct: product.isDigital || product.digital
+        isDigitalProduct: product.digital
       });
       
       setIsOrderSubmitted(true);
       
       // Track purchase event
       trackPurchase({
-        value: product.preco || product.price,
+        value: product.preco,
         transactionId: `order-${newOrder.id}`,
         products: [{
           id: product.id,
-          name: product.nome || product.name,
-          price: product.preco || product.price,
+          name: product.nome,
+          price: product.preco,
           quantity: 1
         }]
       });
