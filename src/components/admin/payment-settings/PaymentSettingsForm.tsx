@@ -27,14 +27,16 @@ const PaymentSettingsSchema = z.object({
   apiKey: z.string().optional(),
 });
 
+type PaymentSettingsFormValues = z.infer<typeof PaymentSettingsSchema>;
+
 const PaymentSettingsForm = () => {
   const { toast } = useToast();
   const { settings, updateSettings, loading } = useAsaas();
   const [isSaving, setIsSaving] = useState(false);
-  const [formState, setFormState] = useState({
+  const [formState, setFormState] = useState<PaymentSettingsFormValues>({
     isEnabled: false,
     manualCardProcessing: false,
-    manualCardStatus: 'ANALYSIS' as 'APPROVED' | 'DENIED' | 'ANALYSIS',
+    manualCardStatus: 'ANALYSIS',
     manualCreditCard: false,
     allowPix: true,
     allowCreditCard: true,
@@ -42,16 +44,16 @@ const PaymentSettingsForm = () => {
     sandboxApiKey: '',
     productionApiKey: '',
     manualPixPage: false,
-    manualPaymentConfig: true,
+    manualPaymentConfig: false,
     apiKey: '',
   });
 
-  const form = useForm({
+  const form = useForm<PaymentSettingsFormValues>({
     resolver: zodResolver(PaymentSettingsSchema),
     defaultValues: {
       isEnabled: false,
       manualCardProcessing: false,
-      manualCardStatus: 'ANALYSIS' as 'APPROVED' | 'DENIED' | 'ANALYSIS',
+      manualCardStatus: 'ANALYSIS',
       manualCreditCard: false,
       allowPix: true,
       allowCreditCard: true,
@@ -59,7 +61,7 @@ const PaymentSettingsForm = () => {
       sandboxApiKey: '',
       productionApiKey: '',
       manualPixPage: false,
-      manualPaymentConfig: true,
+      manualPaymentConfig: false,
       apiKey: '',
     },
   });
@@ -102,12 +104,12 @@ const PaymentSettingsForm = () => {
   // Atualiza formState quando os valores do formulário mudam
   useEffect(() => {
     const subscription = form.watch((value) => {
-      setFormState(value as typeof formState);
+      setFormState(value as PaymentSettingsFormValues);
     });
     return () => subscription.unsubscribe();
   }, [form]);
 
-  const onSubmit = async (data: z.infer<typeof PaymentSettingsSchema>) => {
+  const onSubmit = async (data: PaymentSettingsFormValues) => {
     setIsSaving(true);
     try {
       // Calcula a apiKey com base no modo sandbox

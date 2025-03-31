@@ -74,10 +74,10 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
             sandboxMode: settingsData.sandbox_mode || true,
             sandboxApiKey: asaasConfigData?.sandbox_api_key || '',
             productionApiKey: asaasConfigData?.production_api_key || '',
-            manualCardProcessing: settings.manualCardProcessing || false,
-            manualCardStatus: settings.manualCardStatus || 'ANALYSIS',
-            manualPixPage: settings.manualPixPage || false,
-            manualPaymentConfig: settings.manualPaymentConfig || false,
+            manualCardProcessing: false,
+            manualCardStatus: settingsData.manual_card_status || 'ANALYSIS',
+            manualPixPage: false,
+            manualPaymentConfig: false,
           };
 
           // Define a chave da API com base no modo sandbox
@@ -121,6 +121,8 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
         manualCardStatus: newSettings.manualCardStatus || defaultSettings.manualCardStatus
       };
       
+      console.log('Salvando configurações:', settingsToSave);
+      
       // Salva no Supabase
       const { error: settingsError } = await supabase
         .from('settings')
@@ -129,7 +131,8 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
           allow_pix: settingsToSave.allowPix,
           allow_credit_card: settingsToSave.allowCreditCard,
           manual_credit_card: settingsToSave.manualCreditCard,
-          sandbox_mode: settingsToSave.sandboxMode
+          sandbox_mode: settingsToSave.sandboxMode,
+          manual_card_status: settingsToSave.manualCardStatus
         })
         .eq('id', 1);
 

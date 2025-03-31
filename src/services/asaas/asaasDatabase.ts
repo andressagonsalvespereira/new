@@ -62,7 +62,7 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
         manualCardProcessing: false,
         manualPixPage: false,
         manualPaymentConfig: false,
-        manualCardStatus: 'ANALYSIS'
+        manualCardStatus: settingsData.manual_card_status || 'ANALYSIS'
       };
 
       // Define a chave da API com base no modo sandbox
@@ -96,7 +96,8 @@ export const saveAsaasSettings = async (settings: AsaasSettings): Promise<void> 
         allow_pix: settings.allowPix,
         allow_credit_card: settings.allowCreditCard,
         manual_credit_card: settings.manualCreditCard,
-        sandbox_mode: settings.sandboxMode
+        sandbox_mode: settings.sandboxMode,
+        manual_card_status: settings.manualCardStatus
       })
       .eq('id', 1);
 
