@@ -1,17 +1,19 @@
 
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useProductCheckout } from '@/hooks/useProductCheckout';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShoppingBag, ArrowLeft } from 'lucide-react';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { usePixel } from '@/contexts/PixelContext';
+import { Button } from '@/components/ui/button';
 
 const Checkout = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
-  const { product, loading } = useProductCheckout(productSlug);
+  const { product, loading, productNotFound } = useProductCheckout(productSlug);
   const { trackPageView } = usePixel();
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Rastreamento de visualização de página
@@ -36,19 +38,29 @@ const Checkout = () => {
   }
   
   // Mostrar mensagem se o produto não for encontrado
-  if (!product) {
+  if (productNotFound || !product) {
     return (
       <CheckoutContainer>
         <Card className="mb-6 shadow-sm">
           <CardContent className="py-6">
             <div className="text-center">
+              <ShoppingBag className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-red-600 mb-2">Produto não encontrado</h2>
               <p className="text-gray-600 mb-4">
                 O produto que você está procurando não existe ou foi removido.
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 mb-6">
                 Slug procurado: {productSlug || 'Não fornecido'}
               </p>
+              
+              <Button 
+                onClick={() => navigate('/')}
+                className="flex items-center"
+                variant="outline"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar para a página inicial
+              </Button>
             </div>
           </CardContent>
         </Card>
