@@ -65,10 +65,17 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
 
   const saveSettings = async (newSettings: AsaasSettings) => {
     try {
+      // Garante que apiKey sempre está presente
+      const settingsToSave = {
+        ...newSettings,
+        apiKey: newSettings.apiKey || '',
+        manualCardStatus: newSettings.manualCardStatus || defaultSettings.manualCardStatus
+      };
+      
       // Em uma implementação real, isso chamaria uma API para salvar as configurações
       // Por enquanto, salva no localStorage
-      localStorage.setItem('asaasSettings', JSON.stringify(newSettings));
-      setSettings(newSettings);
+      localStorage.setItem('asaasSettings', JSON.stringify(settingsToSave));
+      setSettings(settingsToSave);
       
       toast({
         title: "Configurações salvas",

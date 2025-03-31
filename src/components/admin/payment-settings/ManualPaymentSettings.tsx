@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Check, AlertTriangle, Clock } from 'lucide-react';
 
-// Use string constants instead of enum reference
+// Use string literals instead of enum
 const MANUAL_CARD_STATUS = {
   APPROVED: 'APPROVED',
   DENIED: 'DENIED',
