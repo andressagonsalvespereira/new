@@ -56,7 +56,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
 
   // Validate if the selected payment method is allowed based on settings
   React.useEffect(() => {
-    if (!settings.isLoading) { // Changed loading to isLoading to match the AsaasSettings type
+    if (settings) { // Changed to check if settings exists
       // If the current payment method is not allowed, switch to an allowed method
       if (paymentMethod === 'card' && !settings.allowCreditCard) {
         if (settings.allowPix) {

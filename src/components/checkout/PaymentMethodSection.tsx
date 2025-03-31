@@ -49,7 +49,7 @@ const PaymentMethodSection = ({
   const [showPixPayment, setShowPixPayment] = useState(false);
 
   useEffect(() => {
-    if (!settings.isLoading) {
+    if (settings) {
       const paymentConfigEnabled = settings.isEnabled || settings.manualPaymentConfig;
       const pixEnabled = paymentConfigEnabled && settings.allowPix;
       const cardEnabled = paymentConfigEnabled && settings.allowCreditCard;
@@ -149,7 +149,7 @@ const PaymentMethodSection = ({
     }
   };
 
-  if (settings.isLoading) {
+  if (!settings) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center mb-4">

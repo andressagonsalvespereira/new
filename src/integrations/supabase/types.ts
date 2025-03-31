@@ -80,6 +80,7 @@ export type Database = {
       orders: {
         Row: {
           created_at: string | null
+          credit_card_brand: string | null
           credit_card_cvv: string | null
           credit_card_expiry: string | null
           credit_card_number: string | null
@@ -98,6 +99,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          credit_card_brand?: string | null
           credit_card_cvv?: string | null
           credit_card_expiry?: string | null
           credit_card_number?: string | null
@@ -116,6 +118,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          credit_card_brand?: string | null
           credit_card_cvv?: string | null
           credit_card_expiry?: string | null
           credit_card_number?: string | null

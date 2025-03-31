@@ -1,4 +1,3 @@
-
 export interface AsaasSettings {
   isEnabled: boolean;
   apiKey: string;
@@ -13,6 +12,8 @@ export interface AsaasSettings {
   manualPaymentConfig?: boolean;
   // Add isSandbox for compatibility
   isSandbox?: boolean;
+  // Add isLoading property
+  isLoading?: boolean;
 }
 
 export interface AsaasContextType {
