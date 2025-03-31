@@ -6,7 +6,7 @@ import PaymentMethodSection from '@/components/checkout/PaymentMethodSection';
 import OrderSummarySection from '@/components/checkout/OrderSummarySection';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useOrders } from '@/contexts/OrderContext';
-import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus } from '@/types/order';
+import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus, Order } from '@/types/order';
 
 interface CheckoutProgressProps {
   paymentMethod: 'card' | 'pix';
@@ -57,7 +57,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
     status: 'pending' | 'confirmed',
     cardDetails?: CardDetails,
     pixDetails?: PixDetails
-  ) => {
+  ): Promise<Order> => {
     try {
       console.log("Criando pedido com dados do produto:", productDetails);
       
@@ -97,6 +97,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
       return newOrder;
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
+      throw error;
     }
   };
 

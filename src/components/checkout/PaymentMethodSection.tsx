@@ -6,7 +6,7 @@ import { AlertCircle } from 'lucide-react';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import PixPayment from '@/components/checkout/PixPayment';
 import { useAsaas } from '@/contexts/AsaasContext';
-import { CardDetails, PixDetails } from '@/types/order';
+import { CardDetails, Order, PixDetails } from '@/types/order';
 import PaymentOptions from './payment-methods/PaymentOptions';
 import PaymentError from './payment-methods/PaymentError';
 import LoadingPayment from './payment-methods/LoadingPayment';
@@ -29,7 +29,7 @@ interface PaymentMethodSectionProps {
     status: 'pending' | 'confirmed',
     cardDetails?: CardDetails,
     pixDetails?: PixDetails
-  ) => Promise<void>;
+  ) => Promise<Order | void>;
   productDetails?: ProductDetailsType;
   customerData?: any;
   isProcessing?: boolean;
