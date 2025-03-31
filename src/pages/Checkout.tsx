@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import PixPayment from '@/components/checkout/PixPayment';
 import CustomerInfoForm, { CustomerData } from '@/components/checkout/CustomerInfoForm';
+import AddressForm, { AddressData } from '@/components/checkout/AddressForm';
 
 const Checkout = () => {
   const { slug } = useParams();
@@ -16,7 +17,9 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [isSuccess, setIsSuccess] = useState(false);
   const [customerInfo, setCustomerInfo] = useState<CustomerData | null>(null);
+  const [addressInfo, setAddressInfo] = useState<AddressData | null>(null);
   const [customerInfoCompleted, setCustomerInfoCompleted] = useState(false);
+  const [addressInfoCompleted, setAddressInfoCompleted] = useState(false);
 
   // Function to determine product details based on slug
   const getProductDetails = () => {
@@ -53,7 +56,19 @@ const Checkout = () => {
     
     toast({
       title: "Informações salvas",
-      description: "Seus dados foram salvos com sucesso",
+      description: "Seus dados pessoais foram salvos com sucesso",
+      duration: 3000,
+    });
+  };
+
+  // Handle address info submission
+  const handleAddressInfoSubmit = (data: AddressData) => {
+    setAddressInfo(data);
+    setAddressInfoCompleted(true);
+    
+    toast({
+      title: "Endereço salvo",
+      description: "Seu endereço foi salvo com sucesso",
       duration: 3000,
     });
   };
@@ -64,6 +79,7 @@ const Checkout = () => {
     const completeData = {
       ...data,
       customer: customerInfo,
+      address: addressInfo,
       product: productDetails
     };
     
@@ -174,12 +190,18 @@ const Checkout = () => {
                     isCompleted={customerInfoCompleted} 
                   />
                   
-                  {/* Payment methods tabs - only visible after customer info is completed */}
-                  {customerInfoCompleted && (
+                  {/* Address form - shown immediately */}
+                  <AddressForm
+                    onSubmit={handleAddressInfoSubmit}
+                    isCompleted={addressInfoCompleted}
+                  />
+                  
+                  {/* Payment methods tabs - only visible after customer and address info are completed */}
+                  {customerInfoCompleted && addressInfoCompleted && (
                     <div className="transition-all duration-300">
                       <div className="bg-black text-white p-3 mb-4 flex items-center">
                         <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
-                          2
+                          3
                         </span>
                         <h2 className="font-medium text-lg">Forma de Pagamento</h2>
                       </div>
@@ -229,6 +251,18 @@ const Checkout = () => {
                             {productDetails.interval}
                           </span>
                         </div>
+                        
+                        {addressInfo && (
+                          <div className="pt-3 border-t border-gray-200">
+                            <h4 className="text-sm font-medium mb-2">Endereço de entrega:</h4>
+                            <p className="text-xs text-gray-600">
+                              {`${addressInfo.street}, ${addressInfo.number}`}
+                              {addressInfo.complement && `, ${addressInfo.complement}`}<br/>
+                              {`${addressInfo.neighborhood}, ${addressInfo.city} - ${addressInfo.state}`}<br/>
+                              {`CEP: ${addressInfo.cep}`}
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <div className="border-t border-gray-200 my-4"></div>
                       <div className="flex justify-between font-medium">
