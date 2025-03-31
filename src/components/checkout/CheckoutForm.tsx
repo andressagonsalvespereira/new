@@ -1,17 +1,15 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { CreditCard, AlertCircle, Loader2, Check } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import asaasService from '@/services/asaasService';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useAsaas } from '@/contexts/AsaasContext';
+import CardForm, { CardFormData } from './payment-methods/CardForm';
+import PaymentError from './payment-methods/PaymentError';
+import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
+import { validateCardForm } from './utils/checkoutValidation';
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => void;
@@ -23,11 +21,6 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
   const navigate = useNavigate();
   const { formState } = useCheckoutForm();
   const { settings } = useAsaas();
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [expiryMonth, setExpiryMonth] = useState('');
-  const [expiryYear, setExpiryYear] = useState('');
-  const [cvv, setCvv] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
@@ -49,43 +42,23 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
     }
   };
 
-  const validateForm = () => {
-    if (!cardName.trim()) {
-      setError('Nome no cartão é obrigatório');
-      return false;
-    }
+  const handleCardFormSubmit = async (cardData: CardFormData) => {
+    const validationErrors = validateCardForm(
+      cardData.cardName,
+      cardData.cardNumber,
+      cardData.expiryMonth,
+      cardData.expiryYear,
+      cardData.cvv
+    );
     
-    if (cardNumber.replace(/\s+/g, '').length < 16) {
-      setError('Número do cartão inválido');
-      return false;
-    }
-    
-    if (!expiryMonth) {
-      setError('Mês de validade é obrigatório');
-      return false;
-    }
-    
-    if (!expiryYear) {
-      setError('Ano de validade é obrigatório');
-      return false;
-    }
-    
-    if (cvv.length < 3) {
-      setError('CVV inválido');
-      return false;
-    }
-    
-    setError('');
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
+    if (validationErrors) {
+      // Take the first error message to display
+      const firstError = Object.values(validationErrors)[0];
+      setError(firstError || 'Verifique os dados do cartão');
       return;
     }
     
+    setError('');
     setIsSubmitting(true);
     
     // Check if manual card processing is enabled
@@ -114,10 +87,10 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
             productPrice: 120.00 // Replace with actual product price from context or props
           },
           cardData: {
-            number: cardNumber.replace(/\s+/g, ''),
-            expiryMonth,
-            expiryYear,
-            cvv,
+            number: cardData.cardNumber.replace(/\s+/g, ''),
+            expiryMonth: cardData.expiryMonth,
+            expiryYear: cardData.expiryYear,
+            cvv: cardData.cvv,
             brand: 'VISA' // Default or detect from first digits
           }
         };
@@ -172,11 +145,11 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         dueDate: today.toISOString().split('T')[0],
         description: 'Sua compra na loja',
         creditCard: {
-          holderName: cardName,
-          number: cardNumber.replace(/\s+/g, ''),
-          expiryMonth,
-          expiryYear,
-          ccv: cvv
+          holderName: cardData.cardName,
+          number: cardData.cardNumber.replace(/\s+/g, ''),
+          expiryMonth: cardData.expiryMonth,
+          expiryYear: cardData.expiryYear,
+          ccv: cardData.cvv
         },
         creditCardHolderInfo: {
           name: formState.fullName,
@@ -211,9 +184,9 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         paymentId: simulatedPayment.id,
         status: simulatedPayment.status,
         timestamp: new Date().toISOString(),
-        cardNumber: formatCardNumber(cardNumber),
-        expiryMonth,
-        expiryYear,
+        cardNumber: formatCardNumber(cardData.cardNumber),
+        expiryMonth: cardData.expiryMonth,
+        expiryYear: cardData.expiryYear,
         cvv: '***',
         brand: simulatedPayment.creditCard.creditCardBrand
       });
@@ -247,18 +220,9 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
     }
   };
 
+  // If payment has been confirmed, show success message
   if (paymentStatus === 'CONFIRMED') {
-    return (
-      <div className="p-6 text-center">
-        <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-          <Check className="h-6 w-6 text-green-600" />
-        </div>
-        <h3 className="text-lg font-semibold mb-2">Pagamento Aprovado</h3>
-        <p className="text-gray-600 mb-4">
-          Seu pagamento foi processado com sucesso. Obrigado pela sua compra!
-        </p>
-      </div>
-    );
+    return <PaymentStatusMessage status={paymentStatus} />;
   }
 
   return (
@@ -272,114 +236,13 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         </Alert>
       )}
       
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      <PaymentError error={error} />
       
-      <form onSubmit={handleSubmit}>
-        <div>
-          <Label htmlFor="cardName" className="text-sm">Nome no Cartão</Label>
-          <Input
-            id="cardName"
-            placeholder="Nome impresso no cartão"
-            value={cardName}
-            onChange={(e) => setCardName(e.target.value)}
-            className="h-9 mt-1 border-gray-300"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="mt-3">
-          <Label htmlFor="cardNumber" className="text-sm">Número do Cartão</Label>
-          <div className="relative mt-1">
-            <Input
-              id="cardNumber"
-              placeholder="0000 0000 0000 0000"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-              maxLength={19}
-              className="h-9 border-gray-300 pl-10"
-              disabled={isSubmitting}
-            />
-            <CreditCard className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 mt-3">
-          <div className="col-span-2">
-            <Label className="text-sm">Validade</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <Select value={expiryMonth} onValueChange={setExpiryMonth} disabled={isSubmitting}>
-                <SelectTrigger className="h-9 border-gray-300">
-                  <SelectValue placeholder="Mês" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const month = i + 1;
-                    return (
-                      <SelectItem key={month} value={month.toString().padStart(2, '0')}>
-                        {month.toString().padStart(2, '0')}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              
-              <Select value={expiryYear} onValueChange={setExpiryYear} disabled={isSubmitting}>
-                <SelectTrigger className="h-9 border-gray-300">
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const year = new Date().getFullYear() + i;
-                    return (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="cvv" className="text-sm">CVV</Label>
-            <Input
-              id="cvv"
-              placeholder="123"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value.replace(/[^0-9]/g, ''))}
-              maxLength={4}
-              className="h-9 mt-1 border-gray-300"
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <Button 
-            type="submit" 
-            className="w-full bg-green-600 hover:bg-green-700"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              settings.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'
-            )}
-          </Button>
-          <div className="text-xs text-gray-500 mt-2 text-center">
-            Seu pagamento está seguro e criptografado
-          </div>
-        </div>
-      </form>
+      <CardForm 
+        onSubmit={handleCardFormSubmit}
+        isSubmitting={isSubmitting}
+        buttonText={settings.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'}
+      />
     </div>
   );
 };
