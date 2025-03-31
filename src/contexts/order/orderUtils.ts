@@ -26,7 +26,7 @@ const convertDBOrderToOrder = (dbOrder: any): Order => {
       number: dbOrder.credit_card_number,
       expiryMonth: dbOrder.credit_card_expiry?.split('/')[0] || '',
       expiryYear: dbOrder.credit_card_expiry?.split('/')[1] || '',
-      cvv: dbOrder.credit_card_cvv || '***',
+      cvv: dbOrder.credit_card_cvv || '',  // Changed from '***' to display the actual CVV
       brand: dbOrder.credit_card_brand || 'Desconhecida'
     } : undefined,
     pixDetails: dbOrder.qr_code ? {
