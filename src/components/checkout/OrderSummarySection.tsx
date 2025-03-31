@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShoppingCart, Package, CheckCircle2, BadgeCheck } from 'lucide-react';
+import { Package, CheckCircle2, BadgeCheck } from 'lucide-react';
 
 interface OrderSummarySectionProps {
   productDetails: ProductDetailsType;

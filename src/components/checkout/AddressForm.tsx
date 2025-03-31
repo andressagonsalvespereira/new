@@ -32,9 +32,11 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
   const [state, setState] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showShippingOptions, setShowShippingOptions] = useState(false);
   const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
+
+  // Check if we have enough address information to show shipping options
+  const hasValidAddress = street && neighborhood && city && state && number;
 
   const formatCEP = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -44,6 +46,12 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedCep = formatCEP(e.target.value);
     setCep(formattedCep);
+    
+    // Reset shipping options when CEP changes
+    if (formattedCep.length < 9) {
+      setSelectedShipping(null);
+      setDeliveryEstimate(null);
+    }
     
     if (formattedCep.replace(/\D/g, '').length === 8) {
       setIsLoading(true);
@@ -64,33 +72,35 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           delete newErrors.state;
           setErrors(newErrors);
           
-          setShowShippingOptions(true);
-          setSelectedShipping('free');
-          
-          const today = new Date();
-          const deliveryDate = new Date(today);
-          deliveryDate.setDate(today.getDate() + 7);
-          
-          const formattedDate = deliveryDate.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          });
-          
-          setDeliveryEstimate(`Chegará em ${formattedDate}`);
+          // Only set shipping options if the address is complete enough
+          if (data.logradouro && data.bairro && data.localidade && data.uf) {
+            setSelectedShipping('free');
+            
+            const today = new Date();
+            const deliveryDate = new Date(today);
+            deliveryDate.setDate(today.getDate() + 7);
+            
+            const formattedDate = deliveryDate.toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+            
+            setDeliveryEstimate(`Chegará em ${formattedDate}`);
+          }
         } else {
           setErrors(prev => ({...prev, cep: 'CEP não encontrado'}));
-          setShowShippingOptions(false);
+          setSelectedShipping(null);
+          setDeliveryEstimate(null);
         }
       } catch (error) {
         console.error('Erro ao buscar CEP:', error);
         setErrors(prev => ({...prev, cep: 'Erro ao buscar CEP'}));
-        setShowShippingOptions(false);
+        setSelectedShipping(null);
+        setDeliveryEstimate(null);
       } finally {
         setIsLoading(false);
       }
-    } else {
-      setShowShippingOptions(false);
     }
   };
 
@@ -128,11 +138,11 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
     }
   };
 
-  // Fix: Change the function to handle string input rather than event
   const handleNumberChange = (value: string) => {
     setNumber(value);
+    
+    // Only update shipping options if we have all the necessary address fields
     if (value.trim() && street && neighborhood && city && state) {
-      setShowShippingOptions(true);
       setSelectedShipping('free');
       
       const today = new Date();
@@ -146,6 +156,10 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
       });
       
       setDeliveryEstimate(`Chegará em ${formattedDate}`);
+    } else {
+      // Reset shipping options if address is incomplete
+      setSelectedShipping(null);
+      setDeliveryEstimate(null);
     }
   };
 
@@ -188,7 +202,8 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
           disabled={isCompleted}
         />
         
-        {showShippingOptions && (
+        {/* Only show shipping options when we have a valid address */}
+        {hasValidAddress && selectedShipping && (
           <AddressShippingOptions
             selectedShipping={selectedShipping}
             onSelectShipping={selectShippingOption}

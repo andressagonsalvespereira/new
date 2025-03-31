@@ -13,6 +13,9 @@ const AddressShippingOptions = ({
   onSelectShipping,
   deliveryEstimate
 }: AddressShippingOptionsProps) => {
+  // Don't render anything if no shipping option is selected
+  if (!selectedShipping) return null;
+
   return (
     <div className="bg-green-50 border border-green-100 rounded-md p-4 mt-3">
       <h3 className="font-medium text-green-800 mb-3 flex items-center">

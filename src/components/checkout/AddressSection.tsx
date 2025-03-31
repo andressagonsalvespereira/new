@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CircleAlert, Loader2, FileDigit } from 'lucide-react';
 import AddressFields from '@/components/checkout/address/AddressFields';
@@ -49,6 +50,9 @@ const AddressSection = ({
   setSelectedShipping,
   deliveryEstimate
 }: AddressSectionProps) => {
+  // Check if we should show shipping options (only when there's a valid address)
+  const hasValidAddress = street && neighborhood && city && state && number;
+
   if (isDigitalProduct) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
@@ -99,7 +103,8 @@ const AddressSection = ({
           isSearchingCep={isSearchingCep}
         />
         
-        {selectedShipping && (
+        {/* Only show shipping options when there's a valid address */}
+        {hasValidAddress && selectedShipping && (
           <AddressShippingOptions
             selectedShipping={selectedShipping}
             onSelectShipping={setSelectedShipping}
