@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Settings } from 'lucide-react';
+import { Settings, CreditCard } from 'lucide-react';
 import { AsaasSettings } from '@/types/asaas';
 
 interface AsaasIntegrationCardProps {
@@ -23,13 +23,31 @@ const AsaasIntegrationCard: React.FC<AsaasIntegrationCardProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center">
           <Settings className="mr-2 h-5 w-5" />
-          Integração com Asaas
+          Configurações de Pagamento
         </CardTitle>
         <CardDescription>
-          Configure sua integração com o gateway de pagamento Asaas
+          Configure as opções de pagamento do seu checkout
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base">Configurações Manuais</Label>
+            <p className="text-sm text-muted-foreground">
+              Ative para configurar manualmente os métodos de pagamento sem precisar do Asaas
+            </p>
+          </div>
+          <Switch
+            checked={formState.manualPaymentConfig || false}
+            onCheckedChange={(checked) => 
+              onUpdateFormState(prev => ({ ...prev, manualPaymentConfig: checked }))
+            }
+            disabled={loading}
+          />
+        </div>
+        
+        <Separator />
+        
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="text-base">Ativar Integração com Asaas</Label>

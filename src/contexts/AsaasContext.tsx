@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { AsaasSettings, AsaasContextType } from '@/types/asaas';
@@ -12,7 +11,9 @@ const defaultSettings: AsaasSettings = {
   sandboxMode: true,
   sandboxApiKey: '',
   productionApiKey: '',
-  manualCardProcessing: false
+  manualCardProcessing: false,
+  manualPixPage: false,
+  manualPaymentConfig: false
 };
 
 const AsaasContext = createContext<AsaasContextType>({
@@ -48,7 +49,13 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
               : defaultSettings.manualCreditCard,
             manualCardProcessing: parsedSettings.manualCardProcessing !== undefined
               ? parsedSettings.manualCardProcessing
-              : defaultSettings.manualCardProcessing
+              : defaultSettings.manualCardProcessing,
+            manualPixPage: parsedSettings.manualPixPage !== undefined
+              ? parsedSettings.manualPixPage
+              : defaultSettings.manualPixPage,
+            manualPaymentConfig: parsedSettings.manualPaymentConfig !== undefined
+              ? parsedSettings.manualPaymentConfig
+              : defaultSettings.manualPaymentConfig
           });
         }
         setLoading(false);

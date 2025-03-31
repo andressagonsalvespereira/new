@@ -19,6 +19,8 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
   loading,
   onUpdateFormState,
 }) => {
+  const isPaymentConfigEnabled = formState.isEnabled || formState.manualPaymentConfig;
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -28,6 +30,15 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {!isPaymentConfigEnabled && (
+          <Alert variant="warning" className="bg-amber-50 border-amber-200">
+            <AlertCircleIcon className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              Ative a integração com o Asaas ou as configurações manuais para ativar os métodos de pagamento.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex items-start space-x-3">
           <Checkbox
             id="pix"
@@ -35,7 +46,7 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
             onCheckedChange={(checked) => 
               onUpdateFormState(prev => ({ ...prev, allowPix: !!checked }))
             }
-            disabled={loading || !formState.isEnabled}
+            disabled={loading || !isPaymentConfigEnabled}
           />
           <div className="grid gap-1.5">
             <Label
@@ -66,7 +77,7 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
                 onCheckedChange={(checked) => 
                   onUpdateFormState(prev => ({ ...prev, manualPixPage: checked }))
                 }
-                disabled={loading || !formState.isEnabled || !formState.allowPix}
+                disabled={loading || !isPaymentConfigEnabled || !formState.allowPix}
               />
             </div>
           </div>
@@ -79,7 +90,7 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
             onCheckedChange={(checked) => 
               onUpdateFormState(prev => ({ ...prev, allowCreditCard: !!checked }))
             }
-            disabled={loading || !formState.isEnabled}
+            disabled={loading || !isPaymentConfigEnabled}
           />
           <div className="grid gap-1.5">
             <Label
@@ -110,7 +121,7 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
                 onCheckedChange={(checked) => 
                   onUpdateFormState(prev => ({ ...prev, manualCardProcessing: checked }))
                 }
-                disabled={loading || !formState.isEnabled || !formState.allowCreditCard}
+                disabled={loading || !isPaymentConfigEnabled || !formState.allowCreditCard}
               />
             </div>
             
@@ -126,7 +137,7 @@ const PaymentMethodsCard: React.FC<PaymentMethodsCardProps> = ({
           </div>
         )}
         
-        {(!formState.allowPix && !formState.allowCreditCard && formState.isEnabled) && (
+        {(!formState.allowPix && !formState.allowCreditCard && isPaymentConfigEnabled) && (
           <Alert variant="destructive">
             <AlertCircleIcon className="h-4 w-4" />
             <AlertTitle>Aviso</AlertTitle>
