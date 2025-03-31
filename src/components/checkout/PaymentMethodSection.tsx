@@ -13,14 +13,13 @@ interface PaymentMethodSectionProps {
 
 const PaymentMethodSection = ({ paymentMethod, setPaymentMethod }: PaymentMethodSectionProps) => {
   return (
-    <div className="mb-8">
+    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex items-center mb-4">
         <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">3</div>
-        <h2 className="font-medium">Pagamento</h2>
-        <div className="ml-auto text-xs text-gray-500">Cartão ou Pix</div>
+        <h2 className="font-medium text-lg">Pagamento</h2>
       </div>
       
-      <div className="px-2">
+      <div>
         <RadioGroup
           defaultValue="card"
           className="flex flex-col space-y-3 mb-4"

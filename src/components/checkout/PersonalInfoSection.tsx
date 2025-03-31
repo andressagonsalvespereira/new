@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,13 +22,13 @@ const PersonalInfoSection = ({
   formErrors 
 }: PersonalInfoSectionProps) => {
   return (
-    <div className="mb-8">
+    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex items-center mb-4">
         <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">1</div>
-        <h2 className="font-medium">Identificação</h2>
+        <h2 className="font-medium text-lg">Identificação</h2>
       </div>
       
-      <div className="space-y-4 px-2">
+      <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="fullName" className="block text-sm mb-1">Nome completo</label>

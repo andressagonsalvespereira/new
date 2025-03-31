@@ -1,7 +1,5 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import CustomerReviews from './CustomerReviews';
 
 interface AddressSectionProps {
   cep: string;
@@ -39,14 +37,13 @@ const AddressSection = ({
   formErrors
 }: AddressSectionProps) => {
   return (
-    <div className="mb-8">
+    <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex items-center mb-4">
         <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">2</div>
-        <h2 className="font-medium">Endereço</h2>
-        <div className="ml-auto text-xs text-gray-500">3 informações</div>
+        <h2 className="font-medium text-lg">Endereço de Entrega</h2>
       </div>
       
-      <div className="space-y-4 px-2">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 gap-3">
           <div>
             <label htmlFor="cep" className="block text-sm mb-1">CEP</label>
@@ -135,8 +132,6 @@ const AddressSection = ({
           </div>
         </div>
       </div>
-      
-      <CustomerReviews />
     </div>
   );
 };
