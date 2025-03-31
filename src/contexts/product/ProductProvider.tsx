@@ -222,11 +222,11 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   };
 
   // Add a retry mechanism with force refresh
-  const retryFetchProducts = () => {
+  const retryFetchProducts = useCallback((): Promise<void> => {
     setNetworkError(false);
     setHasAttemptedFetch(false);
-    fetchProducts();
-  };
+    return fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <ProductContext.Provider value={{ 
