@@ -7,10 +7,10 @@ interface ProductSummaryProps {
 }
 
 const ProductSummary: React.FC<ProductSummaryProps> = ({ product }) => {
-  // Safely handle both English and Portuguese property names
-  const name = product.nome || product.name || '';
-  const description = product.descricao || product.description || '';
-  const price = product.preco || product.price || 0;
+  // Product type only has Portuguese property names (nome, descricao, preco)
+  const name = product.nome || '';
+  const description = product.descricao || '';
+  const price = product.preco || 0;
   
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-4">
