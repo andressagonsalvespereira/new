@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { fetchProductsFromAPI } from '../productApi';
@@ -12,11 +12,16 @@ export const useProductFetching = () => {
   const [error, setError] = useState<string | null>(null);
   const [networkError, setNetworkError] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+  const fetchAttemptedRef = useRef(false);
 
   const fetchProducts = useCallback(async (): Promise<void> => {
     // Prevent multiple fetch attempts when already loading
     if (loading && hasAttemptedFetch) return;
     
+    // Evitar múltiplas chamadas da mesma função
+    if (fetchAttemptedRef.current) return;
+    
+    fetchAttemptedRef.current = true;
     setLoading(true);
     setError(null);
     setHasAttemptedFetch(true);
@@ -52,18 +57,29 @@ export const useProductFetching = () => {
       }
     } finally {
       setLoading(false);
+      // Permitir novas tentativas de carregamento apenas através do retryFetchProducts
+      fetchAttemptedRef.current = true;
     }
-  }, [toast, loading, hasAttemptedFetch]);
+  }, [toast]);
 
   // Add a retry mechanism with force refresh
   const retryFetchProducts = useCallback(async (): Promise<void> => {
     setNetworkError(false);
     setHasAttemptedFetch(false);
+    fetchAttemptedRef.current = false;
     return fetchProducts();
   }, [fetchProducts]);
 
   useEffect(() => {
-    fetchProducts();
+    // Prevenir chamadas duplicadas
+    if (!fetchAttemptedRef.current) {
+      fetchProducts();
+    }
+    
+    // Cleanup function
+    return () => {
+      fetchAttemptedRef.current = false;
+    };
   }, [fetchProducts]);
 
   return {

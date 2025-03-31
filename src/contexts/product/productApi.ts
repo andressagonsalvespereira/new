@@ -27,7 +27,7 @@ export const fetchProductsFromAPI = async (): Promise<Product[]> => {
 // Add product to Supabase
 export const addProductToAPI = async (productData: CreateProductInput): Promise<Product> => {
   // Generate a slug based on the product name
-  const slug = generateSlug(productData.name);
+  const slug = await generateSlug(productData.name);
   
   // Transform our product data to match database schema
   const dbProductData = {
@@ -67,7 +67,7 @@ export const editProductInAPI = async (id: string, productData: Partial<Product>
   if (productData.name !== undefined) {
     dbProductData.name = productData.name;
     // Re-generate slug if name changes
-    dbProductData.slug = generateSlug(productData.name);
+    dbProductData.slug = await generateSlug(productData.name);
   }
   if (productData.description !== undefined) dbProductData.description = productData.description;
   if (productData.price !== undefined) dbProductData.price = productData.price;

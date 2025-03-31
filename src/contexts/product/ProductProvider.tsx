@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ProductContext } from './ProductContext';
 import { ProductProviderProps } from './productContextTypes';
 import { useProductFetching } from './hooks/useProductFetching';
@@ -30,22 +30,36 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     getProductBySlug
   } = useProductOperations(products, setProducts, isOffline);
 
+  // Memoizar o valor do contexto para evitar re-renderizações desnecessárias
+  const contextValue = useMemo(() => ({
+    products, 
+    loading, 
+    error, 
+    addProduct, 
+    editProduct, 
+    removeProduct,
+    getProductById,
+    getProductBySlug,
+    refreshProducts: retryFetchProducts,
+    updateProduct: editProduct,
+    deleteProduct: removeProduct,
+    retryFetchProducts,
+    isOffline
+  }), [
+    products, 
+    loading, 
+    error, 
+    addProduct, 
+    editProduct, 
+    removeProduct,
+    getProductById,
+    getProductBySlug,
+    retryFetchProducts,
+    isOffline
+  ]);
+
   return (
-    <ProductContext.Provider value={{ 
-      products, 
-      loading, 
-      error, 
-      addProduct, 
-      editProduct, 
-      removeProduct,
-      getProductById,
-      getProductBySlug,
-      refreshProducts: retryFetchProducts,
-      updateProduct: editProduct,
-      deleteProduct: removeProduct,
-      retryFetchProducts,
-      isOffline
-    }}>
+    <ProductContext.Provider value={contextValue}>
       {children}
     </ProductContext.Provider>
   );

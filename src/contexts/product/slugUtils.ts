@@ -19,9 +19,25 @@ export const slugify = (text: string): string => {
 
 /**
  * Gera um slug único baseado no nome do produto
- * 
- * @param name Nome do produto para gerar o slug base
- * @returns Um slug único
+ * Versão síncrona - para uso local
+ */
+export const generateLocalSlug = (name: string, existingProducts: { slug: string }[]): string => {
+  let baseSlug = slugify(name);
+  let slug = baseSlug;
+  let counter = 1;
+  
+  // Verifica se o slug já existe e adiciona um sufixo numérico se necessário
+  while (existingProducts.some(p => p.slug === slug)) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return slug;
+};
+
+/**
+ * Gera um slug único baseado no nome do produto
+ * Versão assíncrona - para uso com a API
  */
 export const generateSlug = async (name: string): Promise<string> => {
   let baseSlug = slugify(name);
