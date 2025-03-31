@@ -44,6 +44,7 @@ const PaymentMethodSection = ({
   const navigate = useNavigate();
   const { settings, loading } = useAsaas();
   const [error, setError] = useState<string | null>(null);
+  const [showPixPayment, setShowPixPayment] = useState(false);
 
   // Set default payment method based on available options
   useEffect(() => {
@@ -104,6 +105,11 @@ const PaymentMethodSection = ({
     }
   };
 
+  // Handle PIX option click - show the PIX payment form
+  const handlePixOptionClick = () => {
+    setShowPixPayment(true);
+  };
+
   if (loading) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
@@ -140,8 +146,15 @@ const PaymentMethodSection = ({
           />
         )}
         
-        {paymentMethod === 'pix' && (
-          <SimplifiedPixOption onSubmit={() => handlePixSubmit({})} />
+        {paymentMethod === 'pix' && !showPixPayment && (
+          <SimplifiedPixOption onSubmit={handlePixOptionClick} />
+        )}
+        
+        {paymentMethod === 'pix' && showPixPayment && (
+          <PixPayment 
+            onSubmit={handlePixSubmit}
+            isSandbox={false}
+          />
         )}
       </div>
     );
@@ -170,7 +183,11 @@ const PaymentMethodSection = ({
           />
         )}
         
-        {settings.allowPix && paymentMethod === 'pix' && (
+        {settings.allowPix && paymentMethod === 'pix' && !showPixPayment && (
+          <SimplifiedPixOption onSubmit={handlePixOptionClick} />
+        )}
+        
+        {settings.allowPix && paymentMethod === 'pix' && showPixPayment && (
           <PixPayment 
             onSubmit={handlePixSubmit}
             isSandbox={settings.sandboxMode}

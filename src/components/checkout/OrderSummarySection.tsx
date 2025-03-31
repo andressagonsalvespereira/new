@@ -42,7 +42,7 @@ const OrderSummarySection = ({ productDetails, handlePayment, isProcessing }: Or
             </div>
             <div>
               <h3 className="font-medium">{productDetails.name}</h3>
-              <p className="text-sm text-gray-500 mt-1">{productDetails.description}</p>
+              <p className="text-sm text-gray-500 mt-1">{productDetails.description.substring(0, 80)}{productDetails.description.length > 80 ? '...' : ''}</p>
             </div>
           </div>
           

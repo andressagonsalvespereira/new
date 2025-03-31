@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -117,7 +118,7 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
         </p>
       </div>
 
-      <div className="w-64 h-64 bg-white p-2 border rounded-lg mb-4 flex items-center justify-center">
+      <div className="w-48 h-48 bg-white p-2 border rounded-lg mb-4 flex items-center justify-center">
         {pixData.qrCodeImage ? (
           <img 
             src={pixData.qrCodeImage} 
@@ -150,6 +151,14 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
           </Button>
         </div>
       </div>
+
+      <Button
+        onClick={copyToClipboard}
+        className="w-full bg-green-600 hover:bg-green-700 text-white mb-4"
+      >
+        <Copy className="h-4 w-4 mr-2" />
+        Copiar Código PIX
+      </Button>
 
       <Alert className="mb-4 bg-blue-50 border-blue-200">
         <AlertCircle className="h-4 w-4 text-blue-600" />

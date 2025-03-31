@@ -91,7 +91,6 @@ const Checkout = () => {
       toast({
         title: "Pedido concluído!",
         description: "Seu pagamento foi processado com sucesso.",
-        // Fix the type error by using a valid variant
         variant: "default",
       });
     }, 2000);
@@ -128,12 +127,6 @@ const Checkout = () => {
   
   return (
     <CheckoutContainer>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">{productDetails.name}</h1>
-        <p className="text-gray-600">{productDetails.description}</p>
-        <p className="text-xl font-semibold mt-2">R$ {productDetails.price.toFixed(2)}</p>
-      </div>
-      
       <CheckoutProgress
         productDetails={productDetails}
         paymentMethod={paymentMethod}
