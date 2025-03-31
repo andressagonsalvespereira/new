@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   initializePixels, 
-  trackPageView,
+  trackPageView as trackPageViewService,
   getPixelSettings,
   PixelSettings,
   TrackPurchaseData
@@ -13,12 +13,14 @@ interface PixelContextType {
   pixelSettings: PixelSettings | null;
   isInitialized: boolean;
   trackPurchase: (data: TrackPurchaseData) => void;
+  trackPageView: () => void; // Add this property to fix the type error
 }
 
 const PixelContext = createContext<PixelContextType>({
   pixelSettings: null,
   isInitialized: false,
-  trackPurchase: () => {}
+  trackPurchase: () => {},
+  trackPageView: () => {} // Add default implementation
 });
 
 export const usePixel = () => useContext(PixelContext);
@@ -58,9 +60,16 @@ export const PixelProvider: React.FC<PixelProviderProps> = ({ children }) => {
   // Rastreia visualizações de página quando a localização muda
   useEffect(() => {
     if (isInitialized) {
-      trackPageView();
+      trackPageViewService();
     }
   }, [location.pathname, isInitialized]);
+
+  // Function to track page views explicitly
+  const trackPageView = () => {
+    if (isInitialized) {
+      trackPageViewService();
+    }
+  };
 
   // Function to track purchases
   const trackPurchase = (data: TrackPurchaseData) => {
@@ -72,7 +81,12 @@ export const PixelProvider: React.FC<PixelProviderProps> = ({ children }) => {
   };
 
   return (
-    <PixelContext.Provider value={{ pixelSettings, isInitialized, trackPurchase }}>
+    <PixelContext.Provider value={{ 
+      pixelSettings, 
+      isInitialized, 
+      trackPurchase,
+      trackPageView // Add the function to the context value
+    }}>
       {children}
     </PixelContext.Provider>
   );

@@ -14,7 +14,8 @@ const Checkout = () => {
   const { trackPageView } = usePixel();
   
   useEffect(() => {
-    trackPageView(); // Track page view
+    // We can now safely call trackPageView as it's included in the context
+    trackPageView();
   }, [trackPageView]);
   
   // Mostrar loading enquanto o produto está sendo carregado
