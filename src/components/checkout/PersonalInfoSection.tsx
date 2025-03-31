@@ -2,6 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { validateCPF } from '@/utils/validators';
 
 interface PersonalInfoSectionProps {
   fullName: string;
@@ -22,10 +23,26 @@ const PersonalInfoSection = ({
   phone, setPhone, 
   formErrors 
 }: PersonalInfoSectionProps) => {
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+      setCpf(value);
+    }
+  };
+
+  const formatCpf = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .replace(/(-\d{2})\d+?$/, '$1');
+  };
+
   return (
     <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex items-center mb-4">
-        <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">1</div>
+        <div className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">1</div>
         <h2 className="font-medium text-lg">Identificação</h2>
       </div>
       
@@ -61,8 +78,8 @@ const PersonalInfoSection = ({
             <label htmlFor="cpf" className="block text-sm mb-1">CPF/CNPJ</label>
             <Input
               id="cpf"
-              value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
+              value={formatCpf(cpf)}
+              onChange={handleCpfChange}
               className={`h-9 ${formErrors.cpf ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="Digite seu CPF"
             />

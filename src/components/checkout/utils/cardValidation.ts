@@ -1,6 +1,7 @@
 
 // Arquivo dedicado à validação de cartões de crédito
 import { z } from "zod";
+import { validateCVV } from "@/utils/validators";
 
 export interface CardValidationErrors {
   cardName?: string;
@@ -14,9 +15,20 @@ export interface CardValidationErrors {
 export const CardSchema = z.object({
   cardName: z.string().min(1, "Nome no cartão é obrigatório"),
   cardNumber: z.string().min(16, "Número do cartão inválido").max(19, "Número do cartão inválido"),
-  expiryMonth: z.string().min(1, "Mês de validade é obrigatório").max(2, "Mês inválido"),
-  expiryYear: z.string().min(4, "Ano de validade é obrigatório").max(4, "Ano inválido"),
-  cvv: z.string().min(3, "CVV inválido").max(4, "CVV inválido")
+  expiryMonth: z.string()
+    .min(1, "Mês de validade é obrigatório")
+    .max(2, "Mês inválido")
+    .refine((val) => {
+      const month = parseInt(val, 10);
+      return !isNaN(month) && month >= 1 && month <= 12;
+    }, "Mês inválido (1-12)"),
+  expiryYear: z.string()
+    .min(2, "Ano de validade é obrigatório")
+    .max(2, "Ano inválido (AA)"),
+  cvv: z.string()
+    .min(3, "CVV inválido")
+    .max(3, "CVV inválido")
+    .refine((val) => validateCVV(val), "CVV inválido (não pode ser 000)")
 });
 
 /**
@@ -51,16 +63,14 @@ export const validateCardForm = (
   
   if (!expiryYear) {
     errors.expiryYear = 'Ano de validade é obrigatório';
-  } else {
-    const year = parseInt(expiryYear, 10);
-    const currentYear = new Date().getFullYear();
-    if (isNaN(year) || year < currentYear) {
-      errors.expiryYear = `Ano inválido (deve ser ${currentYear} ou posterior)`;
-    }
+  } else if (expiryYear.length !== 2) {
+    errors.expiryYear = 'Ano inválido (AA)';
   }
   
-  if (!cvv || cvv.length < 3) {
+  if (!cvv || cvv.length !== 3) {
     errors.cvv = 'CVV inválido';
+  } else if (cvv === '000') {
+    errors.cvv = 'CVV inválido (não pode ser 000)';
   }
   
   return Object.keys(errors).length > 0 ? errors : null;

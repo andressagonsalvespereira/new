@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { CreditCard, Lock } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { CardSchema } from '@/components/checkout/utils/cardValidation';
 import { detectCardBrand } from '@/components/checkout/utils/payment/cardDetection';
 import { Progress } from '@/components/ui/progress';
+import { validateCVV } from '@/utils/validators';
+import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
 
 export interface CardFormData {
   cardName: string;
@@ -31,8 +34,9 @@ const CardForm: React.FC<CardFormProps> = ({
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cardBrand, setCardBrand] = useState<string>('');
+  const { customization } = useCheckoutCustomization();
   
-  const { register, handleSubmit, formState, watch } = useForm<CardFormData>({
+  const { register, handleSubmit, formState, watch, setValue } = useForm<CardFormData>({
     defaultValues: {
       cardName: '',
       cardNumber: '',
@@ -43,6 +47,9 @@ const CardForm: React.FC<CardFormProps> = ({
   });
 
   const cardNumber = watch('cardNumber');
+  const expiryMonth = watch('expiryMonth');
+  const expiryYear = watch('expiryYear');
+  const cvv = watch('cvv');
 
   useEffect(() => {
     if (cardNumber && cardNumber.length >= 4) {
@@ -53,9 +60,56 @@ const CardForm: React.FC<CardFormProps> = ({
     }
   }, [cardNumber]);
 
+  // Restrict month to 2 digits
+  useEffect(() => {
+    if (expiryMonth) {
+      const month = expiryMonth.replace(/\D/g, '');
+      if (month.length > 2) {
+        setValue('expiryMonth', month.substring(0, 2));
+      }
+
+      // Make sure month is between 1-12
+      if (month.length === 2) {
+        const monthValue = parseInt(month);
+        if (monthValue > 12) {
+          setValue('expiryMonth', '12');
+        } else if (monthValue < 1) {
+          setValue('expiryMonth', '01');
+        }
+      }
+    }
+  }, [expiryMonth, setValue]);
+
+  // Restrict year to 2 digits
+  useEffect(() => {
+    if (expiryYear) {
+      const year = expiryYear.replace(/\D/g, '');
+      if (year.length > 2) {
+        setValue('expiryYear', year.substring(0, 2));
+      }
+    }
+  }, [expiryYear, setValue]);
+
+  // Validate CVV
+  useEffect(() => {
+    if (cvv) {
+      const cleanCvv = cvv.replace(/\D/g, '');
+      if (cleanCvv.length > 3) {
+        setValue('cvv', cleanCvv.substring(0, 3));
+      }
+    }
+  }, [cvv, setValue]);
+
   const validateForm = (data: CardFormData) => {
     try {
       CardSchema.parse(data);
+      
+      // Validate CVV is not 000
+      if (!validateCVV(data.cvv)) {
+        setErrors({ cvv: 'CVV inválido (não pode ser 000)' });
+        return false;
+      }
+      
       setErrors({});
       return true;
     } catch (error: any) {
@@ -74,6 +128,12 @@ const CardForm: React.FC<CardFormProps> = ({
     if (validateForm(data)) {
       onSubmit(data);
     }
+  };
+
+  // Get button styles from customization
+  const buttonStyle = {
+    backgroundColor: customization?.button_color || '#4caf50',
+    color: customization?.button_text_color || '#ffffff'
   };
 
   return (
@@ -118,6 +178,7 @@ const CardForm: React.FC<CardFormProps> = ({
             {...register('expiryMonth')}
             disabled={loading || isSubmitting}
             className={errors.expiryMonth ? "border-red-500" : ""}
+            maxLength={2}
           />
           {errors.expiryMonth && <p className="text-xs text-red-500">{errors.expiryMonth}</p>}
         </div>
@@ -126,10 +187,11 @@ const CardForm: React.FC<CardFormProps> = ({
           <Label htmlFor="expiryYear">Ano</Label>
           <Input
             id="expiryYear"
-            placeholder="AAAA"
+            placeholder="AA"
             {...register('expiryYear')}
             disabled={loading || isSubmitting}
             className={errors.expiryYear ? "border-red-500" : ""}
+            maxLength={2}
           />
           {errors.expiryYear && <p className="text-xs text-red-500">{errors.expiryYear}</p>}
         </div>
@@ -143,6 +205,7 @@ const CardForm: React.FC<CardFormProps> = ({
             {...register('cvv')}
             disabled={loading || isSubmitting}
             className={errors.cvv ? "border-red-500" : ""}
+            maxLength={3}
           />
           {errors.cvv && <p className="text-xs text-red-500">{errors.cvv}</p>}
         </div>
@@ -152,6 +215,7 @@ const CardForm: React.FC<CardFormProps> = ({
         type="submit" 
         className="w-full" 
         disabled={loading || isSubmitting}
+        style={buttonStyle}
       >
         {loading || isSubmitting ? (
           <div className="w-full">
@@ -167,15 +231,10 @@ const CardForm: React.FC<CardFormProps> = ({
         ) : (
           <span className="flex items-center">
             <CreditCard className="mr-2 h-5 w-5" />
-            {buttonText}
+            {customization?.button_text || buttonText}
           </span>
         )}
       </Button>
-      
-      <div className="flex items-center justify-center text-xs text-gray-500 mt-2">
-        <Lock className="h-3 w-3 mr-1" />
-        <span>🔒 Compra 100% segura e protegida com criptografia SSL</span>
-      </div>
     </form>
   );
 };

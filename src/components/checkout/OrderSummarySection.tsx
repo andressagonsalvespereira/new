@@ -67,7 +67,7 @@ const OrderSummarySection = ({ productDetails }: OrderSummarySectionProps) => {
           <div className="bg-green-50 border border-green-100 rounded-md p-2 mt-3 flex items-center">
             <Package className="h-4 w-4 text-green-600 mr-2" />
             <span className="text-sm text-green-700">
-              Entrega em 5-10 dias úteis
+              Frete Grátis
             </span>
           </div>
         </CardContent>

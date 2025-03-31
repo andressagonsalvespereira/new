@@ -3,6 +3,7 @@ import React from 'react';
 import { QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
 
 interface SimplifiedPixOptionProps {
   onSubmit: () => void;
@@ -22,6 +23,7 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
   customerData
 }) => {
   const navigate = useNavigate();
+  const { customization } = useCheckoutCustomization();
   
   const handlePixSubmit = () => {
     console.log("Iniciando processamento PIX com dados:", { productData, customerData });
@@ -45,6 +47,12 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
     }, 500);
   };
 
+  // Get button styles from customization
+  const buttonStyle = {
+    backgroundColor: customization?.button_color || '#4caf50',
+    color: customization?.button_text_color || '#ffffff'
+  };
+
   return (
     <div className="p-4 text-center">
       <h3 className="text-lg font-medium mb-2">Pague com PIX</h3>
@@ -55,7 +63,8 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
       <Button
         onClick={handlePixSubmit}
         disabled={isProcessing}
-        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md"
+        className="w-full"
+        style={buttonStyle}
       >
         {isProcessing ? (
           <>
@@ -65,7 +74,7 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
         ) : (
           <>
             <QrCode className="h-5 w-5 mr-2" />
-            Finalizar com PIX
+            {customization?.button_text || "Finalizar com PIX"}
           </>
         )}
       </Button>

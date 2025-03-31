@@ -7,6 +7,7 @@ import { AlertCircle, Check, Copy, Loader2, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { processPixPayment } from './utils/payment/pixProcessor';
 import { PaymentResult } from './utils/payment/types';
+import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
 
 interface PixPaymentProps {
   onSubmit: (data: any) => void;
@@ -25,6 +26,7 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
   } | null>(null);
   const [copied, setCopied] = useState(false);
   const [pixPaymentSent, setPixPaymentSent] = useState(false);
+  const { customization } = useCheckoutCustomization();
 
   // Gerar QR Code PIX
   useEffect(() => {
@@ -116,6 +118,12 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
     }
   };
 
+  // Get button styles from customization
+  const buttonStyle = {
+    backgroundColor: customization?.button_color || '#4caf50',
+    color: customization?.button_text_color || '#ffffff'
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 text-center">
@@ -183,10 +191,11 @@ const PixPayment = ({ onSubmit, isSandbox }: PixPaymentProps) => {
 
       <Button
         onClick={copyToClipboard}
-        className="w-full bg-green-600 hover:bg-green-700 text-white mb-4"
+        className="w-full text-white mb-4"
+        style={buttonStyle}
       >
         <Copy className="h-4 w-4 mr-2" />
-        Copiar Código PIX
+        {customization?.button_text || "Copiar Código PIX"}
       </Button>
 
       <Alert className="mb-4 bg-blue-50 border-blue-200">

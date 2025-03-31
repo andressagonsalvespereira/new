@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Truck, Package, CheckCircle2, CalendarClock, Clock } from 'lucide-react';
+import { Truck, Package, CheckCircle2, CalendarClock } from 'lucide-react';
 
 interface AddressShippingOptionsProps {
   selectedShipping: string | null;
@@ -36,10 +36,6 @@ const AddressShippingOptions = ({
         </div>
         <div className="flex-grow">
           <div className="font-medium text-gray-800">Frete Grátis</div>
-          <div className="text-sm text-gray-600 flex items-center mt-1">
-            <Package className="h-4 w-4 mr-1 text-gray-500" />
-            Prazo de entrega: 5-10 dias úteis
-          </div>
           {deliveryEstimate && (
             <div className="text-sm text-green-600 flex items-center mt-2 font-medium bg-green-50 p-2 rounded-md border border-green-100">
               <CalendarClock className="h-4 w-4 mr-1 text-green-500" />
@@ -51,11 +47,6 @@ const AddressShippingOptions = ({
           <span className="text-xs line-through text-gray-400 mr-1">R$ 15,00</span>
           <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-bold">GRÁTIS</span>
         </div>
-      </div>
-      
-      <div className="text-xs text-gray-500 flex items-center justify-center mt-2">
-        <Clock className="h-3 w-3 mr-1 text-gray-400" />
-        Processamento do pedido em até 24 horas
       </div>
     </div>
   );
