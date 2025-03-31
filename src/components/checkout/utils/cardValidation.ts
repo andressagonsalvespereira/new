@@ -1,110 +1,96 @@
 
-// Arquivo dedicado à validação de cartões de crédito
-import { z } from "zod";
-import { validateCVV } from "@/utils/validators";
+import { z } from 'zod';
 
-export interface CardValidationErrors {
-  cardName?: string;
-  cardNumber?: string;
-  expiryMonth?: string;
-  expiryYear?: string;
-  cvv?: string;
-}
+// Utility function to get current month and year
+const getCurrentDate = () => {
+  const now = new Date();
+  return {
+    month: now.getMonth() + 1, // JavaScript months are 0-indexed
+    year: now.getFullYear() % 100 // Get last two digits of year
+  };
+};
 
-// Current date info for expiry validation
-const now = new Date();
-const currentYear = now.getFullYear() % 100; // Last two digits of current year
-const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
-
-// Zod schema for card validation
+// Card validation schema with Zod
 export const CardSchema = z.object({
-  cardName: z.string().min(1, "Nome no cartão é obrigatório"),
+  cardName: z.string().min(3, 'Nome no cartão precisa ter pelo menos 3 caracteres'),
+  
+  // Card number should be between 13-19 digits, we'll strip spaces for validation
   cardNumber: z.string()
-    .min(16, "Número do cartão inválido")
-    .max(19, "Número do cartão inválido")
-    .refine(val => val.replace(/\s/g, '').length >= 16, {
-      message: "Número do cartão deve ter pelo menos 16 dígitos"
-    }),
+    .min(13, 'Número do cartão inválido')
+    .refine((val) => /^[\d\s]{13,19}$/.test(val), 'Número do cartão inválido'),
+  
+  // Month: 01-12
   expiryMonth: z.string()
-    .min(1, "Mês de validade é obrigatório")
-    .max(2, "Mês inválido")
-    .refine((val) => {
-      const month = parseInt(val, 10);
-      return !isNaN(month) && month >= 1 && month <= 12;
-    }, "Mês inválido (1-12)")
-    .refine((val, ctx) => {
-      const month = parseInt(val, 10);
-      const year = parseInt(ctx.data.expiryYear, 10);
-      
-      // Only validate expiration if both month and year are valid numbers
-      if (isNaN(month) || isNaN(year)) return true;
-      
-      // Get current date info
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear() % 100;
-      const currentMonth = currentDate.getMonth() + 1;
-      
-      // If it's a future year, it's valid regardless of month
-      if (year > currentYear) return true;
-      
-      // If it's the current year, month must be current or future
-      if (year === currentYear && month < currentMonth) return false;
-      
-      return true;
-    }, "Mês expirado"),
+    .refine((val) => /^(0[1-9]|1[0-2])$/.test(val), 'Mês inválido'),
+  
+  // Year: current year or later, two digits
   expiryYear: z.string()
-    .min(2, "Ano de validade é obrigatório")
-    .max(2, "Ano inválido (AA)")
-    .refine((val) => {
-      const year = parseInt(val, 10);
-      return !isNaN(year) && year >= currentYear;
-    }, "Ano inválido ou expirado"),
+    .refine((val) => /^\d{2}$/.test(val), 'Ano inválido')
+    .refine(
+      (val) => {
+        const currentYear = getCurrentDate().year;
+        const inputYear = parseInt(val, 10);
+        return inputYear >= currentYear;
+      }, 
+      'O cartão está expirado'
+    ),
+  
+  // CVV: 3-4 digits
   cvv: z.string()
-    .min(3, "CVV inválido")
-    .max(3, "CVV inválido")
-    .refine((val) => validateCVV(val), "CVV inválido (não pode ser 000)")
+    .refine((val) => /^\d{3,4}$/.test(val), 'CVV inválido')
 });
 
-/**
- * Formata o número do cartão com espaços a cada 4 dígitos
- */
+// Refine to check if the card is not expired
+CardSchema.refine(
+  (data) => {
+    const currentDate = getCurrentDate();
+    const expYear = parseInt(data.expiryYear, 10);
+    const expMonth = parseInt(data.expiryMonth, 10);
+    
+    // If the expiry year is greater than current year, the card is not expired
+    if (expYear > currentDate.year) {
+      return true;
+    }
+    
+    // If the expiry year is the current year, check if the month is current or future
+    if (expYear === currentDate.year && expMonth >= currentDate.month) {
+      return true;
+    }
+    
+    return false;
+  },
+  {
+    message: "O cartão está expirado",
+    path: ["expiryYear"] // This will show the error on the year field
+  }
+);
+
+// Function to format card number with spaces
 export const formatCardNumber = (value: string): string => {
-  const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-  const matches = v.match(/\d{4,16}/g);
-  const match = (matches && matches[0]) || '';
-  const parts = [];
-
-  for (let i = 0, len = match.length; i < len; i += 4) {
-    parts.push(match.substring(i, i + 4));
+  // Remove all non-digit characters
+  const digits = value.replace(/\D/g, '');
+  
+  // Format with space every 4 digits
+  let formatted = '';
+  for (let i = 0; i < digits.length; i++) {
+    if (i > 0 && i % 4 === 0) {
+      formatted += ' ';
+    }
+    formatted += digits[i];
   }
-
-  if (parts.length) {
-    return parts.join(' ');
-  } else {
-    return value;
-  }
+  
+  return formatted;
 };
 
-/**
- * Mascara o número do cartão para exibição segura
- */
-export const maskCardNumber = (cardNumber: string): string => {
-  return cardNumber.replace(/\d(?=\d{4})/g, '*');
-};
-
-/**
- * Validates a credit card form
- * @returns Validation errors or null if valid
- */
+// Validate all card fields at once and return errors if any
 export const validateCardForm = (
   cardName: string,
   cardNumber: string,
   expiryMonth: string,
   expiryYear: string,
   cvv: string
-): CardValidationErrors | null => {
+) => {
   try {
-    // Use the Zod schema to validate the card details
     CardSchema.parse({
       cardName,
       cardNumber,
@@ -112,17 +98,20 @@ export const validateCardForm = (
       expiryYear,
       cvv
     });
-    return null; // No errors if validation passes
+    return null; // No errors
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors: CardValidationErrors = {};
+      // Convert Zod error format to a simpler object
+      const errors: Record<string, string> = {};
       error.errors.forEach((err) => {
-        const field = err.path[0] as keyof CardValidationErrors;
-        errors[field] = err.message;
+        if (err.path.length > 0) {
+          errors[err.path[0]] = err.message;
+        }
       });
       return errors;
     }
-    // Fallback error object if not a ZodError
-    return { cardName: "Erro de validação desconhecido" };
+    
+    return { general: 'Erro desconhecido na validação do cartão' };
   }
 };
+

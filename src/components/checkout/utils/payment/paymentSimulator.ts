@@ -51,3 +51,25 @@ export const simulatePixQrCodeGeneration = async () => {
     paymentId: 'pay_' + Math.random().toString(36).substring(2, 11)
   };
 };
+
+/**
+ * Simula o processamento completo de um pagamento
+ * Esta função combina as operações de simulação para fornecer um resultado completo
+ */
+export const simulatePayment = async (successRate = 0.85) => {
+  // Simular atraso de rede para processamento
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Determinar se o pagamento foi bem-sucedido
+  const success = Math.random() < successRate;
+  
+  // Gerar ID de pagamento
+  const paymentId = 'pay_' + Math.random().toString(36).substring(2, 11);
+  
+  return {
+    success,
+    paymentId,
+    error: success ? null : 'Falha no processamento do pagamento',
+    timestamp: new Date().toISOString()
+  };
+};
