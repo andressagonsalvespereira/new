@@ -64,21 +64,17 @@ const OrderSummarySection = ({ productDetails }: OrderSummarySectionProps) => {
             </div>
           </div>
           
-          <div className="bg-green-50 border border-green-100 rounded-md p-2 mt-3 flex items-center">
-            <Package className="h-4 w-4 text-green-600 mr-2" />
-            <span className="text-sm text-green-700">
-              Frete Grátis
-            </span>
+          {/* Removed the "Frete Grátis" section */}
+          
+          <div className="flex items-center justify-center mt-4 text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
+            <BadgeCheck className="h-3 w-3 mr-1 text-green-600" />
+            <span>Compra segura e protegida</span>
           </div>
         </CardContent>
       </Card>
-      
-      <div className="flex items-center justify-center mt-4 text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
-        <BadgeCheck className="h-3 w-3 mr-1 text-green-600" />
-        <span>Compra segura e protegida</span>
-      </div>
     </div>
   );
 };
 
 export default OrderSummarySection;
+
