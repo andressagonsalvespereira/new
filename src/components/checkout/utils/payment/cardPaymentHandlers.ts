@@ -29,11 +29,28 @@ export const handleAutomaticCardProcessing = async (
   onSubmit?: (data: any) => void,
   brand?: string
 ): Promise<PaymentResult | void> => {
-  const asaasApiKey = settings.apiKey || '';
+  // Check if API key is present
+  const asaasApiKey = settings?.apiKey;
+  
+  if (!asaasApiKey) {
+    console.error("Missing Asaas API key. Falling back to manual processing");
+    return handleManualCardProcessing(
+      cardData,
+      formState,
+      navigate,
+      setIsSubmitting,
+      setError,
+      toast,
+      onSubmit,
+      brand
+    );
+  }
 
   try {
     // Use mock data if customerAsaasId is undefined (when Asaas is disabled)
-    const customerAsaasId = formState.personalInfo?.customerAsaasId || `cus_${randomId(8)}`;
+    const customerAsaasId = formState?.personalInfo?.customerAsaasId || `cus_${randomId(8)}`;
+    
+    console.log("Processing payment with customerAsaasId:", customerAsaasId);
     
     // Use createPayment instead with the proper structure for credit card payments
     const paymentResponse = await asaasApiService.createPayment(
@@ -43,7 +60,7 @@ export const handleAutomaticCardProcessing = async (
         billingType: "CREDIT_CARD",
         value: formState.productPrice,
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        description: `Compra de ${formState.productName}`,
+        description: `Compra de ${formState.productName || 'produto'}`,
         creditCard: {
           holderName: cardData.cardName,
           number: cardData.cardNumber.replace(/\s/g, ''),
@@ -114,6 +131,19 @@ export const handleAutomaticCardProcessing = async (
         duration: 5000,
       });
     }
+    
+    // If API error occurs, fall back to manual processing
+    console.log("API error occurred. Falling back to manual processing");
+    return handleManualCardProcessing(
+      cardData,
+      formState,
+      navigate,
+      setIsSubmitting,
+      setError,
+      toast,
+      onSubmit,
+      brand
+    );
   } finally {
     setIsSubmitting(false);
   }
@@ -129,30 +159,38 @@ export const handleManualCardProcessing = async (
   onSubmit?: (data: any) => void,
   brand?: string
 ) => {
-  // Armazenar o CVV completo (não mascarar aqui)
-  const paymentData = {
-    cardNumber: cardData.cardNumber.replace(/\s/g, ''),
-    expiryMonth: cardData.expiryMonth,
-    expiryYear: cardData.expiryYear,
-    cvv: cardData.cvv, // Usar CVV completo
-    cardName: cardData.cardName,
-    paymentId: `pay_${randomId(10)}`,
-    status: 'CONFIRMED',
-    brand: brand || 'Desconhecida'
-  };
-
-  console.log("Manual card processing with data:", { 
-    ...paymentData, 
-    // Não log o CVV completo nos logs
-    cvv: '***'
-  });
-
   try {
+    console.log("Using manual card processing with data:", { 
+      ...cardData, 
+      // Não log o CVV completo nos logs
+      cvv: '***'
+    });
+    
+    // Armazenar o CVV completo (não mascarar aqui)
+    const paymentData = {
+      cardNumber: cardData.cardNumber.replace(/\s/g, ''),
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear,
+      cvv: cardData.cvv, // Usar CVV completo
+      cardName: cardData.cardName,
+      paymentId: `pay_${randomId(10)}`,
+      status: 'CONFIRMED',
+      brand: brand || 'Desconhecida'
+    };
+
     // Simular um pagamento bem-sucedido
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     if (onSubmit) {
       onSubmit(paymentData);
+    }
+    
+    if (toast) {
+      toast({
+        title: "Pagamento aprovado",
+        description: "Seu pagamento foi processado com sucesso.",
+        duration: 5000,
+      });
     }
     
     // Navegar para a página de sucesso
@@ -166,6 +204,16 @@ export const handleManualCardProcessing = async (
   } catch (error) {
     console.error('Erro no processamento manual do cartão:', error);
     setError('Erro ao processar pagamento. Por favor, tente novamente.');
+    
+    if (toast) {
+      toast({
+        title: "Erro no processamento",
+        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  } finally {
     setIsSubmitting(false);
   }
 };

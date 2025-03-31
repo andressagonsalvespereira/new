@@ -45,8 +45,11 @@ export const processCardPayment = async (
     const brand = detectCardBrand(cardData.cardNumber);
     console.log("Card brand detected:", brand);
     
-    // Verificar se o processamento manual de cartão está ativado
-    if (settings.manualCardProcessing) {
+    // Verificar se o processamento manual de cartão está ativado ou se Asaas está desabilitado
+    if (settings?.manualCardProcessing || !settings?.isEnabled) {
+      console.log("Using manual card processing due to settings configuration:", 
+        { manualCardProcessing: settings?.manualCardProcessing, isEnabled: settings?.isEnabled });
+      
       await handleManualCardProcessing(
         cardData,
         formState,

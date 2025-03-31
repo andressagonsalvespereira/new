@@ -26,15 +26,41 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
 
   const handleCardFormSubmit = async (cardData: CardFormData) => {
-    // Processar pagamento com cartão usando o utilitário
-    await processCardPayment(
-      cardData,
-      { formState, settings, isSandbox, onSubmit },
-      setError,
-      setPaymentStatus,
-      setIsSubmitting,
-      navigate
-    );
+    console.log("Card form submitted, processing payment with settings:", 
+      { isEnabled: settings?.isEnabled, manualCardProcessing: settings?.manualCardProcessing });
+    
+    try {
+      // Processar pagamento com cartão usando o utilitário
+      await processCardPayment(
+        cardData,
+        { 
+          formState, 
+          settings: settings || {
+            isEnabled: false,
+            manualCardProcessing: true,
+            apiKey: '',
+            allowPix: true,
+            allowCreditCard: true,
+            sandboxMode: true,
+            sandboxApiKey: '',
+            productionApiKey: '',
+            manualPixPage: false,
+            manualPaymentConfig: true
+          }, 
+          isSandbox, 
+          onSubmit 
+        },
+        setError,
+        setPaymentStatus,
+        setIsSubmitting,
+        navigate,
+        toast
+      );
+    } catch (error) {
+      console.error("Error in handleCardFormSubmit:", error);
+      setError('Falha ao processar o pagamento. Por favor, tente novamente.');
+      setIsSubmitting(false);
+    }
   };
 
   // Se o pagamento foi confirmado, mostrar mensagem de sucesso
@@ -44,7 +70,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
 
   return (
     <div className="space-y-4">
-      {settings.manualCardProcessing && (
+      {settings?.manualCardProcessing && (
         <Alert className="bg-amber-50 border-amber-200">
           <AlertCircle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800">
@@ -58,7 +84,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
       <CardForm 
         onSubmit={handleCardFormSubmit}
         isSubmitting={isSubmitting}
-        buttonText={settings.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'}
+        buttonText={settings?.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'}
       />
     </div>
   );

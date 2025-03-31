@@ -30,24 +30,36 @@ export const validateCardForm = (
   cvv: string
 ): CardValidationErrors | null => {
   const errors: CardValidationErrors = {};
+  const cleanCardNumber = cardNumber.replace(/\s+/g, '');
   
   if (!cardName.trim()) {
     errors.cardName = 'Nome no cartão é obrigatório';
   }
   
-  if (cardNumber.replace(/\s+/g, '').length < 16) {
+  if (cleanCardNumber.length < 16) {
     errors.cardNumber = 'Número do cartão inválido';
   }
   
   if (!expiryMonth) {
     errors.expiryMonth = 'Mês de validade é obrigatório';
+  } else {
+    const month = parseInt(expiryMonth, 10);
+    if (isNaN(month) || month < 1 || month > 12) {
+      errors.expiryMonth = 'Mês inválido (1-12)';
+    }
   }
   
   if (!expiryYear) {
     errors.expiryYear = 'Ano de validade é obrigatório';
+  } else {
+    const year = parseInt(expiryYear, 10);
+    const currentYear = new Date().getFullYear();
+    if (isNaN(year) || year < currentYear) {
+      errors.expiryYear = `Ano inválido (deve ser ${currentYear} ou posterior)`;
+    }
   }
   
-  if (cvv.length < 3) {
+  if (!cvv || cvv.length < 3) {
     errors.cvv = 'CVV inválido';
   }
   
