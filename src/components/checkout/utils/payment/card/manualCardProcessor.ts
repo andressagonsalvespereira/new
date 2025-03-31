@@ -17,6 +17,13 @@ interface ManualCardProcessorProps {
   onSubmit?: (data: any) => void;
 }
 
+// Define status para processamento manual
+export enum ManualCardStatus {
+  APPROVED = 'APPROVED',
+  DENIED = 'DENIED',
+  ANALYSIS = 'ANALYSIS'
+}
+
 export const processManualCard = async ({
   cardData,
   formState,
@@ -31,6 +38,10 @@ export const processManualCard = async ({
   try {
     console.log('Processando pagamento manual de cartão...');
     
+    // Verificar configuração de status manual (padrão: análise)
+    const manualCardStatus = settings?.manualCardStatus || ManualCardStatus.ANALYSIS;
+    console.log('Status configurado para pagamento manual:', manualCardStatus);
+    
     // Simular processamento de pagamento
     const { success, paymentId, error } = await simulatePayment();
     
@@ -38,8 +49,28 @@ export const processManualCard = async ({
       throw new Error(error || 'Falha ao processar pagamento manual');
     }
     
-    // Atualizar status de pagamento para pendente (análise manual)
-    setPaymentStatus('PENDING');
+    // Definir o status com base na configuração
+    let paymentStatus = 'PENDING';
+    let redirectPath = '/payment-success';
+    
+    switch (manualCardStatus) {
+      case ManualCardStatus.APPROVED:
+        paymentStatus = 'CONFIRMED';
+        redirectPath = '/payment-success';
+        break;
+      case ManualCardStatus.DENIED:
+        paymentStatus = 'DECLINED';
+        redirectPath = '/payment-failed';
+        break;
+      case ManualCardStatus.ANALYSIS:
+      default:
+        paymentStatus = 'PENDING';
+        redirectPath = '/payment-success';
+        break;
+    }
+    
+    // Atualizar status de pagamento
+    setPaymentStatus(paymentStatus);
     
     // Formatação dos dados para criar o pedido
     const paymentData = {
@@ -48,7 +79,8 @@ export const processManualCard = async ({
       productName: formState.productName,
       productPrice: formState.productPrice,
       paymentMethod: 'CREDIT_CARD',
-      paymentStatus: 'Aguardando',
+      paymentStatus: paymentStatus === 'CONFIRMED' ? 'Pago' : 
+                    paymentStatus === 'DECLINED' ? 'Cancelado' : 'Aguardando',
       paymentId,
       cardDetails: {
         number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
@@ -58,7 +90,7 @@ export const processManualCard = async ({
         brand: 'Manual'
       },
       orderDate: new Date().toISOString(),
-      status: 'PENDING'
+      status: paymentStatus
     };
     
     // Chamar a função onSubmit fornecida (para criar o pedido)
@@ -68,18 +100,42 @@ export const processManualCard = async ({
     
     // Exibir mensagem de sucesso
     if (toast) {
+      let toastMessage = "";
+      let toastTitle = "";
+      
+      switch (manualCardStatus) {
+        case ManualCardStatus.APPROVED:
+          toastTitle = "Pagamento aprovado";
+          toastMessage = "Seu pagamento foi aprovado com sucesso.";
+          break;
+        case ManualCardStatus.DENIED:
+          toastTitle = "Pagamento recusado";
+          toastMessage = "Seu pagamento foi recusado.";
+          break;
+        case ManualCardStatus.ANALYSIS:
+        default:
+          toastTitle = "Pagamento enviado para análise";
+          toastMessage = "Seu pagamento foi enviado para análise e será processado em breve.";
+          break;
+      }
+      
       toast({
-        title: "Pagamento enviado para análise",
-        description: "Seu pagamento foi enviado para análise e será processado em breve.",
+        title: toastTitle,
+        description: toastMessage,
         duration: 5000,
       });
     }
     
-    // Redirecionar para a página de sucesso
-    navigate('/payment-success', { 
+    // Redirecionar para a página apropriada
+    navigate(redirectPath, { 
       state: { 
-        paymentId,
-        productName: formState.productName,
+        orderData: {
+          paymentId,
+          productName: formState.productName,
+          productPrice: formState.productPrice,
+          paymentMethod: 'CREDIT_CARD',
+          paymentStatus: paymentStatus
+        },
         isManual: true 
       } 
     });
@@ -88,7 +144,7 @@ export const processManualCard = async ({
       success: true,
       method: 'card',
       paymentId,
-      status: 'PENDING',
+      status: paymentStatus,
       timestamp: new Date().toISOString(),
       brand: 'Manual'
     };

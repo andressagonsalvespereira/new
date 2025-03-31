@@ -1,3 +1,4 @@
+
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { AsaasSettings } from '@/types/asaas';
@@ -88,9 +89,14 @@ export const handleAutomaticCardProcessing = async (
 
       navigate('/payment-success', {
         state: {
-          ...formState,
-          paymentMethod: 'card',
-          orderId: paymentResponse.id
+          orderData: {
+            ...formState,
+            paymentMethod: 'CREDIT_CARD',
+            orderId: paymentResponse.id,
+            paymentStatus: paymentResponse.status,
+            productPrice: formState.productPrice,
+            productName: formState.productName
+          }
         }
       });
     } else {

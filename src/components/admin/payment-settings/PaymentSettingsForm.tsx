@@ -1,107 +1,114 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Key, Save } from 'lucide-react';
-import { useAsaas } from '@/contexts/AsaasContext';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { AsaasSettings } from '@/types/asaas';
+import { useAsaas } from '@/contexts/AsaasContext';
 import AsaasIntegrationCard from './AsaasIntegrationCard';
 import PaymentMethodsCard from './PaymentMethodsCard';
 import ApiKeysCard from './ApiKeysCard';
+import ManualPaymentSettings from './ManualPaymentSettings';
+import { ManualCardStatus } from '@/components/checkout/utils/payment/card/manualCardProcessor';
 
-const PaymentSettingsForm: React.FC = () => {
-  const { settings, loading, saveSettings } = useAsaas();
-  const [formState, setFormState] = useState<AsaasSettings>({ ...settings });
-  const [isSaving, setIsSaving] = useState(false);
+const PaymentSettingsSchema = z.object({
+  isEnabled: z.boolean(),
+  manualCardProcessing: z.boolean(),
+  manualCardStatus: z.enum(['APPROVED', 'DENIED', 'ANALYSIS']),
+  manualCreditCard: z.boolean(),
+  allowPix: z.boolean(),
+  allowCreditCard: z.boolean(),
+  sandboxMode: z.boolean(),
+  sandboxApiKey: z.string().optional(),
+  productionApiKey: z.string().optional(),
+  manualPixPage: z.boolean(),
+  manualPaymentConfig: z.boolean(),
+});
+
+const PaymentSettingsForm = () => {
   const { toast } = useToast();
+  const { settings, updateSettings, loading } = useAsaas();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(PaymentSettingsSchema),
+    defaultValues: {
+      isEnabled: false,
+      manualCardProcessing: false,
+      manualCardStatus: ManualCardStatus.ANALYSIS as 'ANALYSIS' | 'APPROVED' | 'DENIED',
+      manualCreditCard: false,
+      allowPix: true,
+      allowCreditCard: true,
+      sandboxMode: true,
+      sandboxApiKey: '',
+      productionApiKey: '',
+      manualPixPage: false,
+      manualPaymentConfig: true,
+    },
+  });
 
   useEffect(() => {
-    // Update formState when settings change
-    setFormState({ ...settings });
-  }, [settings]);
+    if (settings && !loading) {
+      form.reset({
+        isEnabled: settings.isEnabled,
+        manualCardProcessing: settings.manualCardProcessing,
+        manualCardStatus: settings.manualCardStatus || ManualCardStatus.ANALYSIS,
+        manualCreditCard: settings.manualCreditCard,
+        allowPix: settings.allowPix,
+        allowCreditCard: settings.allowCreditCard,
+        sandboxMode: settings.sandboxMode,
+        sandboxApiKey: settings.sandboxApiKey,
+        productionApiKey: settings.productionApiKey,
+        manualPixPage: settings.manualPixPage,
+        manualPaymentConfig: settings.manualPaymentConfig,
+      });
+    }
+  }, [settings, loading, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: z.infer<typeof PaymentSettingsSchema>) => {
     setIsSaving(true);
-    
     try {
-      await saveSettings(formState);
+      await updateSettings({
+        ...data,
+        apiKey: data.sandboxMode ? data.sandboxApiKey : data.productionApiKey,
+      });
+      
       toast({
         title: "Configurações salvas",
         description: "As configurações de pagamento foram atualizadas com sucesso.",
-        duration: 3000,
       });
     } catch (error) {
+      console.error('Erro ao salvar configurações:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as configurações.",
+        description: "Ocorreu um erro ao tentar salvar as configurações.",
         variant: "destructive",
-        duration: 5000,
       });
-      console.error("Erro ao salvar configurações:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const updateFormState = (updater: (prev: AsaasSettings) => AsaasSettings) => {
-    setFormState(prev => updater(prev));
-  };
-
-  const isFormValid = formState.isEnabled ? (formState.allowPix || formState.allowCreditCard) : true;
+  if (loading) {
+    return <div className="animate-pulse">Carregando configurações...</div>;
+  }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="general" className="flex items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Configurações Gerais</span>
-          </TabsTrigger>
-          <TabsTrigger value="api-keys" className="flex items-center">
-            <Key className="mr-2 h-4 w-4" />
-            <span>Chaves de API</span>
-          </TabsTrigger>
-        </TabsList>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <AsaasIntegrationCard form={form} />
+      <PaymentMethodsCard form={form} />
+      <ApiKeysCard form={form} />
       
-        <TabsContent value="general" className="space-y-6">
-          <AsaasIntegrationCard 
-            formState={formState} 
-            loading={loading} 
-            onUpdateFormState={updateFormState} 
-          />
-          
-          <PaymentMethodsCard 
-            formState={formState} 
-            loading={loading} 
-            onUpdateFormState={updateFormState} 
-          />
-        </TabsContent>
-
-        <TabsContent value="api-keys" className="space-y-6">
-          <ApiKeysCard 
-            formState={formState} 
-            onUpdateFormState={updateFormState} 
-          />
-        </TabsContent>
-      </Tabs>
-
-      <div className="mt-6">
-        <Button 
-          type="submit" 
-          variant="default"
-          disabled={loading || isSaving || !isFormValid}
+      <ManualPaymentSettings form={form} />
+      
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50"
         >
-          {isSaving ? (
-            <>Salvando Configurações...</>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Configurações
-            </>
-          )}
-        </Button>
+          {isSaving ? 'Salvando...' : 'Salvar configurações'}
+        </button>
       </div>
     </form>
   );
