@@ -1,22 +1,22 @@
 
 export interface Product {
   id: string;
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  isDigital: boolean;
+  nome: string;
+  descricao: string;
+  preco: number;
+  urlImagem: string;
+  digital: boolean;
   slug: string;
-  useCustomProcessing?: boolean;
-  manualCardStatus?: string;
+  usarProcessamentoPersonalizado?: boolean;
+  statusCartaoManual?: string;
 }
 
-export interface CreateProductInput {
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  isDigital: boolean;
-  useCustomProcessing?: boolean;
-  manualCardStatus?: string;
+export interface CriarProdutoInput {
+  nome: string;
+  descricao: string;
+  preco: number;
+  urlImagem: string;
+  digital: boolean;
+  usarProcessamentoPersonalizado?: boolean;
+  statusCartaoManual?: string;
 }

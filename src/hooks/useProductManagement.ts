@@ -1,204 +1,203 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { Product, CreateProductInput } from '@/types/product';
 
-const initialFormState: CreateProductInput = {
-  name: '',
-  description: '',
-  price: 0,
-  imageUrl: '',
-  isDigital: false,
-  useCustomProcessing: false,
-  manualCardStatus: 'ANALYSIS'
+const estadoInicialFormulario: CreateProductInput = {
+  nome: '',
+  descricao: '',
+  preco: 0,
+  urlImagem: '',
+  digital: false,
+  usarProcessamentoPersonalizado: false,
+  statusCartaoManual: 'ANALISE'
 };
 
-export const useProductManagement = () => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<CreateProductInput>(initialFormState);
+export const useGerenciamentoProdutos = () => {
+  const [dialogoAdicaoAberto, definirDialogoAdicaoAberto] = useState(false);
+  const [dialogoEdicaoAberto, definirDialogoEdicaoAberto] = useState(false);
+  const [dialogoRemocaoAberto, definirDialogoRemocaoAberto] = useState(false);
+  const [produtoEmEdicao, definirProdutoEmEdicao] = useState<Product | null>(null);
+  const [produtoParaRemover, definirProdutoParaRemover] = useState<Product | null>(null);
+  const [dadosFormulario, definirDadosFormulario] = useState<CreateProductInput>(estadoInicialFormulario);
   
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [paginaAtual, definirPaginaAtual] = useState(1);
+  const [tamanhoPagina, definirTamanhoPagina] = useState(5);
 
-  const { toast } = useToast();
+  const { toast: exibirNotificacao } = useToast();
   const { 
-    addProduct, 
-    updateProduct, 
-    deleteProduct, 
-    products, 
-    loading, 
-    error,
-    refreshProducts,
-    isOffline
+    addProduct: adicionarProduto, 
+    updateProduct: atualizarProduto, 
+    deleteProduct: removerProduto, 
+    products: produtos, 
+    loading: carregando, 
+    error: erro,
+    refreshProducts: atualizarProdutos,
+    isOffline: estaOffline
   } = useProducts();
 
   // Reset to first page when products change (e.g., after add/delete)
   useEffect(() => {
-    setCurrentPage(1);
-  }, [products.length]);
+    definirPaginaAtual(1);
+  }, [produtos.length]);
 
-  const resetForm = useCallback(() => {
-    setFormData(initialFormState);
+  const redefinirFormulario = useCallback(() => {
+    definirDadosFormulario(estadoInicialFormulario);
   }, []);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const manipularMudancaInput = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name: nome, value: valor } = e.target;
     
-    if (name === 'price') {
-      setFormData(prev => ({
+    if (nome === 'preco') {
+      definirDadosFormulario(prev => ({
         ...prev,
-        [name]: parseFloat(value) || 0
+        [nome]: parseFloat(valor) || 0
       }));
     } else {
-      setFormData(prev => ({
+      definirDadosFormulario(prev => ({
         ...prev,
-        [name]: value
+        [nome]: valor
       }));
     }
   }, []);
 
-  const handleSwitchChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({
+  const manipularMudancaSwitch = useCallback((checked: boolean) => {
+    definirDadosFormulario(prev => ({
       ...prev,
-      isDigital: checked
+      digital: checked
     }));
   }, []);
 
-  const handleUseCustomProcessingChange = useCallback((checked: boolean) => {
-    setFormData(prev => ({
+  const manipularMudancaProcessamentoPersonalizado = useCallback((checked: boolean) => {
+    definirDadosFormulario(prev => ({
       ...prev,
-      useCustomProcessing: checked
+      usarProcessamentoPersonalizado: checked
     }));
   }, []);
 
-  const handleManualCardStatusChange = useCallback((value: string) => {
-    setFormData(prev => ({
+  const manipularMudancaStatusCartaoManual = useCallback((value: string) => {
+    definirDadosFormulario(prev => ({
       ...prev,
-      manualCardStatus: value
+      statusCartaoManual: value
     }));
   }, []);
 
-  const handleAddProduct = async () => {
+  const handleAdicionarProduto = async () => {
     try {
-      await addProduct(formData);
-      resetForm();
-      setIsAddDialogOpen(false);
+      await adicionarProduto(dadosFormulario);
+      redefinirFormulario();
+      definirDialogoAdicaoAberto(false);
 
-      toast({
-        title: "Success",
-        description: "Product added successfully",
+      exibirNotificacao({
+        titulo: "Sucesso",
+        descricao: "Produto adicionado com sucesso",
       });
-    } catch (error) {
-      console.error('Error adding product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add product",
-        variant: "destructive",
+    } catch (erro) {
+      console.error('Erro ao adicionar produto:', erro);
+      exibirNotificacao({
+        titulo: "Erro",
+        descricao: "Falha ao adicionar produto",
+        variante: "destrutiva",
       });
     }
   };
 
-  const handleEditClick = useCallback((product: Product) => {
-    setEditingProduct(product);
-    setFormData({
-      name: product.name,
-      description: product.description || '',
-      price: product.price,
-      imageUrl: product.imageUrl || '',
-      isDigital: product.isDigital,
-      useCustomProcessing: product.useCustomProcessing || false,
-      manualCardStatus: product.manualCardStatus || 'ANALYSIS'
+  const handleEditarClique = useCallback((produto: Product) => {
+    definirProdutoEmEdicao(produto);
+    definirDadosFormulario({
+      nome: produto.name,
+      descricao: produto.description || '',
+      preco: produto.price,
+      urlImagem: produto.imageUrl || '',
+      digital: produto.isDigital,
+      usarProcessamentoPersonalizado: produto.useCustomProcessing || false,
+      statusCartaoManual: produto.manualCardStatus || 'ANALISE'
     });
-    setIsEditDialogOpen(true);
+    definirDialogoEdicaoAberto(true);
   }, []);
 
-  const handleDeleteClick = useCallback((product: Product) => {
-    setProductToDelete(product);
-    setIsDeleteDialogOpen(true);
+  const handleRemoverClique = useCallback((produto: Product) => {
+    definirProdutoParaRemover(produto);
+    definirDialogoRemocaoAberto(true);
   }, []);
 
-  const handleUpdateProduct = async () => {
-    if (!editingProduct) return;
+  const handleAtualizarProduto = async () => {
+    if (!produtoEmEdicao) return;
 
     try {
-      await updateProduct(editingProduct.id, formData);
-      setIsEditDialogOpen(false);
-      setEditingProduct(null);
+      await atualizarProduto(produtoEmEdicao.id, dadosFormulario);
+      definirDialogoEdicaoAberto(false);
+      definirProdutoEmEdicao(null);
 
-      toast({
-        title: "Success",
-        description: "Product updated successfully",
+      exibirNotificacao({
+        titulo: "Sucesso",
+        descricao: "Produto atualizado com sucesso",
       });
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update product",
-        variant: "destructive",
+    } catch (erro) {
+      console.error('Erro ao atualizar produto:', erro);
+      exibirNotificacao({
+        titulo: "Erro",
+        descricao: "Falha ao atualizar produto",
+        variante: "destrutiva",
       });
     }
   };
 
-  const handleDeleteProduct = async () => {
-    if (!productToDelete) return;
+  const handleRemoverProduto = async () => {
+    if (!produtoParaRemover) return;
     
     try {
-      await deleteProduct(productToDelete.id);
-      setIsDeleteDialogOpen(false);
-      setProductToDelete(null);
+      await removerProduto(produtoParaRemover.id);
+      definirDialogoRemocaoAberto(false);
+      definirProdutoParaRemover(null);
       
-      toast({
-        title: "Success",
-        description: "Product removed successfully",
+      exibirNotificacao({
+        titulo: "Sucesso",
+        descricao: "Produto removido com sucesso",
       });
-    } catch (error) {
-      console.error('Error removing product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove product",
-        variant: "destructive",
+    } catch (erro) {
+      console.error('Erro ao remover produto:', erro);
+      exibirNotificacao({
+        titulo: "Erro",
+        descricao: "Falha ao remover produto",
+        variante: "destrutiva",
       });
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleMudancaPagina = (pagina: number) => {
+    definirPaginaAtual(pagina);
   };
 
   return {
-    isAddDialogOpen,
-    setIsAddDialogOpen,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
-    isDeleteDialogOpen,
-    setIsDeleteDialogOpen,
-    editingProduct,
-    productToDelete,
-    formData,
-    products,
-    loading,
-    error,
-    isOffline,
-    handleInputChange,
-    handleSwitchChange,
-    handleUseCustomProcessingChange,
-    handleManualCardStatusChange,
-    handleAddProduct,
-    handleEditClick,
-    handleDeleteClick,
-    handleUpdateProduct,
-    handleDeleteProduct,
-    refreshProducts,
-    resetForm,
+    isAddDialogOpen: dialogoAdicaoAberto,
+    setIsAddDialogOpen: definirDialogoAdicaoAberto,
+    isEditDialogOpen: dialogoEdicaoAberto,
+    setIsEditDialogOpen: definirDialogoEdicaoAberto,
+    isDeleteDialogOpen: dialogoRemocaoAberto,
+    setIsDeleteDialogOpen: definirDialogoRemocaoAberto,
+    editingProduct: produtoEmEdicao,
+    productToDelete: produtoParaRemover,
+    formData: dadosFormulario,
+    products: produtos,
+    loading: carregando,
+    error: erro,
+    isOffline: estaOffline,
+    handleInputChange: manipularMudancaInput,
+    handleSwitchChange: manipularMudancaSwitch,
+    handleUseCustomProcessingChange: manipularMudancaProcessamentoPersonalizado,
+    handleManualCardStatusChange: manipularMudancaStatusCartaoManual,
+    handleAddProduct: handleAdicionarProduto,
+    handleEditClick: handleEditarClique,
+    handleDeleteClick: handleRemoverClique,
+    handleUpdateProduct: handleAtualizarProduto,
+    handleDeleteProduct: handleRemoverProduto,
+    refreshProducts: atualizarProdutos,
+    resetForm: redefinirFormulario,
     // Pagination
-    currentPage,
-    pageSize,
-    handlePageChange
+    currentPage: paginaAtual,
+    pageSize: tamanhoPagina,
+    handlePageChange: handleMudancaPagina
   };
 };

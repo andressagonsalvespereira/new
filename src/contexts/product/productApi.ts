@@ -1,172 +1,170 @@
-
-import { Product, CreateProductInput } from '@/types/product';
+import { Produto, CreateProdutoInput } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 import { generateSlug } from './slugUtils';
 
 // Interface para o tipo de dado retornado pelo Supabase
-interface SupabaseProductRow {
+interface LinhaSupabaseProduto {
   id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  is_digital: boolean;
+  nome: string;
+  descricao: string | null;
+  preco: number;
+  url_imagem: string | null;
+  digital: boolean;
   slug: string;
-  created_at: string;
-  updated_at: string;
-  use_custom_processing: boolean | null;
-  manual_card_status: string | null;
+  criado_em: string;
+  atualizado_em: string;
+  usar_processamento_personalizado: boolean | null;
+  status_cartao_manual: string | null;
 }
 
-// Fetch products from Supabase
-export const fetchProductsFromAPI = async (): Promise<Product[]> => {
+// Buscar produtos do Supabase
+export const buscarProdutosAPI = async (): Promise<Produto[]> => {
   const { data, error } = await supabase
-    .from('products')
+    .from('produtos')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('criado_em', { ascending: false });
   
   if (error) throw error;
   
-  // Map database format to our Product type
-  return (data as SupabaseProductRow[]).map(item => ({
-    id: String(item.id), // Convert to string
-    name: item.name,
-    description: item.description || '',
-    price: Number(item.price),
-    imageUrl: item.image_url || '',
-    isDigital: item.is_digital || false,
+  return (data as LinhaSupabaseProduto[]).map(item => ({
+    id: String(item.id),
+    nome: item.nome,
+    descricao: item.descricao || '',
+    preco: Number(item.preco),
+    urlImagem: item.url_imagem || '',
+    digital: item.digital || false,
     slug: item.slug,
-    useCustomProcessing: item.use_custom_processing || false,
-    manualCardStatus: item.manual_card_status || null
+    usarProcessamentoPersonalizado: item.usar_processamento_personalizado || false,
+    statusCartaoManual: item.status_cartao_manual || null
   }));
 };
 
-// Add product to Supabase
-export const addProductToAPI = async (productData: CreateProductInput): Promise<Product> => {
-  // Generate a slug based on the product name
-  const slug = await generateSlug(productData.name);
+// Adicionar produto ao Supabase
+export const adicionarProdutoAPI = async (produtoData: CreateProdutoInput): Promise<Produto> => {
+  // Gerar um slug baseado no nome do produto
+  const slug = await generateSlug(produtoData.nome);
   
-  // Transform our product data to match database schema
-  const dbProductData = {
-    name: productData.name,
-    description: productData.description,
-    price: productData.price,
-    image_url: productData.imageUrl,
-    is_digital: productData.isDigital,
+  // Transformar os dados do produto para corresponder ao esquema do banco de dados
+  const dbProdutoData = {
+    nome: produtoData.nome,
+    descricao: produtoData.descricao,
+    preco: produtoData.preco,
+    url_imagem: produtoData.urlImagem,
+    digital: produtoData.digital,
     slug: slug,
-    use_custom_processing: productData.useCustomProcessing || false,
-    manual_card_status: productData.manualCardStatus || null
+    usar_processamento_personalizado: produtoData.usarProcessamentoPersonalizado || false,
+    status_cartao_manual: produtoData.statusCartaoManual || null
   };
   
   const { data, error } = await supabase
-    .from('products')
-    .insert([dbProductData])
+    .from('produtos')
+    .insert([dbProdutoData])
     .select()
     .single();
   
   if (error) throw error;
   
-  // Convert back to our Product type
-  const product = data as SupabaseProductRow;
+  // Converter de volta para o tipo de Produto
+  const produto = data as LinhaSupabaseProduto;
   
   return {
-    id: String(product.id),
-    name: product.name,
-    description: product.description || '',
-    price: Number(product.price),
-    imageUrl: product.image_url || '',
-    isDigital: product.is_digital || false,
-    slug: product.slug,
-    useCustomProcessing: product.use_custom_processing || false,
-    manualCardStatus: product.manual_card_status || null
+    id: String(produto.id),
+    nome: produto.nome,
+    descricao: produto.descricao || '',
+    preco: Number(produto.preco),
+    urlImagem: produto.url_imagem || '',
+    digital: produto.digital || false,
+    slug: produto.slug,
+    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
+    statusCartaoManual: produto.status_cartao_manual || null
   };
 };
 
-// Edit product in Supabase
-export const editProductInAPI = async (id: string, productData: Partial<Product>): Promise<Product> => {
-  // Transform our product data to match database schema
-  const dbProductData: any = {};
+// Editar produto no Supabase
+export const editarProdutoAPI = async (id: string, produtoData: Partial<Produto>): Promise<Produto> => {
+  // Transformar os dados do produto para corresponder ao esquema do banco de dados
+  const dbProdutoData: any = {};
   
-  if (productData.name !== undefined) {
-    dbProductData.name = productData.name;
-    // Re-generate slug if name changes
-    dbProductData.slug = await generateSlug(productData.name);
+  if (produtoData.nome !== undefined) {
+    dbProdutoData.nome = produtoData.nome;
+    // Re-generar slug se o nome mudar
+    dbProdutoData.slug = await generateSlug(produtoData.nome);
   }
-  if (productData.description !== undefined) dbProductData.description = productData.description;
-  if (productData.price !== undefined) dbProductData.price = productData.price;
-  if (productData.imageUrl !== undefined) dbProductData.image_url = productData.imageUrl;
-  if (productData.isDigital !== undefined) dbProductData.is_digital = productData.isDigital;
-  if (productData.slug !== undefined) dbProductData.slug = productData.slug;
-  if (productData.useCustomProcessing !== undefined) dbProductData.use_custom_processing = productData.useCustomProcessing;
-  if (productData.manualCardStatus !== undefined) dbProductData.manual_card_status = productData.manualCardStatus;
+  if (produtoData.descricao !== undefined) dbProdutoData.descricao = produtoData.descricao;
+  if (produtoData.preco !== undefined) dbProdutoData.preco = produtoData.preco;
+  if (produtoData.urlImagem !== undefined) dbProdutoData.url_imagem = produtoData.urlImagem;
+  if (produtoData.digital !== undefined) dbProdutoData.digital = produtoData.digital;
+  if (produtoData.slug !== undefined) dbProdutoData.slug = produtoData.slug;
+  if (produtoData.usarProcessamentoPersonalizado !== undefined) dbProdutoData.usar_processamento_personalizado = produtoData.usarProcessamentoPersonalizado;
+  if (produtoData.statusCartaoManual !== undefined) dbProdutoData.status_cartao_manual = produtoData.statusCartaoManual;
   
-  // Update product in Supabase
+  // Atualizar produto no Supabase
   const { data, error } = await supabase
-    .from('products')
-    .update(dbProductData)
-    .eq('id', parseInt(id)) // Convert string id to number
+    .from('produtos')
+    .update(dbProdutoData)
+    .eq('id', parseInt(id)) // Converter string id para número
     .select()
     .single();
   
   if (error) throw error;
   
-  // Convert to our Product type
-  const product = data as SupabaseProductRow;
+  // Converter para o tipo de Produto
+  const produto = data as LinhaSupabaseProduto;
   
   return {
-    id: String(product.id),
-    name: product.name,
-    description: product.description || '',
-    price: Number(product.price),
-    imageUrl: product.image_url || '',
-    isDigital: product.is_digital || false,
-    slug: product.slug,
-    useCustomProcessing: product.use_custom_processing || false,
-    manualCardStatus: product.manual_card_status || null
+    id: String(produto.id),
+    nome: produto.nome,
+    descricao: produto.descricao || '',
+    preco: Number(produto.preco),
+    urlImagem: produto.url_imagem || '',
+    digital: produto.digital || false,
+    slug: produto.slug,
+    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
+    statusCartaoManual: produto.status_cartao_manual || null
   };
 };
 
-// Remove product from Supabase
-export const removeProductFromAPI = async (id: string): Promise<void> => {
+// Remover produto do Supabase
+export const removerProdutoAPI = async (id: string): Promise<void> => {
   const { error } = await supabase
-    .from('products')
+    .from('produtos')
     .delete()
-    .eq('id', parseInt(id)); // Convert string id to number
+    .eq('id', parseInt(id)); // Converter string id para número
   
   if (error) throw error;
 };
 
-// Get product by ID from Supabase
-export const getProductByIdFromAPI = async (id: string): Promise<Product | undefined> => {
+// Obter produto por ID do Supabase
+export const obterProdutoPorIdAPI = async (id: string): Promise<Produto | undefined> => {
   const { data, error } = await supabase
-    .from('products')
+    .from('produtos')
     .select('*')
-    .eq('id', parseInt(id)) // Convert string id to number
+    .eq('id', parseInt(id)) // Converter string id para número
     .maybeSingle();
   
   if (error) throw error;
   if (!data) return undefined;
   
-  // Convert to our Product type
-  const product = data as SupabaseProductRow;
+  // Converter para o tipo de Produto
+  const produto = data as LinhaSupabaseProduto;
   
   return {
-    id: String(product.id),
-    name: product.name,
-    description: product.description || '',
-    price: Number(product.price),
-    imageUrl: product.image_url || '',
-    isDigital: product.is_digital || false,
-    slug: product.slug,
-    useCustomProcessing: product.use_custom_processing || false,
-    manualCardStatus: product.manual_card_status || null
+    id: String(produto.id),
+    nome: produto.nome,
+    descricao: produto.descricao || '',
+    preco: Number(produto.preco),
+    urlImagem: produto.url_imagem || '',
+    digital: produto.digital || false,
+    slug: produto.slug,
+    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
+    statusCartaoManual: produto.status_cartao_manual || null
   };
 };
 
-// Get product by slug from Supabase
-export const getProductBySlugFromAPI = async (slug: string): Promise<Product | undefined> => {
+// Obter produto por slug do Supabase
+export const obterProdutoPorSlugAPI = async (slug: string): Promise<Produto | undefined> => {
   const { data, error } = await supabase
-    .from('products')
+    .from('produtos')
     .select('*')
     .eq('slug', slug)
     .maybeSingle();
@@ -174,18 +172,18 @@ export const getProductBySlugFromAPI = async (slug: string): Promise<Product | u
   if (error) throw error;
   if (!data) return undefined;
   
-  // Convert to our Product type
-  const product = data as SupabaseProductRow;
+  // Converter para o tipo de Produto
+  const produto = data as LinhaSupabaseProduto;
   
   return {
-    id: String(product.id),
-    name: product.name,
-    description: product.description || '',
-    price: Number(product.price),
-    imageUrl: product.image_url || '',
-    isDigital: product.is_digital || false,
-    slug: product.slug,
-    useCustomProcessing: product.use_custom_processing || false,
-    manualCardStatus: product.manual_card_status || null
+    id: String(produto.id),
+    nome: produto.nome,
+    descricao: produto.descricao || '',
+    preco: Number(produto.preco),
+    urlImagem: produto.url_imagem || '',
+    digital: produto.digital || false,
+    slug: produto.slug,
+    usarProcessamentoPersonalizado: produto.usar_processamento_personalizado || false,
+    statusCartaoManual: produto.status_cartao_manual || null
   };
 };
