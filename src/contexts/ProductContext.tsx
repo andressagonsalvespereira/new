@@ -7,10 +7,10 @@ import {
   ProductProviderProps 
 } from '@/contexts/product/productContextTypes';
 import { 
-  loadProducts, 
-  createProduct, 
-  updateProduct, 
-  deleteProduct,
+  loadProducts,
+  createProduct as createProductUtil,
+  updateProduct as updateProductUtil,
+  deleteProduct as deleteProductUtil,
   getProductById as getProductByIdUtil
 } from '@/contexts/product/productUtils';
 
@@ -46,7 +46,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const addProduct = async (productData: CreateProductInput): Promise<Product> => {
     try {
-      const newProduct = await createProduct(productData);
+      const newProduct = createProductUtil(productData);
       setProducts(prev => [...prev, newProduct]);
       
       toast({
@@ -68,7 +68,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const editProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
     try {
-      const updatedProduct = await updateProduct(id, productData);
+      const updatedProduct = await updateProductUtil(id, productData);
       
       setProducts(prev => 
         prev.map(prod => 
@@ -95,7 +95,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
 
   const removeProduct = async (id: string): Promise<void> => {
     try {
-      await deleteProduct(id);
+      await deleteProductUtil(id);
       
       setProducts(prev => prev.filter(prod => prod.id !== id));
       
