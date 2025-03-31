@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,21 +12,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CreditCard, Eye, Info, Loader2, QrCode, RefreshCw } from 'lucide-react';
 import { Order, PaymentMethod, PaymentStatus } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 const OrderStatusBadge = ({ status }: { status: Order['paymentStatus'] }) => {
+  // Define status color mapping with defaults for all possible statuses
   const statusConfig = {
-    pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pendente' },
-    confirmed: { color: 'bg-green-100 text-green-800', label: 'Confirmado' },
-    declined: { color: 'bg-red-100 text-red-800', label: 'Recusado' },
-    refunded: { color: 'bg-blue-100 text-blue-800', label: 'Reembolsado' },
-    cancelled: { color: 'bg-gray-100 text-gray-800', label: 'Cancelado' },
+    'Aguardando': { color: 'bg-yellow-100 text-yellow-800', label: 'Aguardando' },
+    'Pago': { color: 'bg-green-100 text-green-800', label: 'Pago' },
+    'Cancelado': { color: 'bg-red-100 text-red-800', label: 'Cancelado' },
+    'Pendente': { color: 'bg-blue-100 text-blue-800', label: 'Pendente' },
+    // Fallback for any other values
+    'default': { color: 'bg-gray-100 text-gray-800', label: 'Status Desconhecido' }
   };
 
-  const config = statusConfig[status];
+  // Use the fallback if the status is undefined or not in the config
+  const config = status && statusConfig[status] ? statusConfig[status] : statusConfig['default'];
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
-      {config.label}
+      {status || config.label}
     </span>
   );
 };
