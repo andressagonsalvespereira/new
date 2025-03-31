@@ -1,4 +1,5 @@
-import { Order, CustomerInfo } from '@/types/order';
+
+import { Order, CustomerInfo, DeviceType } from '@/types/order';
 
 // Helper function to convert database order to frontend Order type
 export const convertDBOrderToOrder = (dbOrder: any): Order => {
