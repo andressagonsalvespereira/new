@@ -42,7 +42,7 @@ const CepInput = ({
           </p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          Digite o CEP para buscar o endereço automaticamente ou preencha manualmente.
+          Digite o CEP para buscar o endereço automaticamente.
         </p>
       </div>
     </div>

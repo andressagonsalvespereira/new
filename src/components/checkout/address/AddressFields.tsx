@@ -38,25 +38,29 @@ const AddressFields = ({
 }: AddressFieldsProps) => {
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
-        <AddressField
-          id="street"
-          label="Endereço"
-          value={street}
-          onChange={(e) => setStreet(e.target.value)}
-          error={formErrors.street}
-          disabled={isSearchingCep}
-          placeholder="Rua, Avenida, etc."
-        />
-        <AddressField
-          id="number"
-          label="Número"
-          value={number}
-          onChange={(e) => setNumber(e.target.value)}
-          error={formErrors.number}
-          disabled={isSearchingCep}
-          placeholder="123"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="sm:col-span-1">
+          <AddressField
+            id="street"
+            label="Endereço"
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+            error={formErrors.street}
+            disabled={isSearchingCep}
+            placeholder="Rua, Avenida, etc."
+          />
+        </div>
+        <div className="sm:col-span-1">
+          <AddressField
+            id="number"
+            label="Número"
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            error={formErrors.number}
+            disabled={isSearchingCep}
+            placeholder="123"
+          />
+        </div>
       </div>
       
       <div className="grid grid-cols-1 gap-3">
@@ -70,34 +74,40 @@ const AddressFields = ({
         />
       </div>
       
-      <div className="grid grid-cols-3 gap-3">
-        <AddressField
-          id="neighborhood"
-          label="Bairro"
-          value={neighborhood}
-          onChange={(e) => setNeighborhood(e.target.value)}
-          error={formErrors.neighborhood}
-          disabled={isSearchingCep}
-          placeholder="Seu bairro"
-        />
-        <AddressField
-          id="city"
-          label="Cidade"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          error={formErrors.city}
-          disabled={isSearchingCep}
-          placeholder="Sua cidade"
-        />
-        <AddressField
-          id="state"
-          label="Estado"
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-          error={formErrors.state}
-          disabled={isSearchingCep}
-          placeholder="UF"
-        />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="sm:col-span-1">
+          <AddressField
+            id="neighborhood"
+            label="Bairro"
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
+            error={formErrors.neighborhood}
+            disabled={isSearchingCep}
+            placeholder="Seu bairro"
+          />
+        </div>
+        <div className="sm:col-span-1">
+          <AddressField
+            id="city"
+            label="Cidade"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            error={formErrors.city}
+            disabled={isSearchingCep}
+            placeholder="Sua cidade"
+          />
+        </div>
+        <div className="sm:col-span-1">
+          <AddressField
+            id="state"
+            label="Estado"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            error={formErrors.state}
+            disabled={isSearchingCep}
+            placeholder="UF"
+          />
+        </div>
       </div>
     </>
   );
