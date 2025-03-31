@@ -81,7 +81,7 @@ const CheckoutHeader = () => {
           <img 
             src={customization.banner_image_url} 
             alt="Checkout Banner" 
-            className="w-full h-auto object-cover"
+            className="w-full h-auto object-cover max-h-60"
           />
         </div>
       )}
