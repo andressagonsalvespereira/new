@@ -81,7 +81,8 @@ const CheckoutHeader = () => {
           <img 
             src={customization.banner_image_url} 
             alt="Checkout Banner" 
-            className="w-full h-auto object-cover max-h-60"
+            className="w-full h-auto object-cover max-h-40 md:max-h-60"
+            style={{ touchAction: 'manipulation' }}
           />
         </div>
       )}

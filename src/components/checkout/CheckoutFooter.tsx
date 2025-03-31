@@ -27,20 +27,20 @@ const CheckoutFooter = () => {
           
           <div>
             <h3 className="text-sm font-semibold mb-3">Segurança</h3>
-            <div className="flex flex-wrap gap-2">
-              <div className="bg-white px-3 py-2 rounded-md border flex items-center text-center">
-                <Lock className="h-4 w-4 text-green-600 mr-1" />
-                <span className="text-xs">SSL Seguro</span>
+            <div className="flex flex-col space-y-2">
+              <div className="bg-white px-2 py-1 rounded-md border inline-flex items-center text-xs w-fit">
+                <Lock className="h-3 w-3 text-green-600 mr-1" />
+                <span>SSL Seguro</span>
               </div>
               
-              <div className="bg-white px-3 py-2 rounded-md border flex items-center text-center">
-                <CreditCard className="h-4 w-4 text-blue-600 mr-1" />
-                <span className="text-xs">Pagamento Seguro</span>
+              <div className="bg-white px-2 py-1 rounded-md border inline-flex items-center text-xs w-fit">
+                <CreditCard className="h-3 w-3 text-blue-600 mr-1" />
+                <span>Pagamento Seguro</span>
               </div>
               
-              <div className="bg-white px-3 py-2 rounded-md border flex items-center text-center">
-                <Award className="h-4 w-4 text-yellow-600 mr-1" />
-                <span className="text-xs">Compra Garantida</span>
+              <div className="bg-white px-2 py-1 rounded-md border inline-flex items-center text-xs w-fit">
+                <Award className="h-3 w-3 text-yellow-600 mr-1" />
+                <span>Compra Garantida</span>
               </div>
             </div>
           </div>
