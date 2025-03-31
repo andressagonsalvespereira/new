@@ -23,7 +23,6 @@ import Checkout from './pages/Checkout';
 import QuickCheckout from './pages/QuickCheckout';
 import PaymentFailed from './pages/PaymentFailed';
 import PixPaymentManual from './pages/PixPaymentManual';
-import Payments from './pages/admin/Payments';
 
 // Component imports
 import { Toaster } from './components/ui/toaster';
@@ -50,9 +49,10 @@ function App() {
                   <Route path="/admin/pixel-settings" element={<PixelSettings />} />
                   {/* Redirect old Asaas settings page to the new consolidated payment settings */}
                   <Route path="/admin/asaas-settings" element={<Navigate to="/admin/settings/payment" replace />} />
-                  <Route path="/admin/payments" element={<Payments />} />
+                  {/* Redirect payment process page to payment settings */}
+                  <Route path="/admin/payments" element={<Navigate to="/admin/settings/payment" replace />} />
                   {/* Redirect any old references to the removed payments page */}
-                  <Route path="/payments" element={<Navigate to="/admin/payments" replace />} />
+                  <Route path="/payments" element={<Navigate to="/admin/settings/payment" replace />} />
                   
                   {/* Checkout Routes */}
                   <Route path="/checkout/:productSlug" element={<Checkout />} />

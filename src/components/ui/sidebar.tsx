@@ -56,7 +56,6 @@ export const Sidebar = () => {
           <SidebarItem icon={Home} label="Página Inicial" href="/" />
           <SidebarItem icon={BarChart} label="Dashboard" href="/admin/dashboard" />
           <SidebarItem icon={Users} label="Clientes" href="/customers" />
-          <SidebarItem icon={CreditCard} label="Pagamentos" href="/admin/payments" />
           <SidebarItem icon={Package} label="Produtos" href="/admin/products" />
           <SidebarItem icon={ShoppingCart} label="Pedidos" href="/admin/orders" />
         </div>
