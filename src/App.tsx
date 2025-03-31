@@ -11,7 +11,6 @@ import { PixelProvider } from './contexts/PixelContext';
 // Pages
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
-import Payments from './pages/Payments';
 import Customers from './pages/Customers';
 import Products from './pages/admin/Products';
 import NotFound from './pages/NotFound';
@@ -25,6 +24,7 @@ import Checkout from './pages/Checkout';
 import QuickCheckout from './pages/QuickCheckout';
 import PaymentFailed from './pages/PaymentFailed';
 import PixPaymentManual from './pages/PixPaymentManual';
+import Payments from './pages/admin/Payments';
 
 // Component imports
 import { Toaster } from './components/ui/toaster';
@@ -40,7 +40,6 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/payments" element={<Payments />} />
                   <Route path="/customers" element={<Customers />} />
                   
                   {/* Admin Routes */}
@@ -51,6 +50,7 @@ function App() {
                   <Route path="/admin/settings/payment" element={<PaymentSettings />} />
                   <Route path="/admin/pixel-settings" element={<PixelSettings />} />
                   <Route path="/admin/asaas-settings" element={<AsaasSettings />} />
+                  <Route path="/admin/payments" element={<Payments />} />
                   
                   {/* Checkout Routes */}
                   <Route path="/checkout/:productSlug" element={<Checkout />} />

@@ -1,110 +1,83 @@
 
 import axios from 'axios';
-import { getAsaasConfig } from './asaasDatabase';
+import { v4 as uuidv4 } from 'uuid';
 import { 
-  AsaasCustomer, 
-  AsaasPayment, 
-  AsaasPaymentResponse, 
-  AsaasPixQrCodeResponse 
+  AsaasSettings, 
+  AsaasCustomer,
+  AsaasPayment,
+  AsaasPaymentResponse,
+  AsaasPixQrCodeResponse
 } from '@/types/asaas';
 
-class AsaasApiService {
-  private getSandboxUrl() {
-    return 'https://sandbox.asaas.com/api/v3';
-  }
-
-  private getProductionUrl() {
-    return 'https://www.asaas.com/api/v3';
-  }
-
-  private async getApiKey(isSandbox: boolean) {
-    const config = await getAsaasConfig();
-    return isSandbox 
-      ? config.sandboxApiKey || '' 
-      : config.productionApiKey || '';
-  }
-
-  private getBaseUrl(isSandbox: boolean) {
-    return isSandbox ? this.getSandboxUrl() : this.getProductionUrl();
-  }
-
-  private async getHeaders(isSandbox: boolean) {
-    const apiKey = await this.getApiKey(isSandbox);
-    return {
+const createApiInstance = (apiKey: string, isSandbox: boolean) => {
+  const baseURL = isSandbox 
+    ? 'https://sandbox.asaas.com/api/v3' 
+    : 'https://www.asaas.com/api/v3';
+  
+  return axios.create({
+    baseURL,
+    headers: {
       'Content-Type': 'application/json',
-      'access_token': apiKey,
-    };
-  }
+      'access_token': apiKey
+    }
+  });
+};
 
-  /**
-   * Creates a customer in Asaas
-   */
-  async createCustomer(customer: AsaasCustomer, isSandbox: boolean): Promise<any> {
+const asaasApiService = {
+  createCustomer: async (settings: AsaasSettings, customerData: AsaasCustomer) => {
     try {
-      const headers = await this.getHeaders(isSandbox);
-      const response = await axios.post(
-        `${this.getBaseUrl(isSandbox)}/customers`,
-        customer,
-        { headers }
-      );
+      const api = createApiInstance(settings.apiKey, settings.sandboxMode);
+      const response = await api.post('/customers', customerData);
       return response.data;
     } catch (error) {
       console.error('Error creating customer:', error);
       throw error;
     }
-  }
+  },
 
-  /**
-   * Creates a payment in Asaas
-   */
-  async createPayment(payment: AsaasPayment, isSandbox: boolean): Promise<AsaasPaymentResponse> {
+  createPayment: async (settings: AsaasSettings, paymentData: AsaasPayment) => {
     try {
-      const headers = await this.getHeaders(isSandbox);
-      const response = await axios.post(
-        `${this.getBaseUrl(isSandbox)}/payments`,
-        payment,
-        { headers }
-      );
-      return response.data;
+      const api = createApiInstance(settings.apiKey, settings.sandboxMode);
+      const response = await api.post('/payments', paymentData);
+      return response.data as AsaasPaymentResponse;
     } catch (error) {
       console.error('Error creating payment:', error);
       throw error;
     }
-  }
+  },
 
-  /**
-   * Gets the PIX QR code for a payment
-   */
-  async getPixQrCode(paymentId: string, isSandbox: boolean): Promise<AsaasPixQrCodeResponse> {
+  getPixQrCode: async (settings: AsaasSettings, paymentId: string) => {
     try {
-      const headers = await this.getHeaders(isSandbox);
-      const response = await axios.get(
-        `${this.getBaseUrl(isSandbox)}/payments/${paymentId}/pixQrCode`,
-        { headers }
-      );
-      return response.data;
+      const api = createApiInstance(settings.apiKey, settings.sandboxMode);
+      const response = await api.get(`/payments/${paymentId}/pixQrCode`);
+      return response.data as AsaasPixQrCodeResponse;
     } catch (error) {
       console.error('Error getting PIX QR code:', error);
       throw error;
     }
-  }
+  },
 
-  /**
-   * Checks the payment status
-   */
-  async checkPaymentStatus(paymentId: string, isSandbox: boolean): Promise<AsaasPaymentResponse> {
+  cancelPayment: async (settings: AsaasSettings, paymentId: string) => {
     try {
-      const headers = await this.getHeaders(isSandbox);
-      const response = await axios.get(
-        `${this.getBaseUrl(isSandbox)}/payments/${paymentId}`,
-        { headers }
-      );
+      const api = createApiInstance(settings.apiKey, settings.sandboxMode);
+      const response = await api.delete(`/payments/${paymentId}`);
       return response.data;
     } catch (error) {
-      console.error('Error checking payment status:', error);
+      console.error('Error cancelling payment:', error);
+      throw error;
+    }
+  },
+
+  getPaymentStatus: async (settings: AsaasSettings, paymentId: string) => {
+    try {
+      const api = createApiInstance(settings.apiKey, settings.sandboxMode);
+      const response = await api.get(`/payments/${paymentId}`);
+      return response.data.status;
+    } catch (error) {
+      console.error('Error getting payment status:', error);
       throw error;
     }
   }
-}
+};
 
-export default new AsaasApiService();
+export default asaasApiService;

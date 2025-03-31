@@ -1,206 +1,111 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { AsaasSettings } from '@/types/asaas';
 
-const DEFAULT_SETTINGS: AsaasSettings = {
+// LocalStorage keys
+const ASAAS_SETTINGS_KEY = 'asaasSettings';
+const ASAAS_CONFIG_KEY = 'asaasConfig';
+const ASAAS_PAYMENTS_KEY = 'asaasPayments';
+
+// Default settings
+const defaultSettings: AsaasSettings = {
   isEnabled: false,
   apiKey: '',
   allowPix: true,
   allowCreditCard: true,
   manualCreditCard: false,
-  sandboxMode: true
+  sandboxMode: true,
+  sandboxApiKey: '',
+  productionApiKey: '',
+  manualCardProcessing: false
 };
 
-/**
- * Gets the Asaas configuration from the database
- */
-export const getAsaasConfig = async (): Promise<{
-  sandboxApiKey: string | null;
-  productionApiKey: string | null;
-}> => {
+// Get Asaas settings from localStorage
+export const getAsaasSettings = (): AsaasSettings => {
   try {
-    const { data, error } = await supabase
-      .from('asaas_config')
-      .select('*')
-      .limit(1)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching Asaas API keys:', error);
-      return { sandboxApiKey: null, productionApiKey: null };
+    const savedSettings = localStorage.getItem(ASAAS_SETTINGS_KEY);
+    if (savedSettings) {
+      return JSON.parse(savedSettings);
     }
-    
-    return {
-      sandboxApiKey: data.sandbox_api_key,
-      productionApiKey: data.production_api_key
-    };
+    return defaultSettings;
   } catch (error) {
-    console.error('Error fetching Asaas API keys:', error);
-    return { sandboxApiKey: null, productionApiKey: null };
+    console.error('Error loading Asaas settings:', error);
+    return defaultSettings;
   }
 };
 
-/**
- * Gets the Asaas settings from the database
- */
-export const getAsaasSettings = async (): Promise<AsaasSettings> => {
+// Save Asaas settings to localStorage
+export const saveAsaasSettings = (settings: AsaasSettings): void => {
   try {
-    // Get general settings
-    const { data: settingsData, error: settingsError } = await supabase
-      .from('settings')
-      .select('*')
-      .limit(1)
-      .single();
-    
-    if (settingsError) {
-      console.error('Error fetching Asaas settings:', settingsError);
-      return DEFAULT_SETTINGS;
-    }
-    
-    // Get API keys
-    const { data: configData, error: configError } = await supabase
-      .from('asaas_config')
-      .select('*')
-      .limit(1)
-      .single();
-    
-    let apiKey = '';
-    if (!configError && configData) {
-      apiKey = settingsData.sandbox_mode 
-        ? configData.sandbox_api_key || '' 
-        : configData.production_api_key || '';
-    }
-    
-    return {
-      isEnabled: settingsData.asaas_enabled || false,
-      apiKey,
-      allowPix: settingsData.allow_pix || true,
-      allowCreditCard: settingsData.allow_credit_card || true,
-      manualCreditCard: settingsData.manual_credit_card || false,
-      sandboxMode: settingsData.sandbox_mode || true
-    };
-  } catch (error) {
-    console.error('Error fetching Asaas settings:', error);
-    return DEFAULT_SETTINGS;
-  }
-};
-
-/**
- * Saves the Asaas API keys to the database
- */
-export const saveAsaasConfig = async (
-  sandboxApiKey: string | null,
-  productionApiKey: string | null
-): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('asaas_config')
-      .update({
-        sandbox_api_key: sandboxApiKey,
-        production_api_key: productionApiKey,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', 1);
-    
-    if (error) {
-      console.error('Error saving Asaas API keys:', error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving Asaas API keys:', error);
-    return false;
-  }
-};
-
-/**
- * Saves the Asaas settings to the database
- */
-export const saveAsaasSettings = async (settings: Partial<AsaasSettings>): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('settings')
-      .update({
-        asaas_enabled: settings.isEnabled,
-        sandbox_mode: settings.sandboxMode,
-        allow_pix: settings.allowPix,
-        allow_credit_card: settings.allowCreditCard,
-        manual_credit_card: settings.manualCreditCard
-      })
-      .eq('id', 1);
-    
-    if (error) {
-      console.error('Error saving Asaas settings:', error);
-      return false;
-    }
-    
-    return true;
+    localStorage.setItem(ASAAS_SETTINGS_KEY, JSON.stringify(settings));
   } catch (error) {
     console.error('Error saving Asaas settings:', error);
-    return false;
+    throw error;
   }
 };
 
-/**
- * Saves payment data to the database
- */
-export const saveAsaasPayment = async (
-  orderId: number, 
-  paymentId: string, 
-  method: 'PIX' | 'CREDIT_CARD', 
-  status: string,
-  qrCode?: string,
-  qrCodeImage?: string
-): Promise<boolean> => {
+// Get Asaas config (API keys) from localStorage
+export const getAsaasConfig = () => {
   try {
-    const { error } = await supabase
-      .from('asaas_payments')
-      .insert({
-        order_id: orderId,
-        payment_id: paymentId,
-        method,
-        status,
-        qr_code: qrCode,
-        qr_code_image: qrCodeImage
-      });
-    
-    if (error) {
-      console.error('Error saving Asaas payment data:', error);
-      return false;
+    const savedConfig = localStorage.getItem(ASAAS_CONFIG_KEY);
+    if (savedConfig) {
+      return JSON.parse(savedConfig);
     }
-    
-    return true;
+    return { sandboxApiKey: '', productionApiKey: '' };
   } catch (error) {
-    console.error('Error saving Asaas payment data:', error);
-    return false;
+    console.error('Error loading Asaas config:', error);
+    return { sandboxApiKey: '', productionApiKey: '' };
   }
 };
 
-/**
- * Updates the status of a payment in the database
- */
-export const updateAsaasPaymentStatus = async (
-  paymentId: string, 
-  status: string
-): Promise<boolean> => {
+// Save Asaas config (API keys) to localStorage
+export const saveAsaasConfig = (sandboxApiKey: string, productionApiKey: string): void => {
   try {
-    const { error } = await supabase
-      .from('asaas_payments')
-      .update({
-        status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('payment_id', paymentId);
-    
-    if (error) {
-      console.error('Error updating Asaas payment status:', error);
-      return false;
+    localStorage.setItem(ASAAS_CONFIG_KEY, JSON.stringify({ sandboxApiKey, productionApiKey }));
+  } catch (error) {
+    console.error('Error saving Asaas config:', error);
+    throw error;
+  }
+};
+
+// Get Asaas payments from localStorage
+export const getAsaasPayments = () => {
+  try {
+    const savedPayments = localStorage.getItem(ASAAS_PAYMENTS_KEY);
+    if (savedPayments) {
+      return JSON.parse(savedPayments);
     }
-    
-    return true;
+    return [];
+  } catch (error) {
+    console.error('Error loading Asaas payments:', error);
+    return [];
+  }
+};
+
+// Save an Asaas payment to localStorage
+export const saveAsaasPayment = (payment: any): void => {
+  try {
+    const payments = getAsaasPayments();
+    payments.push(payment);
+    localStorage.setItem(ASAAS_PAYMENTS_KEY, JSON.stringify(payments));
+  } catch (error) {
+    console.error('Error saving Asaas payment:', error);
+    throw error;
+  }
+};
+
+// Update an Asaas payment status in localStorage
+export const updateAsaasPaymentStatus = (paymentId: string, status: string): void => {
+  try {
+    const payments = getAsaasPayments();
+    const updatedPayments = payments.map((payment: any) => {
+      if (payment.payment_id === paymentId) {
+        return { ...payment, status };
+      }
+      return payment;
+    });
+    localStorage.setItem(ASAAS_PAYMENTS_KEY, JSON.stringify(updatedPayments));
   } catch (error) {
     console.error('Error updating Asaas payment status:', error);
-    return false;
+    throw error;
   }
 };

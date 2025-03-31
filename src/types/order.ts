@@ -15,6 +15,8 @@ export interface Order {
   timestamp?: string;
   orderDate?: string;
   paymentId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CustomerInfo {
@@ -59,4 +61,5 @@ export interface CreateOrderInput {
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
   paymentId?: string;
+  orderDate?: string;
 }

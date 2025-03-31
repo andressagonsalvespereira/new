@@ -10,7 +10,8 @@ import {
   LogOut, 
   ShoppingCart,
   Tag,
-  CreditCard as CreditCardIcon
+  BarChart,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,19 +56,19 @@ const AdminSidebar: React.FC = () => {
       <div className="p-4 border-b border-blue-700">
         <Link to="/admin/dashboard" className="flex items-center gap-2">
           <CreditCard className="w-6 h-6" />
-          <h1 className="text-xl font-bold">Admin Panel</h1>
+          <h1 className="text-xl font-bold">Painel Admin</h1>
         </Link>
       </div>
       
       <div className="flex-1 py-4 px-2 space-y-1">
         <SidebarItem 
-          icon={Home} 
+          icon={BarChart} 
           label="Dashboard" 
           href="/admin/dashboard" 
           isActive={isActive('/admin/dashboard')}
         />
         <SidebarItem 
-          icon={CreditCardIcon} 
+          icon={CreditCard} 
           label="Configurações do Asaas" 
           href="/admin/asaas-settings" 
           isActive={isActive('/admin/asaas-settings')}
@@ -85,16 +86,28 @@ const AdminSidebar: React.FC = () => {
           isActive={isActive('/admin/products')}
         />
         <SidebarItem 
-          icon={CreditCard} 
+          icon={ShoppingCart} 
           label="Pedidos" 
           href="/admin/orders" 
           isActive={isActive('/admin/orders')}
+        />
+        <SidebarItem 
+          icon={Users} 
+          label="Clientes" 
+          href="/customers" 
+          isActive={isActive('/customers')}
         />
         <SidebarItem 
           icon={Tag} 
           label="Configuração de Pixels" 
           href="/admin/pixel-settings" 
           isActive={isActive('/admin/pixel-settings')}
+        />
+        <SidebarItem 
+          icon={CreditCard} 
+          label="Processar Pagamento" 
+          href="/admin/payments" 
+          isActive={isActive('/admin/payments')}
         />
 
         <div className="pt-4 border-t border-blue-700 mt-4">

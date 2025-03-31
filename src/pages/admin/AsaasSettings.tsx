@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { useAsaas } from '@/contexts/AsaasContext';
 import AdminLayout from '@/components/layout/AdminLayout';
 
 const AsaasSettings: React.FC = () => {
-  const { settings, updateSettings } = useAsaas();
+  const { settings, saveSettings } = useAsaas();
   const { toast } = useToast();
 
   const [sandboxApiKey, setSandboxApiKey] = useState<string>(settings?.sandboxApiKey || '');
@@ -19,9 +20,21 @@ const AsaasSettings: React.FC = () => {
   const [allowPix, setAllowPix] = useState<boolean>(settings?.allowPix || false);
   const [manualCardProcessing, setManualCardProcessing] = useState<boolean>(settings?.manualCardProcessing || false);
 
+  // Update state when settings change
+  useEffect(() => {
+    if (settings) {
+      setSandboxApiKey(settings.sandboxApiKey || '');
+      setProductionApiKey(settings.productionApiKey || '');
+      setSandboxMode(settings.sandboxMode || false);
+      setAllowCreditCard(settings.allowCreditCard || false);
+      setAllowPix(settings.allowPix || false);
+      setManualCardProcessing(settings.manualCardProcessing || false);
+    }
+  }, [settings]);
+
   const handleSaveSettings = async () => {
     try {
-      await updateSettings({
+      await saveSettings({
         isEnabled: true,
         apiKey: sandboxMode ? sandboxApiKey : productionApiKey,
         sandboxApiKey,
@@ -49,8 +62,10 @@ const AsaasSettings: React.FC = () => {
 
   // Function to handle switch changes
   const handleSwitchChange = useCallback(
-    (setter: React.Dispatch<React.SetStateAction<boolean>>) => () => {
-      setter((prev) => !prev);
+    (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+      return (value: boolean) => {
+        setter(value);
+      };
     },
     []
   );
@@ -63,7 +78,7 @@ const AsaasSettings: React.FC = () => {
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="sandboxApiKey">Sandbox API Key</Label>
+            <Label htmlFor="sandboxApiKey">Chave da API Sandbox</Label>
             <Input
               id="sandboxApiKey"
               value={sandboxApiKey}
@@ -71,7 +86,7 @@ const AsaasSettings: React.FC = () => {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="productionApiKey">Production API Key</Label>
+            <Label htmlFor="productionApiKey">Chave da API Produção</Label>
             <Input
               id="productionApiKey"
               value={productionApiKey}
@@ -112,7 +127,12 @@ const AsaasSettings: React.FC = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSaveSettings}>Salvar Configurações</Button>
+          <Button 
+            onClick={handleSaveSettings}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Salvar Configurações
+          </Button>
         </CardFooter>
       </Card>
     </AdminLayout>

@@ -53,7 +53,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
         }
         setLoading(false);
       } catch (error) {
-        console.error('Error loading Asaas settings:', error);
+        console.error('Erro ao carregar configurações do Asaas:', error);
         setSettings(defaultSettings);
         setLoading(false);
       }
@@ -74,8 +74,10 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
         description: "As configurações do Asaas foram atualizadas com sucesso.",
         duration: 3000,
       });
+      
+      return Promise.resolve();
     } catch (error) {
-      console.error('Error saving Asaas settings:', error);
+      console.error('Erro ao salvar configurações do Asaas:', error);
       
       toast({
         title: "Erro ao salvar",
@@ -84,7 +86,7 @@ export const AsaasProvider: React.FC<AsaasProviderProps> = ({ children }) => {
         duration: 5000,
       });
       
-      throw error;
+      return Promise.reject(error);
     }
   };
 

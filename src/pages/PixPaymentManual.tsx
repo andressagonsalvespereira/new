@@ -1,195 +1,120 @@
 
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, ArrowLeft, Check } from 'lucide-react';
+import { QrCode, Copy, ArrowLeft } from 'lucide-react';
+import CheckoutLayout from '@/components/checkout/CheckoutLayout';
 import { useToast } from '@/hooks/use-toast';
-import { useOrders } from '@/contexts/OrderContext';
-import { usePixel } from '@/contexts/PixelContext';
-import CheckoutContainer from '@/components/checkout/CheckoutContainer';
-import CheckoutHeader from '@/components/checkout/CheckoutHeader';
-import CheckoutFooter from '@/components/checkout/CheckoutFooter';
-import { CustomerInfo, PaymentStatus } from '@/types/order';
 
+// Define interface for props
 interface CheckoutHeaderProps {
-  title: string;
+  title?: string;
+  productName?: string;
 }
 
-const PixPaymentManual = () => {
+const PixPaymentManual: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { addOrder } = useOrders();
-  const { trackPurchase } = usePixel();
   
-  const { customer, product } = location.state || {};
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  // Get data from location state
+  const orderData = location.state?.orderData || {};
+  const productName = orderData.productName || 'Produto';
+  const pixCode = "00020126580014BR.GOV.BCB.PIX0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***63041D3D";
 
-  // Verificar se há dados necessários
-  if (!customer || !product) {
-    return (
-      <CheckoutContainer>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-4">Dados insuficientes</h2>
-            <p className="text-gray-600 mb-4">
-              Não foi possível processar o pagamento PIX. Informações de cliente ou produto ausentes.
-            </p>
-            <Button 
-              onClick={() => navigate('/')}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Voltar para a página inicial
-            </Button>
-          </CardContent>
-        </Card>
-      </CheckoutContainer>
-    );
-  }
-
-  const handleConfirmPayment = async () => {
-    try {
-      // Criar um pedido manual com status "Aguardando Confirmação Manual"
-      const customerInfo: CustomerInfo = {
-        name: customer.name,
-        email: customer.email,
-        cpf: customer.cpf,
-        phone: customer.phone || '',
-        ...(customer.address ? { address: customer.address } : {})
-      };
-
-      const paymentStatus: PaymentStatus = 'Pago';
-      
-      const order = await addOrder({
-        customer: customerInfo,
-        productId: product.id || '1',
-        productName: product.name,
-        productPrice: product.price,
-        paymentMethod: 'PIX',
-        paymentStatus,
-        pixDetails: {
-          qrCode: 'manual-pix-payment',
-        }
+  const handleCopyPixCode = () => {
+    navigator.clipboard.writeText(pixCode)
+      .then(() => {
+        toast({
+          title: "Código PIX copiado!",
+          description: "O código PIX foi copiado para a área de transferência.",
+          duration: 3000,
+        });
+      })
+      .catch((error) => {
+        console.error('Erro ao copiar código PIX:', error);
+        toast({
+          title: "Erro ao copiar",
+          description: "Não foi possível copiar o código PIX. Tente novamente.",
+          variant: "destructive",
+          duration: 5000,
+        });
       });
-
-      // Registrar evento de compra
-      trackPurchase({
-        value: product.price,
-        transactionId: `order-${order.id}`,
-        products: [{
-          id: product.id || '1',
-          name: product.name,
-          price: product.price,
-          quantity: 1
-        }]
-      });
-
-      setPaymentConfirmed(true);
-      
-      toast({
-        title: "Confirmação de pagamento",
-        description: "Seu pagamento foi confirmado! O pedido será processado em breve.",
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error("Erro ao confirmar pagamento:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível confirmar o pagamento. Tente novamente mais tarde.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
   };
 
   return (
-    <>
-      <CheckoutHeader title={product.name} />
+    <CheckoutLayout>
+      {/* Use proper props instead of any */}
+      <CheckoutHeader title="Pagamento via PIX" />
       
-      <div className="container mx-auto max-w-4xl py-8 px-4">
-        <Card className="shadow-sm">
-          <CardHeader className="border-b pb-3">
-            <CardTitle>Pagamento via PIX</CardTitle>
+      <div className="max-w-lg mx-auto p-4">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">Pagamento via PIX</CardTitle>
+            <CardDescription className="text-center">
+              Escaneie o QR Code abaixo ou copie o código PIX para pagar
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
-            {!paymentConfirmed ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <QrCode className="w-16 h-16 text-green-600 mb-4" />
-                <h2 className="text-xl font-semibold text-center mb-2">
-                  Faça o pagamento via PIX
-                </h2>
-                <p className="text-gray-600 text-center mb-6 max-w-md">
-                  Para simular um pagamento PIX manual, clique no botão abaixo para confirmar que o pagamento foi realizado.
-                </p>
-                
-                <div className="bg-gray-100 p-4 rounded-lg w-full max-w-md mb-6">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Produto:</span>
-                    <span className="font-medium">{product.name}</span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Cliente:</span>
-                    <span className="font-medium">{customer.name}</span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Valor:</span>
-                    <span className="font-medium">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL'
-                      }).format(product.price)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Email:</span>
-                    <span className="font-medium">{customer.email}</span>
-                  </div>
-                </div>
-                
-                <div className="flex space-x-4 mt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(-1)}
-                    className="flex items-center"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Voltar
-                  </Button>
-                  <Button
-                    onClick={handleConfirmPayment}
-                    className="bg-green-600 hover:bg-green-700 flex items-center"
-                  >
-                    <Check className="mr-2 h-4 w-4" />
-                    Confirmar Pagamento
-                  </Button>
-                </div>
+          <CardContent className="flex flex-col items-center space-y-6">
+            <div className="p-4 rounded-lg border border-gray-200 bg-white">
+              <div className="w-48 h-48 flex items-center justify-center bg-gray-100">
+                <QrCode className="w-24 h-24 text-gray-400" />
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
+            </div>
+            
+            <div className="w-full">
+              <p className="text-sm text-gray-500 mb-2">Código PIX:</p>
+              <div className="flex">
+                <div className="flex-1 p-2 bg-gray-100 rounded-l-md border border-gray-200 text-xs overflow-hidden break-all">
+                  {pixCode}
                 </div>
-                <h2 className="text-xl font-semibold text-center mb-2 text-green-600">
-                  Pagamento confirmado com sucesso!
-                </h2>
-                <p className="text-gray-600 text-center mb-6 max-w-md">
-                  Seu pedido foi registrado e será processado em breve. Você receberá um e-mail com os detalhes da sua compra.
-                </p>
-                <Button
-                  onClick={() => navigate('/')}
-                  className="bg-blue-600 hover:bg-blue-700"
+                <Button 
+                  onClick={handleCopyPixCode}
+                  className="rounded-l-none bg-blue-600 hover:bg-blue-700"
                 >
-                  Voltar para a página inicial
+                  <Copy className="h-4 w-4" />
                 </Button>
               </div>
-            )}
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm font-medium">Produto: {productName}</p>
+              <p className="text-sm text-gray-500">
+                Assim que o pagamento for confirmado, você receberá um email com os detalhes.
+              </p>
+            </div>
           </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              onClick={handleCopyPixCode}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              Copiar Código PIX
+            </Button>
+            <Link to="/" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center justify-center"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para a Página Inicial
+              </Button>
+            </Link>
+          </CardFooter>
         </Card>
       </div>
-      
-      <CheckoutFooter />
-    </>
+    </CheckoutLayout>
+  );
+};
+
+// Define CheckoutHeader component with proper props
+const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({ title }) => {
+  return (
+    <div className="bg-white border-b py-4">
+      <div className="container mx-auto px-4">
+        <h1 className="text-xl font-bold text-center">{title}</h1>
+      </div>
+    </div>
   );
 };
 

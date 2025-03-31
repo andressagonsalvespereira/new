@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import React, { useState, useEffect } from 'react';
+import AdminLayout from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,11 +10,18 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, QrCode, Settings, Save, AlertCircle, CreditCardIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAsaas } from '@/contexts/AsaasContext';
+import { useToast } from '@/hooks/use-toast';
 
 const PaymentSettings = () => {
   const { settings, loading, saveSettings } = useAsaas();
   const [formState, setFormState] = useState({ ...settings });
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Update formState when settings change
+    setFormState({ ...settings });
+  }, [settings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,16 +29,29 @@ const PaymentSettings = () => {
     
     try {
       await saveSettings(formState);
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações de pagamento foram atualizadas com sucesso.",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar as configurações.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      console.error("Erro ao salvar configurações:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <DashboardLayout>
+    <AdminLayout>
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Payment Settings</h1>
-        <p className="text-muted-foreground">Configure the Asaas payment integration</p>
+        <h1 className="text-2xl md:text-3xl font-bold">Configurações de Pagamento</h1>
+        <p className="text-muted-foreground">Configure a integração de pagamento Asaas</p>
       </div>
       
       <form onSubmit={handleSubmit}>
@@ -40,18 +60,18 @@ const PaymentSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Settings className="mr-2 h-5 w-5" />
-                Asaas Integration
+                Integração com Asaas
               </CardTitle>
               <CardDescription>
-                Configure your Asaas payment gateway integration
+                Configure sua integração com o gateway de pagamento Asaas
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base">Enable Asaas Integration</Label>
+                  <Label className="text-base">Ativar Integração com Asaas</Label>
                   <p className="text-sm text-muted-foreground">
-                    Turn on to enable payment processing through Asaas
+                    Ative para habilitar o processamento de pagamentos através do Asaas
                   </p>
                 </div>
                 <Switch
@@ -65,14 +85,14 @@ const PaymentSettings = () => {
               
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base">Sandbox Mode</Label>
+                  <Label className="text-base">Modo Sandbox</Label>
                   <p className="text-sm text-muted-foreground">
-                    Use Asaas sandbox for testing (does not process real payments)
+                    Use o sandbox do Asaas para testes (não processa pagamentos reais)
                   </p>
                 </div>
                 <Switch
-                  checked={formState.isSandbox}
-                  onCheckedChange={(checked) => setFormState(prev => ({ ...prev, isSandbox: checked }))}
+                  checked={formState.sandboxMode}
+                  onCheckedChange={(checked) => setFormState(prev => ({ ...prev, sandboxMode: checked }))}
                   disabled={loading || !formState.isEnabled}
                 />
               </div>
@@ -81,9 +101,9 @@ const PaymentSettings = () => {
           
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
+              <CardTitle>Métodos de Pagamento</CardTitle>
               <CardDescription>
-                Configure which payment methods are available in your checkout
+                Configure quais métodos de pagamento estão disponíveis no seu checkout
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -102,10 +122,10 @@ const PaymentSettings = () => {
                     className="text-base font-medium leading-none flex items-center"
                   >
                     <QrCode className="mr-2 h-4 w-4 text-green-600" />
-                    PIX Payments
+                    Pagamentos via PIX
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow customers to pay using PIX instant payments
+                    Permitir que os clientes paguem usando PIX
                   </p>
                 </div>
               </div>
@@ -125,10 +145,10 @@ const PaymentSettings = () => {
                     className="text-base font-medium leading-none flex items-center"
                   >
                     <CreditCard className="mr-2 h-4 w-4 text-blue-600" />
-                    Credit Card Payments
+                    Pagamentos via Cartão de Crédito
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Allow customers to pay using credit cards
+                    Permitir que os clientes paguem usando cartões de crédito
                   </p>
                 </div>
               </div>
@@ -138,9 +158,9 @@ const PaymentSettings = () => {
                 <div className="mt-4 pl-8 border-l-2 border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-base">Manual Card Processing</Label>
+                      <Label className="text-base">Processamento Manual de Cartão</Label>
                       <p className="text-sm text-muted-foreground">
-                        Enable manual review of credit card payments instead of automatic processing
+                        Ativar revisão manual de pagamentos com cartão de crédito em vez de processamento automático
                       </p>
                     </div>
                     <Switch
@@ -156,8 +176,8 @@ const PaymentSettings = () => {
                     <Alert className="mt-2 bg-amber-50 border-amber-200">
                       <AlertCircle className="h-4 w-4 text-amber-600" />
                       <AlertDescription className="text-amber-800">
-                        With manual processing enabled, card payments will not be processed automatically. 
-                        Instead, customers will be redirected to a manual review page.
+                        Com o processamento manual ativado, os pagamentos com cartão não serão processados automaticamente. 
+                        Em vez disso, os clientes serão redirecionados para uma página de revisão manual.
                       </AlertDescription>
                     </Alert>
                   )}
@@ -167,9 +187,9 @@ const PaymentSettings = () => {
               {(!formState.allowPix && !formState.allowCreditCard && formState.isEnabled) && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Warning</AlertTitle>
+                  <AlertTitle>Aviso</AlertTitle>
                   <AlertDescription>
-                    At least one payment method must be enabled for checkout to work.
+                    Pelo menos um método de pagamento deve estar habilitado para que o checkout funcione.
                   </AlertDescription>
                 </Alert>
               )}
@@ -181,11 +201,11 @@ const PaymentSettings = () => {
                 disabled={loading || isSaving || (!formState.allowPix && !formState.allowCreditCard && formState.isEnabled)}
               >
                 {isSaving ? (
-                  <>Saving Settings...</>
+                  <>Salvando Configurações...</>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Settings
+                    Salvar Configurações
                   </>
                 )}
               </Button>
@@ -194,15 +214,14 @@ const PaymentSettings = () => {
           
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Important</AlertTitle>
+            <AlertTitle>Importante</AlertTitle>
             <AlertDescription>
-              Make sure you have configured your Asaas API keys in the environment variables before 
-              enabling the integration in production mode.
+              Certifique-se de que você configurou sua chave de API do Asaas nas variáveis de ambiente antes de ativar a integração no modo de produção.
             </AlertDescription>
           </Alert>
         </div>
       </form>
-    </DashboardLayout>
+    </AdminLayout>
   );
 };
 
