@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import PixPayment from '@/components/checkout/PixPayment';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import asaasService from '@/services/asaasService';
+import { trackPurchase, trackAddToCart } from '@/services/pixelService';
 
 const QuickCheckout = () => {
   const { productId } = useParams();
@@ -40,6 +41,13 @@ const QuickCheckout = () => {
       const productData = getProduct(productId);
       if (productData) {
         setProduct(productData);
+        
+        // Track Add to Cart event
+        trackAddToCart({
+          value: productData.price,
+          productId: productData.id,
+          productName: productData.name
+        });
       } else {
         setError('Product not found');
         toast({
@@ -131,6 +139,20 @@ const QuickCheckout = () => {
       
       // This is just a mock for now
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Track purchase event
+      if (product) {
+        trackPurchase({
+          value: product.price,
+          transactionId: `quick-order-${Date.now()}`,
+          products: [{
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1
+          }]
+        });
+      }
       
       toast({
         title: "Pagamento iniciado",

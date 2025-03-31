@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import CheckoutSuccess from '@/components/checkout/CheckoutSuccess';
@@ -7,6 +7,7 @@ import CheckoutLayout from '@/components/checkout/CheckoutLayout';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import { getProductDetails } from '@/components/checkout/ProductDetails';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { trackPurchase } from '@/services/pixelService';
 
 const Checkout = () => {
   const { slug } = useParams();
@@ -33,6 +34,18 @@ const Checkout = () => {
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
+      
+      // Track purchase event
+      trackPurchase({
+        value: productDetails.price,
+        transactionId: `order-${Date.now()}`,
+        products: [{
+          id: productDetails.id,
+          name: productDetails.name,
+          price: productDetails.price,
+          quantity: 1
+        }]
+      });
       
       toast({
         title: "Pagamento recebido",

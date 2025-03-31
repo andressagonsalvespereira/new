@@ -12,6 +12,7 @@ import {
   DollarSign,
   Package,
   ShoppingCart,
+  Tag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +67,7 @@ export const Sidebar = () => {
           </p>
           <div className="space-y-1">
             <SidebarItem icon={DollarSign} label="Payment Settings" href="/admin/settings/payment" />
+            <SidebarItem icon={Tag} label="Pixel Settings" href="/admin/pixel-settings" />
             <SidebarItem icon={Settings} label="General Settings" href="/settings" />
           </div>
         </div>
