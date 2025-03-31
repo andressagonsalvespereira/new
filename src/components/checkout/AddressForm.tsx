@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleAlert, Loader2, Truck, Package, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import AddressInput from './AddressInput';
+import AddressShippingOptions from './AddressShippingOptions';
 
 interface AddressFormProps {
   onSubmit: (data: AddressData) => void;
@@ -144,165 +143,85 @@ const AddressForm = ({ onSubmit, isCompleted }: AddressFormProps) => {
       </div>
       
       <div className="p-4 bg-white rounded-md mb-6 space-y-4">
-        <div className="relative">
-          <Label htmlFor="cep" className="mb-2 block">CEP</Label>
-          <Input 
-            id="cep" 
-            value={cep}
-            onChange={handleCepChange}
-            className={`border ${errors.cep ? 'border-red-500' : 'border-gray-300'}`}
-            placeholder="00000-000"
-            disabled={isCompleted}
-          />
-          {isLoading && (
-            <div className="absolute right-3 top-9">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-            </div>
-          )}
-          {errors.cep && (
-            <div className="text-red-500 text-xs mt-1 flex items-center">
-              <CircleAlert className="h-3 w-3 mr-1" />
-              {errors.cep}
-            </div>
-          )}
-        </div>
+        <AddressInput
+          id="cep"
+          label="CEP"
+          value={cep}
+          onChange={handleCepChange}
+          placeholder="00000-000"
+          error={errors.cep}
+          disabled={isCompleted}
+          isLoading={isLoading}
+        />
         
         {showShippingOptions && (
-          <div className="bg-green-50 border border-green-100 rounded-md p-4 my-4">
-            <h3 className="font-medium text-green-800 mb-3 flex items-center">
-              <Truck className="h-5 w-5 mr-2" />
-              Opções de Entrega
-            </h3>
-            
-            <div 
-              className={`border rounded-md p-3 mb-3 flex items-start cursor-pointer transition-colors ${
-                selectedShipping === 'free' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-              }`}
-              onClick={() => selectShippingOption('free')}
-            >
-              <div className={`rounded-full border flex-shrink-0 w-5 h-5 flex items-center justify-center mr-2 mt-0.5 ${
-                selectedShipping === 'free' ? 'border-green-500 bg-green-500' : 'border-gray-400'
-              }`}>
-                {selectedShipping === 'free' && <CheckCircle2 className="h-4 w-4 text-white" />}
-              </div>
-              <div className="flex-grow">
-                <div className="font-medium">Frete Grátis</div>
-                <div className="text-sm text-gray-600 flex items-center">
-                  <Package className="h-4 w-4 mr-1 text-gray-500" />
-                  Prazo de entrega: 5-10 dias úteis
-                </div>
-              </div>
-              <div className="text-green-600 font-bold">
-                R$ 0,00
-              </div>
-            </div>
-          </div>
+          <AddressShippingOptions
+            selectedShipping={selectedShipping}
+            onSelectShipping={selectShippingOption}
+          />
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="street" className="mb-2 block">Rua</Label>
-            <Input 
-              id="street" 
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              className={`border ${errors.street ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="Rua/Avenida"
-              disabled={isCompleted}
-            />
-            {errors.street && (
-              <div className="text-red-500 text-xs mt-1 flex items-center">
-                <CircleAlert className="h-3 w-3 mr-1" />
-                {errors.street}
-              </div>
-            )}
-          </div>
+          <AddressInput
+            id="street"
+            label="Rua"
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+            placeholder="Rua/Avenida"
+            error={errors.street}
+            disabled={isCompleted}
+          />
           
-          <div className="space-y-1.5">
-            <Label htmlFor="number" className="mb-2 block">Número</Label>
-            <Input 
-              id="number" 
-              value={number}
-              onChange={(e) => setNumber(e.target.value)}
-              className={`border ${errors.number ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="123"
-              disabled={isCompleted}
-            />
-            {errors.number && (
-              <div className="text-red-500 text-xs mt-1 flex items-center">
-                <CircleAlert className="h-3 w-3 mr-1" />
-                {errors.number}
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div className="space-y-1.5">
-          <Label htmlFor="complement" className="mb-2 block">Complemento (opcional)</Label>
-          <Input 
-            id="complement" 
-            value={complement}
-            onChange={(e) => setComplement(e.target.value)}
-            className="border border-gray-300"
-            placeholder="Apto, Bloco, etc"
+          <AddressInput
+            id="number"
+            label="Número"
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            placeholder="123"
+            error={errors.number}
             disabled={isCompleted}
           />
         </div>
         
+        <AddressInput
+          id="complement"
+          label="Complemento (opcional)"
+          value={complement}
+          onChange={(e) => setComplement(e.target.value)}
+          placeholder="Apto, Bloco, etc"
+          disabled={isCompleted}
+        />
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="neighborhood" className="mb-2 block">Bairro</Label>
-            <Input 
-              id="neighborhood" 
-              value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
-              className={`border ${errors.neighborhood ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="Bairro"
-              disabled={isCompleted}
-            />
-            {errors.neighborhood && (
-              <div className="text-red-500 text-xs mt-1 flex items-center">
-                <CircleAlert className="h-3 w-3 mr-1" />
-                {errors.neighborhood}
-              </div>
-            )}
-          </div>
+          <AddressInput
+            id="neighborhood"
+            label="Bairro"
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
+            placeholder="Bairro"
+            error={errors.neighborhood}
+            disabled={isCompleted}
+          />
           
-          <div className="space-y-1.5">
-            <Label htmlFor="city" className="mb-2 block">Cidade</Label>
-            <Input 
-              id="city" 
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className={`border ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="Cidade"
-              disabled={isCompleted}
-            />
-            {errors.city && (
-              <div className="text-red-500 text-xs mt-1 flex items-center">
-                <CircleAlert className="h-3 w-3 mr-1" />
-                {errors.city}
-              </div>
-            )}
-          </div>
+          <AddressInput
+            id="city"
+            label="Cidade"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Cidade"
+            error={errors.city}
+            disabled={isCompleted}
+          />
           
-          <div className="space-y-1.5">
-            <Label htmlFor="state" className="mb-2 block">Estado</Label>
-            <Input 
-              id="state" 
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              className={`border ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="UF"
-              disabled={isCompleted}
-            />
-            {errors.state && (
-              <div className="text-red-500 text-xs mt-1 flex items-center">
-                <CircleAlert className="h-3 w-3 mr-1" />
-                {errors.state}
-              </div>
-            )}
-          </div>
+          <AddressInput
+            id="state"
+            label="Estado"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            placeholder="UF"
+            error={errors.state}
+            disabled={isCompleted}
+          />
         </div>
         
         {!isCompleted && (
