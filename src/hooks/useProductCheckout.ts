@@ -21,7 +21,9 @@ export const useProductCheckout = (productSlug: string | undefined) => {
         }
         
         setLoading(true);
+        console.log('Buscando produto com slug:', productSlug);
         const productData = await getProductBySlug(productSlug);
+        console.log('Dados do produto encontrado:', productData);
         
         if (!productData) {
           throw new Error('Produto não encontrado');
@@ -36,8 +38,8 @@ export const useProductCheckout = (productSlug: string | undefined) => {
           variant: "destructive",
         });
         
-        // Redirect to home page after error
-        navigate('/');
+        // Descomentar essa linha para redirecionar o usuário para a página inicial em caso de erro
+        // navigate('/');
       } finally {
         setLoading(false);
       }

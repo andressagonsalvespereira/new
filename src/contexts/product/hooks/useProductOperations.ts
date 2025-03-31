@@ -1,221 +1,127 @@
-
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Product, CreateProductInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  addProductToAPI, 
-  editProductInAPI, 
-  removeProductFromAPI, 
+  addProductToAPI,
+  editProductInAPI,
+  removeProductFromAPI,
   getProductByIdFromAPI,
   getProductBySlugFromAPI
 } from '../productApi';
-import { 
-  saveProducts,
-  createProduct as createLocalProduct,
-  updateProduct as updateLocalProduct,
-  deleteProduct as deleteLocalProduct,
-  getProductById as getLocalProductById,
-  getProductBySlug as getLocalProductBySlug
-} from '../productUtils';
 
-export const useProductOperations = (products: Product[], setProducts: React.Dispatch<React.SetStateAction<Product[]>>, networkError: boolean) => {
+interface UseProductOperationsProps {
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  isOffline: boolean;
+}
+
+export const useProductOperations = ({ products, setProducts, isOffline }: UseProductOperationsProps) => {
   const { toast } = useToast();
-
-  const addProduct = async (productData: CreateProductInput): Promise<Product> => {
+  
+  const addProduct = useCallback(async (productData: CreateProductInput): Promise<void> => {
     try {
-      if (networkError) {
-        // If we're offline, create product locally
-        const newProduct = createLocalProduct(productData);
-        setProducts(prev => [newProduct, ...prev]);
-        
-        toast({
-          title: "Product added locally",
-          description: "Product will be synchronized when connection is restored",
-        });
-        
-        return newProduct;
-      }
-      
-      // Add product to API
       const newProduct = await addProductToAPI(productData);
-      
-      // Update local state
-      setProducts(prev => [newProduct, ...prev]);
-      
-      // Also update local storage
-      const updatedProducts = [newProduct, ...products];
-      saveProducts(updatedProducts);
-      
+      setProducts(prevProducts => [...prevProducts, newProduct]);
       toast({
-        title: "Success",
-        description: "Product added successfully",
+        title: "Produto adicionado",
+        description: `O produto ${newProduct.name} foi adicionado com sucesso.`,
       });
-      
-      return newProduct;
-    } catch (err) {
-      console.error('Error adding product:', err);
+    } catch (error: any) {
+      console.error("Error adding product:", error);
       toast({
-        title: "Error",
-        description: "Failed to add product",
+        title: "Erro ao adicionar produto",
+        description: error.message || "Ocorreu um erro ao adicionar o produto.",
         variant: "destructive",
       });
-      throw err;
     }
-  };
-
-  const editProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
+  }, [setProducts, toast]);
+  
+  const editProduct = useCallback(async (id: string, productData: Partial<Product>): Promise<void> => {
     try {
-      if (networkError) {
-        // Handle offline editing
-        const existingProductIndex = products.findIndex(p => p.id === id);
-        if (existingProductIndex === -1) {
-          throw new Error(`Product with ID ${id} not found`);
-        }
-        
-        const updatedProduct = {
-          ...products[existingProductIndex],
-          ...productData,
-        };
-        
-        const newProducts = [...products];
-        newProducts[existingProductIndex] = updatedProduct;
-        setProducts(newProducts);
-        
-        // Update local storage
-        saveProducts(newProducts);
-        
-        toast({
-          title: "Product updated locally",
-          description: "Changes will be synchronized when connection is restored",
-        });
-        
-        return updatedProduct;
-      }
-      
-      // Update product in API
       const updatedProduct = await editProductInAPI(id, productData);
-      
-      // Update local state
-      const updatedProducts = products.map(prod => 
-        prod.id === id ? updatedProduct : prod
+      setProducts(prevProducts =>
+        prevProducts.map(product => (product.id === id ? updatedProduct : product))
       );
-      
-      setProducts(updatedProducts);
-      
-      // Update local storage
-      saveProducts(updatedProducts);
-      
       toast({
-        title: "Success",
-        description: "Product updated successfully",
+        title: "Produto atualizado",
+        description: `O produto ${updatedProduct.name} foi atualizado com sucesso.`,
       });
-      
-      return updatedProduct;
-    } catch (err) {
-      console.error('Error updating product:', err);
+    } catch (error: any) {
+      console.error("Error updating product:", error);
       toast({
-        title: "Error",
-        description: "Failed to update product",
+        title: "Erro ao atualizar produto",
+        description: error.message || "Ocorreu um erro ao atualizar o produto.",
         variant: "destructive",
       });
-      throw err;
     }
-  };
-
-  const removeProduct = async (id: string): Promise<void> => {
+  }, [setProducts, toast]);
+  
+  const removeProduct = useCallback(async (id: string): Promise<void> => {
     try {
-      if (networkError) {
-        // Handle offline deletion
-        const updatedProducts = products.filter(prod => prod.id !== id);
-        setProducts(updatedProducts);
-        
-        // Update local storage
-        saveProducts(updatedProducts);
-        
-        toast({
-          title: "Product removed locally",
-          description: "Removal will be synchronized when connection is restored",
-        });
-        return;
-      }
-      
-      // Delete product from API
       await removeProductFromAPI(id);
-      
-      // Update local state
-      const updatedProducts = products.filter(prod => prod.id !== id);
-      setProducts(updatedProducts);
-      
-      // Update local storage
-      saveProducts(updatedProducts);
-      
+      setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
       toast({
-        title: "Success",
-        description: "Product removed successfully",
+        title: "Produto removido",
+        description: "O produto foi removido com sucesso.",
       });
-    } catch (err) {
-      console.error('Error deleting product:', err);
+    } catch (error: any) {
+      console.error("Error deleting product:", error);
       toast({
-        title: "Error",
-        description: "Failed to remove product",
+        title: "Erro ao remover produto",
+        description: error.message || "Ocorreu um erro ao remover o produto.",
         variant: "destructive",
       });
-      throw err;
     }
-  };
-
-  const getProductById = async (id: string): Promise<Product | undefined> => {
+  }, [setProducts, toast]);
+  
+  const getProductById = useCallback(async (id: string): Promise<Product | undefined> => {
     try {
-      if (networkError) {
-        // Handle offline product lookup
-        return getLocalProductById(id) || products.find(p => p.id === id);
-      }
-      
-      return await getProductByIdFromAPI(id);
-    } catch (err) {
-      console.error('Error getting product by ID:', err);
-      // Try to get from cached products as fallback
-      const cachedProduct = products.find(p => p.id === id);
-      if (cachedProduct) {
-        console.log('Returning cached product:', cachedProduct);
-        return cachedProduct;
-      }
-      
+      const product = await getProductByIdFromAPI(id);
+      return product;
+    } catch (error) {
+      console.error("Error fetching product by ID:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch product",
+        title: "Erro ao buscar produto",
+        description: "Ocorreu um erro ao buscar o produto por ID.",
         variant: "destructive",
       });
-      throw err;
+      return undefined;
     }
-  };
+  }, [toast]);
 
-  const getProductBySlug = async (slug: string): Promise<Product | undefined> => {
-    try {
-      if (networkError) {
-        // Handle offline product lookup by slug
-        return getLocalProductBySlug(slug) || products.find(p => p.slug === slug);
+  // Esta função deve estar dentro do retorno de useProductOperations
+  const getProductBySlug = useCallback(
+    async (slug: string): Promise<Product | undefined> => {
+      console.log('getProductBySlug chamado com slug:', slug);
+      console.log('Produtos atuais:', products);
+      
+      // Primeiro tentar encontrar o produto localmente
+      const localProduct = products.find(p => p.slug === slug);
+      if (localProduct) {
+        console.log('Produto encontrado localmente:', localProduct);
+        return localProduct;
       }
       
-      return await getProductBySlugFromAPI(slug);
-    } catch (err) {
-      console.error('Error getting product by slug:', err);
-      // Try to get from cached products as fallback
-      const cachedProduct = products.find(p => p.slug === slug);
-      if (cachedProduct) {
-        console.log('Returning cached product by slug:', cachedProduct);
-        return cachedProduct;
+      // Se não encontrar localmente e estivermos offline, retorne undefined
+      if (isOffline) {
+        console.log('Estamos offline e não encontramos o produto localmente');
+        return undefined;
       }
       
-      toast({
-        title: "Error",
-        description: "Failed to fetch product by slug",
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
-
+      // Se não encontrar localmente, buscar da API
+      try {
+        console.log('Buscando produto na API pelo slug:', slug);
+        const product = await getProductBySlugFromAPI(slug);
+        console.log('Resposta da API:', product);
+        return product;
+      } catch (error) {
+        console.error('Erro ao buscar produto por slug da API:', error);
+        return undefined;
+      }
+    },
+    [products, isOffline]
+  );
+  
   return {
     addProduct,
     editProduct,

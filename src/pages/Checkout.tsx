@@ -16,14 +16,20 @@ const Checkout = () => {
   useEffect(() => {
     // We can now safely call trackPageView as it's included in the context
     trackPageView();
-  }, [trackPageView]);
+    
+    // Depuração para verificar se o slug está sendo passado corretamente
+    console.log('Checkout renderizado com slug:', productSlug);
+  }, [trackPageView, productSlug]);
   
   // Mostrar loading enquanto o produto está sendo carregado
   if (loading) {
     return (
       <CheckoutContainer>
         <div className="flex justify-center items-center min-h-[300px]">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+            <p className="text-gray-600">Carregando dados do produto, por favor aguarde...</p>
+          </div>
         </div>
       </CheckoutContainer>
     );
@@ -37,8 +43,11 @@ const Checkout = () => {
           <CardContent className="py-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-red-600 mb-2">Produto não encontrado</h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 O produto que você está procurando não existe ou foi removido.
+              </p>
+              <p className="text-sm text-gray-500">
+                Slug procurado: {productSlug || 'Não fornecido'}
               </p>
             </div>
           </CardContent>
@@ -60,7 +69,6 @@ const Checkout = () => {
   // Aqui renderiza o conteúdo do checkout com o produto carregado
   return (
     <CheckoutContainer>
-      {/* Insira aqui o componente de checkout com o produto */}
       <Card className="mb-6 shadow-sm">
         <CardContent className="py-6">
           <div className="mb-4">
