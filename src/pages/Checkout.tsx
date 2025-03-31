@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { CreditCard, QrCode, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import PixPayment from '@/components/checkout/PixPayment';
 import CustomerInfoForm, { CustomerData } from '@/components/checkout/CustomerInfoForm';
@@ -18,8 +19,7 @@ const Checkout = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [customerInfo, setCustomerInfo] = useState<CustomerData | null>(null);
   const [addressInfo, setAddressInfo] = useState<AddressData | null>(null);
-  const [customerInfoCompleted, setCustomerInfoCompleted] = useState(false);
-  const [addressInfoCompleted, setAddressInfoCompleted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Function to determine product details based on slug
   const getProductDetails = () => {
@@ -50,36 +50,42 @@ const Checkout = () => {
   const productDetails = getProductDetails();
 
   // Handle customer info submission
-  const handleCustomerInfoSubmit = (data: CustomerData) => {
+  const handleCustomerInfoChange = (data: CustomerData) => {
     setCustomerInfo(data);
-    setCustomerInfoCompleted(true);
-    
-    toast({
-      title: "Informações salvas",
-      description: "Seus dados pessoais foram salvos com sucesso",
-      duration: 3000,
-    });
   };
 
   // Handle address info submission
-  const handleAddressInfoSubmit = (data: AddressData) => {
+  const handleAddressInfoChange = (data: AddressData) => {
     setAddressInfo(data);
-    setAddressInfoCompleted(true);
-    
-    toast({
-      title: "Endereço salvo",
-      description: "Seu endereço foi salvo com sucesso",
-      duration: 3000,
-    });
   };
 
-  // Mock function to handle payment submission
-  const handlePaymentSubmit = (data: any) => {
-    // Combine customer info with payment data
+  // Handle complete checkout submission
+  const handleCompleteCheckout = () => {
+    if (!customerInfo) {
+      toast({
+        title: "Informações incompletas",
+        description: "Por favor, preencha suas informações pessoais",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!addressInfo) {
+      toast({
+        title: "Informações incompletas",
+        description: "Por favor, preencha seu endereço",
+        duration: 3000,
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    // Combine all data for submission
     const completeData = {
-      ...data,
       customer: customerInfo,
       address: addressInfo,
+      paymentMethod: paymentMethod,
       product: productDetails
     };
     
@@ -94,6 +100,7 @@ const Checkout = () => {
     
     // Simulate success after 1.5 seconds
     setTimeout(() => {
+      setIsProcessing(false);
       setIsSuccess(true);
     }, 1500);
   };
@@ -184,54 +191,82 @@ const Checkout = () => {
 
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                  {/* Customer information form */}
-                  <CustomerInfoForm 
-                    onSubmit={handleCustomerInfoSubmit} 
-                    isCompleted={customerInfoCompleted} 
-                  />
-                  
-                  {/* Address form - shown immediately */}
-                  <AddressForm
-                    onSubmit={handleAddressInfoSubmit}
-                    isCompleted={addressInfoCompleted}
-                  />
-                  
-                  {/* Payment methods tabs - only visible after customer and address info are completed */}
-                  {customerInfoCompleted && addressInfoCompleted && (
-                    <div className="transition-all duration-300">
-                      <div className="bg-black text-white p-3 mb-4 flex items-center">
-                        <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
-                          3
-                        </span>
-                        <h2 className="font-medium text-lg">Forma de Pagamento</h2>
-                      </div>
-                      
-                      <Tabs 
-                        defaultValue="card" 
-                        className="w-full"
-                        onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
-                      >
-                        <TabsList className="grid w-full grid-cols-2 mb-6">
-                          <TabsTrigger value="card" className="flex items-center">
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            <span>Cartão de Crédito</span>
-                          </TabsTrigger>
-                          <TabsTrigger value="pix" className="flex items-center">
-                            <QrCode className="mr-2 h-4 w-4" />
-                            <span>PIX</span>
-                          </TabsTrigger>
-                        </TabsList>
-                        
-                        <TabsContent value="card">
-                          <CheckoutForm onSubmit={handlePaymentSubmit} />
-                        </TabsContent>
-                        
-                        <TabsContent value="pix">
-                          <PixPayment onSubmit={handlePaymentSubmit} />
-                        </TabsContent>
-                      </Tabs>
+                  {/* Customer information form - always visible */}
+                  <div className="mb-8">
+                    <div className="bg-black text-white p-3 mb-4 flex items-center">
+                      <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
+                        1
+                      </span>
+                      <h2 className="font-medium text-lg">Informações Pessoais</h2>
                     </div>
-                  )}
+                    <CustomerInfoForm 
+                      onSubmit={handleCustomerInfoChange} 
+                      isCompleted={false} 
+                    />
+                  </div>
+                  
+                  {/* Address form - always visible */}
+                  <div className="mb-8">
+                    <div className="bg-black text-white p-3 mb-4 flex items-center">
+                      <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
+                        2
+                      </span>
+                      <h2 className="font-medium text-lg">Endereço de Entrega</h2>
+                    </div>
+                    <AddressForm
+                      onSubmit={handleAddressInfoChange}
+                      isCompleted={false}
+                    />
+                  </div>
+                  
+                  {/* Payment methods - always visible */}
+                  <div>
+                    <div className="bg-black text-white p-3 mb-4 flex items-center">
+                      <span className="inline-flex justify-center items-center w-6 h-6 rounded-full bg-red-600 text-white mr-2">
+                        3
+                      </span>
+                      <h2 className="font-medium text-lg">Forma de Pagamento</h2>
+                    </div>
+                    
+                    <Tabs 
+                      defaultValue="card" 
+                      className="w-full"
+                      onValueChange={(value) => setPaymentMethod(value as 'card' | 'pix')}
+                    >
+                      <TabsList className="grid w-full grid-cols-2 mb-6">
+                        <TabsTrigger value="card" className="flex items-center">
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          <span>Cartão de Crédito</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="pix" className="flex items-center">
+                          <QrCode className="mr-2 h-4 w-4" />
+                          <span>PIX</span>
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="card">
+                        <div className="mb-6">
+                          <CheckoutForm onSubmit={() => {}} />
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="pix">
+                        <div className="mb-6">
+                          <PixPayment onSubmit={() => {}} />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+
+                    <div className="mt-8">
+                      <Button 
+                        onClick={handleCompleteCheckout} 
+                        className="w-full py-6 text-lg" 
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? 'Processando pagamento...' : `Pagar R$ ${productDetails.price.toFixed(2)}`}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="md:col-span-1">
