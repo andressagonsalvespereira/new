@@ -51,6 +51,8 @@ function App() {
                   {/* Redirect old Asaas settings page to the new consolidated payment settings */}
                   <Route path="/admin/asaas-settings" element={<Navigate to="/admin/settings/payment" replace />} />
                   <Route path="/admin/payments" element={<Payments />} />
+                  {/* Redirect any old references to the removed payments page */}
+                  <Route path="/payments" element={<Navigate to="/admin/payments" replace />} />
                   
                   {/* Checkout Routes */}
                   <Route path="/checkout/:productSlug" element={<Checkout />} />
