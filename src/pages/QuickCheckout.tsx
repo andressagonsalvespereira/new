@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -25,6 +25,10 @@ const QuickCheckout = () => {
     loading,
     productNotFound
   } = useProductCheckout(productId);
+  
+  useEffect(() => {
+    console.log('QuickCheckout - Product loaded:', product);
+  }, [product]);
   
   const {
     paymentMethod,
@@ -67,7 +71,7 @@ const QuickCheckout = () => {
           <CardTitle>Checkout Rápido</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProductSummary product={product} />
+          {product && <ProductSummary product={product} />}
           
           {!customerDetails.name ? (
             <CustomerForm 

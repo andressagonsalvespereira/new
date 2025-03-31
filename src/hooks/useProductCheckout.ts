@@ -30,20 +30,24 @@ export const useProductCheckout = (productSlug: string | undefined) => {
         
         // Primeiro, procuramos exatamente pelo slug fornecido
         let productData = await getProductBySlug(productSlug);
+        console.log('Resultado da busca por slug exato:', productData);
         
         // Se não encontrado com o slug exato, verificamos se pode haver uma correspondência parcial
         if (!productData) {
           console.log('Produto não encontrado com slug exato, verificando produtos em cache...');
+          console.log('Produtos em cache:', products);
           
           // Verificar se já temos produtos na lista e procurar pelo slug
           if (products && products.length > 0) {
             // Verificar correspondência exata primeiro
             let cachedProduct = products.find(p => p.slug === productSlug);
             
-            // Se não encontrado, verificar se o slug é parte de um slug de produto 
-            // (caso tenha havido um sufixo adicionado como '-1')
-            if (!cachedProduct) {
+            if (cachedProduct) {
+              console.log('Produto encontrado no cache com slug exato:', cachedProduct);
+            } else {
               console.log('Tentando buscar com slug parcial...');
+              // Se não encontrado, verificar se o slug é parte de um slug de produto 
+              // (caso tenha havido um sufixo adicionado como '-1')
               const baseSlug = productSlug.split('-')[0]; // Obter slug base sem sufixo
               cachedProduct = products.find(
                 p => p.slug === baseSlug || p.slug.startsWith(baseSlug + '-')
@@ -64,10 +68,11 @@ export const useProductCheckout = (productSlug: string | undefined) => {
             const baseSlug = productSlug.split('-')[0];
             console.log('Tentando buscar com slug base via API:', baseSlug);
             productData = await getProductBySlug(baseSlug);
+            console.log('Resultado da busca por slug base:', productData);
           }
           
           // Se continua não encontrado, tenta procurar por substring
-          if (!productData) {
+          if (!productData && products.length > 0) {
             console.log('Tentando buscar produtos que contenham o slug como substring...');
             const matchingProducts = products.filter(p => 
               p.slug.includes(productSlug) || productSlug.includes(p.slug)
@@ -86,6 +91,7 @@ export const useProductCheckout = (productSlug: string | undefined) => {
           setProductNotFound(false);
         } else {
           console.error('Produto não encontrado para o slug:', productSlug);
+          console.log('Todos os produtos disponíveis:', products);
           setProductNotFound(true);
           toast({
             title: "Produto não encontrado",

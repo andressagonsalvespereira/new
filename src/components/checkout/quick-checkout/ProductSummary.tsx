@@ -7,14 +7,19 @@ interface ProductSummaryProps {
 }
 
 const ProductSummary: React.FC<ProductSummaryProps> = ({ product }) => {
+  // Safely handle both English and Portuguese property names
+  const name = product.nome || product.name || '';
+  const description = product.descricao || product.description || '';
+  const price = product.preco || product.price || 0;
+  
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-4">
       <div className="flex-1">
-        <h3 className="font-semibold mb-2">{product.nome}</h3>
-        <p className="text-sm text-gray-600">{product.descricao}</p>
+        <h3 className="font-semibold mb-2">{name}</h3>
+        <p className="text-sm text-gray-600">{description}</p>
       </div>
       <div className="text-right font-bold text-lg">
-        R$ {product.preco ? product.preco.toFixed(2) : '0.00'}
+        R$ {typeof price === 'number' ? price.toFixed(2) : '0.00'}
       </div>
     </div>
   );
