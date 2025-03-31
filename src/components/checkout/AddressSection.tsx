@@ -59,21 +59,10 @@ const AddressSection = ({
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center mb-4">
           <div className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">2</div>
-          <h2 className="font-medium text-lg">Endereço de Entrega</h2>
+          <h2 className="font-medium text-lg">Depoimentos</h2>
         </div>
         
-        <div className="p-4 bg-gray-50 rounded mb-4 flex items-center">
-          <FileDigit className="h-5 w-5 text-green-600 mr-2" />
-          <p className="text-gray-700">
-            Este é um produto digital. Não é necessário informar endereço de entrega.
-          </p>
-        </div>
-        
-        {/* Novo componente de depoimentos para produtos digitais */}
-        <div className="mt-4">
-          <h3 className="font-medium text-lg mb-2">Depoimentos</h3>
-          <CustomerReviews />
-        </div>
+        <CustomerReviews />
       </div>
     );
   }
