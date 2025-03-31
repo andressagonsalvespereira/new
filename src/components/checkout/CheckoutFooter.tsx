@@ -4,7 +4,7 @@ import { Shield, Lock, CreditCard, Award } from 'lucide-react';
 
 const CheckoutFooter = () => {
   return (
-    <footer className="bg-gray-100 py-6 border-t">
+    <footer className="bg-gray-100 py-6 border-t touch-manipulation">
       <div className="max-w-5xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>

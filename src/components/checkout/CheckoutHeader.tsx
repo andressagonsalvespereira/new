@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Clock, Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,10 +26,8 @@ const CheckoutHeader = () => {
   });
 
   useEffect(() => {
-    // Fetch customization settings
     const fetchCustomization = async () => {
       try {
-        // Use the any type to bypass TypeScript checking for the table name
         const { data, error } = await (supabase as any)
           .from('checkout_customization')
           .select('header_message, banner_image_url, show_banner, button_color, button_text_color, heading_color')
@@ -53,7 +50,6 @@ const CheckoutHeader = () => {
 
     fetchCustomization();
 
-    // Timer logic
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev.seconds > 0) {
@@ -82,7 +78,6 @@ const CheckoutHeader = () => {
             src={customization.banner_image_url} 
             alt="Checkout Banner" 
             className="w-full h-auto object-cover max-h-40 md:max-h-60"
-            style={{ touchAction: 'manipulation' }}
           />
         </div>
       )}
