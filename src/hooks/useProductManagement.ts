@@ -4,19 +4,21 @@ import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { Product, CreateProductInput } from '@/types/product';
 
+const initialFormState: CreateProductInput = {
+  name: '',
+  description: '',
+  price: 0,
+  imageUrl: '',
+  isDigital: false
+};
+
 export const useProductManagement = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<CreateProductInput>({
-    name: '',
-    description: '',
-    price: 0,
-    imageUrl: '',
-    isDigital: false
-  });
+  const [formData, setFormData] = useState<CreateProductInput>(initialFormState);
 
   const { toast } = useToast();
   const { 
@@ -26,61 +28,58 @@ export const useProductManagement = () => {
     products, 
     loading, 
     error,
-    refreshProducts 
+    refreshProducts,
+    isOffline
   } = useProducts();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const resetForm = useCallback(() => {
+    setFormData(initialFormState);
+  }, []);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
     if (name === 'price') {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         [name]: parseFloat(value) || 0
-      });
+      }));
     } else {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         [name]: value
-      });
+      }));
     }
-  };
+  }, []);
 
-  const handleSwitchChange = (checked: boolean) => {
-    setFormData({
-      ...formData,
+  const handleSwitchChange = useCallback((checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
       isDigital: checked
-    });
-  };
+    }));
+  }, []);
 
   const handleAddProduct = async () => {
     try {
       await addProduct(formData);
-      
-      // Reset form and close dialog
-      setFormData({
-        name: '',
-        description: '',
-        price: 0,
-        imageUrl: '',
-        isDigital: false
-      });
+      resetForm();
       setIsAddDialogOpen(false);
 
       toast({
-        title: "Sucesso",
-        description: "Produto adicionado com sucesso",
+        title: "Success",
+        description: "Product added successfully",
       });
     } catch (error) {
-      console.error('Erro ao adicionar produto:', error);
+      console.error('Error adding product:', error);
       toast({
-        title: "Erro",
-        description: "Falha ao adicionar produto",
+        title: "Error",
+        description: "Failed to add product",
         variant: "destructive",
       });
     }
   };
 
-  const handleEditClick = (product: Product) => {
+  const handleEditClick = useCallback((product: Product) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
@@ -90,32 +89,30 @@ export const useProductManagement = () => {
       isDigital: product.isDigital
     });
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteClick = (product: Product) => {
+  const handleDeleteClick = useCallback((product: Product) => {
     setProductToDelete(product);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
   const handleUpdateProduct = async () => {
     if (!editingProduct) return;
 
     try {
       await updateProduct(editingProduct.id, formData);
-      
-      // Reset form and close dialog
       setIsEditDialogOpen(false);
       setEditingProduct(null);
 
       toast({
-        title: "Sucesso",
-        description: "Produto atualizado com sucesso",
+        title: "Success",
+        description: "Product updated successfully",
       });
     } catch (error) {
-      console.error('Erro ao atualizar produto:', error);
+      console.error('Error updating product:', error);
       toast({
-        title: "Erro",
-        description: "Falha ao atualizar produto",
+        title: "Error",
+        description: "Failed to update product",
         variant: "destructive",
       });
     }
@@ -130,14 +127,14 @@ export const useProductManagement = () => {
       setProductToDelete(null);
       
       toast({
-        title: "Sucesso",
-        description: "Produto removido com sucesso",
+        title: "Success",
+        description: "Product removed successfully",
       });
     } catch (error) {
-      console.error('Erro ao remover produto:', error);
+      console.error('Error removing product:', error);
       toast({
-        title: "Erro",
-        description: "Falha ao remover produto",
+        title: "Error",
+        description: "Failed to remove product",
         variant: "destructive",
       });
     }
@@ -156,6 +153,7 @@ export const useProductManagement = () => {
     products,
     loading,
     error,
+    isOffline,
     handleInputChange,
     handleSwitchChange,
     handleAddProduct,
@@ -163,6 +161,7 @@ export const useProductManagement = () => {
     handleDeleteClick,
     handleUpdateProduct,
     handleDeleteProduct,
-    refreshProducts
+    refreshProducts,
+    resetForm
   };
 };

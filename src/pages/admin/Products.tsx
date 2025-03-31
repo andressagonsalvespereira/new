@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import AdminLayout from '@/components/layout/AdminLayout';
 import ProductTable from '@/components/products/ProductTable';
@@ -22,6 +22,7 @@ const Products: React.FC = () => {
     products,
     loading,
     error,
+    isOffline,
     handleInputChange,
     handleSwitchChange,
     handleAddProduct,
@@ -29,11 +30,7 @@ const Products: React.FC = () => {
     handleDeleteClick,
     handleUpdateProduct,
     handleDeleteProduct,
-    refreshProducts
   } = useProductManagement();
-
-  // We no longer call refreshProducts in the useEffect because it's already 
-  // called in the ProductProvider initialization
   
   return (
     <AdminLayout>
@@ -50,6 +47,15 @@ const Products: React.FC = () => {
             />
           </CardContent>
         </Card>
+        
+        {isOffline && (
+          <div className="mt-4 p-4 bg-amber-50 rounded-md border border-amber-200 text-amber-800">
+            <p className="text-sm">
+              You are currently working in offline mode. Changes will be saved locally 
+              and synchronized when your connection is restored.
+            </p>
+          </div>
+        )}
       </div>
 
       <AddProductDialog

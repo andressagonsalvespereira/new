@@ -13,7 +13,6 @@ import { Edit, Trash2, Copy, ExternalLink, RefreshCw } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/contexts/ProductContext';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProductTableProps {
   products: Product[];
@@ -51,15 +50,15 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
     navigator.clipboard.writeText(checkoutUrl)
       .then(() => {
         toast({
-          title: "Link copiado",
-          description: "Link de checkout rápido copiado para a área de transferência",
+          title: "Link copied",
+          description: "Quick checkout link copied to clipboard",
         });
       })
       .catch(err => {
-        console.error('Erro ao copiar link:', err);
+        console.error('Error copying link:', err);
         toast({
-          title: "Erro",
-          description: "Não foi possível copiar o link",
+          title: "Error",
+          description: "Could not copy link",
           variant: "destructive",
         });
       });
@@ -76,18 +75,18 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
       <div className="flex justify-center items-center py-20">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="h-12 w-12 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent animate-spin"></div>
-          <p className="text-center text-gray-500">Carregando produtos...</p>
+          <p className="text-center text-gray-500">Loading products...</p>
           
           {loadingTimeExceeded && (
             <div className="mt-4 text-center">
-              <p className="text-amber-600 mb-2">O carregamento está demorando mais que o esperado.</p>
+              <p className="text-amber-600 mb-2">Loading is taking longer than expected.</p>
               <Button 
                 variant="outline" 
                 onClick={retryFetchProducts}
                 className="bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Tentar novamente
+                Try again
               </Button>
             </div>
           )}
@@ -100,19 +99,19 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <div className="bg-red-50 p-6 rounded-lg max-w-md mx-auto">
-          <p className="text-red-600 font-medium mb-4">Erro ao carregar produtos: {error}</p>
-          <p className="text-gray-600 mb-4">Verifique sua conexão com a internet e tente novamente.</p>
+          <p className="text-red-600 font-medium mb-4">Error loading products: {error}</p>
+          <p className="text-gray-600 mb-4">Check your internet connection and try again.</p>
           <Button 
             variant="default" 
             onClick={retryFetchProducts}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Tentar novamente
+            Try again
           </Button>
           {isOffline && (
             <p className="mt-4 text-sm text-amber-600">
-              Modo offline ativo. Alguns produtos podem estar indisponíveis ou desatualizados.
+              Offline mode active. Some products may be unavailable or outdated.
             </p>
           )}
         </div>
@@ -123,8 +122,8 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
   if (products.length === 0) {
     return (
       <div className="text-center py-10 bg-gray-50 rounded-lg">
-        <p className="text-gray-500 mb-4">Nenhum produto cadastrado</p>
-        <p className="text-sm text-gray-400">Clique em "Adicionar Produto" para começar</p>
+        <p className="text-gray-500 mb-4">No products found</p>
+        <p className="text-sm text-gray-400">Click "Add Product" to get started</p>
       </div>
     );
   }
@@ -135,19 +134,19 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
         <div className="bg-amber-50 p-3 border-b text-sm text-amber-800">
           <p className="flex items-center">
             <span className="inline-block h-2 w-2 rounded-full bg-amber-500 mr-2"></span>
-            Modo offline: Os dados podem estar desatualizados. Alterações serão salvas localmente.
+            Offline mode: Data may be outdated. Changes will be saved locally.
           </p>
         </div>
       )}
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Preço</TableHead>
-            <TableHead>Imagem</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Image</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -177,7 +176,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
               </TableCell>
               <TableCell>
                 <span className={`px-2 py-1 text-xs rounded-full ${product.isDigital ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                  {product.isDigital ? 'Digital' : 'Físico'}
+                  {product.isDigital ? 'Digital' : 'Physical'}
                 </span>
               </TableCell>
               <TableCell className="text-right">
@@ -186,7 +185,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                     variant="outline"
                     size="sm"
                     onClick={() => copyCheckoutLink(product.id)}
-                    title="Copiar link de checkout rápido"
+                    title="Copy quick checkout link"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -194,7 +193,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                     variant="outline"
                     size="sm"
                     onClick={() => openCheckoutLink(product.id)}
-                    title="Abrir checkout rápido"
+                    title="Open quick checkout"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Button>
@@ -205,7 +204,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Edit className="h-4 w-4 mr-1" />
-                    Editar
+                    Edit
                   </Button>
                   <Button
                     variant="destructive"
@@ -213,7 +212,7 @@ const ProductTable = ({ products, loading, error, onEdit, onDelete }: ProductTab
                     onClick={() => onDelete(product)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
-                    Excluir
+                    Delete
                   </Button>
                 </div>
               </TableCell>

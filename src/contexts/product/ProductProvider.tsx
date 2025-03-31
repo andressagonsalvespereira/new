@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Product, CreateProductInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +16,7 @@ import {
 } from './productApi';
 import { 
   loadProducts as loadLocalProducts, 
+  saveProducts as saveLocalProducts,
   createProduct as createLocalProduct,
   updateProduct as updateLocalProduct,
   deleteProduct as deleteLocalProduct,
@@ -29,7 +31,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   const [networkError, setNetworkError] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (): Promise<void> => {
     // Prevent multiple fetch attempts when already loading
     if (loading && hasAttemptedFetch) return;
     
@@ -39,8 +41,10 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     
     try {
       const formattedProducts = await fetchProductsFromAPI();
-      
       setProducts(formattedProducts);
+      
+      // Sync local storage with latest data
+      saveLocalProducts(formattedProducts);
       setNetworkError(false);
     } catch (err) {
       console.error('Error loading products:', err);
@@ -52,15 +56,15 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
         setProducts(localProducts);
         setNetworkError(true);
         toast({
-          title: "Modo offline",
-          description: "Carregando produtos do armazenamento local devido a falha de conexão",
+          title: "Offline mode",
+          description: "Loading products from local storage due to connection failure",
           variant: "destructive",
         });
       } catch (localErr) {
         console.error('Error loading local products:', localErr);
         toast({
-          title: "Erro",
-          description: "Falha ao carregar produtos, verifique sua conexão",
+          title: "Error",
+          description: "Failed to load products, check your connection",
           variant: "destructive",
         });
       }
@@ -81,8 +85,8 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
         setProducts(prev => [newProduct, ...prev]);
         
         toast({
-          title: "Produto adicionado localmente",
-          description: "Produto será sincronizado quando a conexão for restaurada",
+          title: "Product added locally",
+          description: "Product will be synchronized when connection is restored",
         });
         
         return newProduct;
@@ -91,19 +95,24 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       // Add product to API
       const newProduct = await addProductToAPI(productData);
       
+      // Update local state
       setProducts(prev => [newProduct, ...prev]);
       
+      // Also update local storage
+      const updatedProducts = [newProduct, ...products];
+      saveLocalProducts(updatedProducts);
+      
       toast({
-        title: "Sucesso",
-        description: "Produto adicionado com sucesso",
+        title: "Success",
+        description: "Product added successfully",
       });
       
       return newProduct;
     } catch (err) {
       console.error('Error adding product:', err);
       toast({
-        title: "Erro",
-        description: "Falha ao adicionar produto",
+        title: "Error",
+        description: "Failed to add product",
         variant: "destructive",
       });
       throw err;
@@ -116,7 +125,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
         // Handle offline editing
         const existingProductIndex = products.findIndex(p => p.id === id);
         if (existingProductIndex === -1) {
-          throw new Error(`Produto com ID ${id} não encontrado`);
+          throw new Error(`Product with ID ${id} not found`);
         }
         
         const updatedProduct = {
@@ -128,9 +137,12 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
         newProducts[existingProductIndex] = updatedProduct;
         setProducts(newProducts);
         
+        // Update local storage
+        saveLocalProducts(newProducts);
+        
         toast({
-          title: "Produto atualizado localmente",
-          description: "As alterações serão sincronizadas quando a conexão for restaurada",
+          title: "Product updated locally",
+          description: "Changes will be synchronized when connection is restored",
         });
         
         return updatedProduct;
@@ -139,23 +151,27 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       // Update product in API
       const updatedProduct = await editProductInAPI(id, productData);
       
-      setProducts(prev => 
-        prev.map(prod => 
-          prod.id === id ? updatedProduct : prod
-        )
+      // Update local state
+      const updatedProducts = products.map(prod => 
+        prod.id === id ? updatedProduct : prod
       );
       
+      setProducts(updatedProducts);
+      
+      // Update local storage
+      saveLocalProducts(updatedProducts);
+      
       toast({
-        title: "Sucesso",
-        description: "Produto atualizado com sucesso",
+        title: "Success",
+        description: "Product updated successfully",
       });
       
       return updatedProduct;
     } catch (err) {
       console.error('Error updating product:', err);
       toast({
-        title: "Erro",
-        description: "Falha ao atualizar produto",
+        title: "Error",
+        description: "Failed to update product",
         variant: "destructive",
       });
       throw err;
@@ -166,11 +182,15 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     try {
       if (networkError) {
         // Handle offline deletion
-        setProducts(prev => prev.filter(prod => prod.id !== id));
+        const updatedProducts = products.filter(prod => prod.id !== id);
+        setProducts(updatedProducts);
+        
+        // Update local storage
+        saveLocalProducts(updatedProducts);
         
         toast({
-          title: "Produto removido localmente",
-          description: "A remoção será sincronizada quando a conexão for restaurada",
+          title: "Product removed locally",
+          description: "Removal will be synchronized when connection is restored",
         });
         return;
       }
@@ -178,17 +198,22 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       // Delete product from API
       await removeProductFromAPI(id);
       
-      setProducts(prev => prev.filter(prod => prod.id !== id));
+      // Update local state
+      const updatedProducts = products.filter(prod => prod.id !== id);
+      setProducts(updatedProducts);
+      
+      // Update local storage
+      saveLocalProducts(updatedProducts);
       
       toast({
-        title: "Sucesso",
-        description: "Produto removido com sucesso",
+        title: "Success",
+        description: "Product removed successfully",
       });
     } catch (err) {
       console.error('Error deleting product:', err);
       toast({
-        title: "Erro",
-        description: "Falha ao remover produto",
+        title: "Error",
+        description: "Failed to remove product",
         variant: "destructive",
       });
       throw err;
@@ -213,8 +238,8 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       }
       
       toast({
-        title: "Erro",
-        description: "Falha ao buscar produto",
+        title: "Error",
+        description: "Failed to fetch product",
         variant: "destructive",
       });
       throw err;
@@ -222,7 +247,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   };
 
   // Add a retry mechanism with force refresh
-  const retryFetchProducts = useCallback((): Promise<void> => {
+  const retryFetchProducts = useCallback(async (): Promise<void> => {
     setNetworkError(false);
     setHasAttemptedFetch(false);
     return fetchProducts();
@@ -237,7 +262,7 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       editProduct, 
       removeProduct,
       getProductById,
-      refreshProducts: retryFetchProducts, // Use retryFetchProducts for refreshing
+      refreshProducts: retryFetchProducts, 
       updateProduct: editProduct,
       deleteProduct: removeProduct,
       retryFetchProducts,
