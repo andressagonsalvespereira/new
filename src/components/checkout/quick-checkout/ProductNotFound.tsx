@@ -3,9 +3,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Search, ArrowLeft } from 'lucide-react';
 
-const ProductNotFound: React.FC = () => {
+interface ProductNotFoundProps {
+  slug?: string;
+}
+
+const ProductNotFound: React.FC<ProductNotFoundProps> = ({ slug }) => {
   const navigate = useNavigate();
   
   return (
@@ -19,7 +23,10 @@ const ProductNotFound: React.FC = () => {
         
         <div className="space-y-4 mb-6">
           <p className="text-gray-600">
-            O produto que você está procurando não existe ou foi removido.
+            {slug 
+              ? `O produto com o identificador "${slug}" não existe ou foi removido.`
+              : 'O produto que você está procurando não existe ou foi removido.'
+            }
           </p>
           <p className="text-gray-600 text-sm">
             Possíveis razões:
@@ -34,16 +41,18 @@ const ProductNotFound: React.FC = () => {
         <div className="flex flex-col space-y-2">
           <Button 
             onClick={() => navigate('/')}
-            className="bg-blue-600 hover:bg-blue-700 w-full"
+            className="bg-blue-600 hover:bg-blue-700 w-full flex items-center justify-center"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar para a página inicial
           </Button>
           
           <Button 
             onClick={() => navigate('/admin/products')}
             variant="outline"
-            className="w-full"
+            className="w-full flex items-center justify-center"
           >
+            <Search className="h-4 w-4 mr-2" />
             Ver todos os produtos
           </Button>
         </div>

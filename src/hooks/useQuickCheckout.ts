@@ -6,16 +6,17 @@ import { useProducts } from '@/contexts/ProductContext';
 import { useOrders } from '@/contexts/OrderContext';
 import { usePixel } from '@/contexts/PixelContext';
 import { CustomerInfo } from '@/types/order';
+import { Product } from '@/types/product';
 
-export const useQuickCheckout = (productId: string | undefined) => {
+export const useQuickCheckout = (productId: string | undefined, preloadedProduct?: Product | null) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { getProductById } = useProducts();
   const { addOrder } = useOrders();
   const { trackPurchase } = usePixel();
   
-  const [product, setProduct] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<any | null>(preloadedProduct || null);
+  const [loading, setLoading] = useState(!preloadedProduct);
   const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('CREDIT_CARD');
   const [customerDetails, setCustomerDetails] = useState<CustomerInfo>({
     name: '',
@@ -26,6 +27,13 @@ export const useQuickCheckout = (productId: string | undefined) => {
   const [isOrderSubmitted, setIsOrderSubmitted] = useState(false);
   
   useEffect(() => {
+    // If we already have a product from useProductCheckout, skip fetching
+    if (preloadedProduct) {
+      setProduct(preloadedProduct);
+      setLoading(false);
+      return;
+    }
+    
     async function fetchProduct() {
       try {
         if (!productId) {
@@ -58,8 +66,18 @@ export const useQuickCheckout = (productId: string | undefined) => {
       }
     }
     
-    fetchProduct();
-  }, [productId, getProductById, toast]);
+    if (!preloadedProduct) {
+      fetchProduct();
+    }
+  }, [productId, getProductById, toast, preloadedProduct]);
+  
+  // If preloadedProduct changes, update the state
+  useEffect(() => {
+    if (preloadedProduct) {
+      setProduct(preloadedProduct);
+      setLoading(false);
+    }
+  }, [preloadedProduct]);
   
   const handleSubmitCustomerInfo = (customerData: CustomerInfo) => {
     setCustomerDetails(customerData);
@@ -80,31 +98,31 @@ export const useQuickCheckout = (productId: string | undefined) => {
         ...paymentData,
         cvv: paymentData.cvv ? '***' : undefined, // Mask CVV in logs
         method: paymentMethod,
-        isDigitalProduct: product.isDigital,
-        useCustomProcessing: product.useCustomProcessing,
-        manualCardStatus: product.manualCardStatus
+        isDigitalProduct: product.isDigital || product.digital,
+        useCustomProcessing: product.useCustomProcessing || product.usarProcessamentoPersonalizado,
+        manualCardStatus: product.manualCardStatus || product.statusCartaoManual
       });
       
       const newOrder = await addOrder({
         customer: customerDetails,
         productId: product.id,
-        productName: product.name,
-        productPrice: product.price,
+        productName: product.nome || product.name,
+        productPrice: product.preco || product.price,
         paymentMethod: paymentMethod,
         paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando',
-        isDigitalProduct: product.isDigital
+        isDigitalProduct: product.isDigital || product.digital
       });
       
       setIsOrderSubmitted(true);
       
       // Track purchase event
       trackPurchase({
-        value: product.price,
+        value: product.preco || product.price,
         transactionId: `order-${newOrder.id}`,
         products: [{
           id: product.id,
-          name: product.name,
-          price: product.price,
+          name: product.nome || product.name,
+          price: product.preco || product.price,
           quantity: 1
         }]
       });

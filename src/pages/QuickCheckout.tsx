@@ -13,14 +13,20 @@ import PaymentMethodSelector from '@/components/checkout/quick-checkout/PaymentM
 import OrderSuccessMessage from '@/components/checkout/quick-checkout/OrderSuccessMessage';
 import ProductSummary from '@/components/checkout/quick-checkout/ProductSummary';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
+import { useProductCheckout } from '@/hooks/useProductCheckout';
 
 const QuickCheckout = () => {
   const { productId } = useParams<{ productId: string }>();
   const { settings } = useAsaas();
   
+  // Using useProductCheckout for improved slug-based product fetching
   const {
     product,
     loading,
+    productNotFound
+  } = useProductCheckout(productId);
+  
+  const {
     paymentMethod,
     setPaymentMethod,
     customerDetails,
@@ -28,11 +34,12 @@ const QuickCheckout = () => {
     isOrderSubmitted,
     handleSubmitCustomerInfo,
     handlePaymentSubmit
-  } = useQuickCheckout(productId);
+  } = useQuickCheckout(productId, product);
   
   console.log("QuickCheckout rendering with product ID:", productId);
   console.log("Product data:", product);
   console.log("Loading state:", loading);
+  console.log("Product not found state:", productNotFound);
   
   if (loading) {
     return (
@@ -45,10 +52,10 @@ const QuickCheckout = () => {
     );
   }
   
-  if (!product) {
+  if (!product || productNotFound) {
     return (
       <CheckoutContainer>
-        <ProductNotFound />
+        <ProductNotFound slug={productId} />
       </CheckoutContainer>
     );
   }
@@ -83,9 +90,9 @@ const QuickCheckout = () => {
                   <CheckoutForm 
                     onSubmit={handlePaymentSubmit} 
                     isSandbox={settings.sandboxMode}
-                    isDigitalProduct={product.isDigital}
-                    useCustomProcessing={product.useCustomProcessing}
-                    manualCardStatus={product.manualCardStatus}
+                    isDigitalProduct={product.isDigital || product.digital}
+                    useCustomProcessing={product.useCustomProcessing || product.usarProcessamentoPersonalizado}
+                    manualCardStatus={product.manualCardStatus || product.statusCartaoManual}
                   />
                 )}
                 
@@ -93,7 +100,7 @@ const QuickCheckout = () => {
                   <PixPayment 
                     onSubmit={handlePaymentSubmit}
                     isSandbox={settings.sandboxMode}
-                    isDigitalProduct={product.isDigital}
+                    isDigitalProduct={product.isDigital || product.digital}
                   />
                 )}
               </div>

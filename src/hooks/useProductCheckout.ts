@@ -12,6 +12,7 @@ export const useProductCheckout = (productSlug: string | undefined) => {
   
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [productNotFound, setProductNotFound] = useState(false);
   
   useEffect(() => {
     async function fetchProduct() {
@@ -19,10 +20,12 @@ export const useProductCheckout = (productSlug: string | undefined) => {
         if (!productSlug) {
           console.error('Slug do produto não fornecido');
           setLoading(false);
+          setProductNotFound(true);
           return;
         }
         
         setLoading(true);
+        setProductNotFound(false);
         console.log('Buscando produto com slug:', productSlug);
         
         // Primeiro, procuramos exatamente pelo slug fornecido
@@ -62,13 +65,28 @@ export const useProductCheckout = (productSlug: string | undefined) => {
             console.log('Tentando buscar com slug base via API:', baseSlug);
             productData = await getProductBySlug(baseSlug);
           }
+          
+          // Se continua não encontrado, tenta procurar por substring
+          if (!productData) {
+            console.log('Tentando buscar produtos que contenham o slug como substring...');
+            const matchingProducts = products.filter(p => 
+              p.slug.includes(productSlug) || productSlug.includes(p.slug)
+            );
+            
+            if (matchingProducts.length > 0) {
+              console.log('Produtos encontrados por substring:', matchingProducts);
+              productData = matchingProducts[0]; // Usar o primeiro produto correspondente
+            }
+          }
         }
         
         if (productData) {
           console.log('Produto encontrado:', productData);
           setProduct(productData);
+          setProductNotFound(false);
         } else {
           console.error('Produto não encontrado para o slug:', productSlug);
+          setProductNotFound(true);
           toast({
             title: "Produto não encontrado",
             description: `Não foi possível encontrar o produto com slug "${productSlug}"`,
@@ -77,6 +95,7 @@ export const useProductCheckout = (productSlug: string | undefined) => {
         }
       } catch (error) {
         console.error('Erro ao carregar produto:', error);
+        setProductNotFound(true);
         toast({
           title: "Erro",
           description: "Não foi possível carregar os dados do produto.",
@@ -95,6 +114,6 @@ export const useProductCheckout = (productSlug: string | undefined) => {
   return {
     product,
     loading: loading || productsLoading,
-    productNotFound: !loading && !productsLoading && !product
+    productNotFound
   };
 };
