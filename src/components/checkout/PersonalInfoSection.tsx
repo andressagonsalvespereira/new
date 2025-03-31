@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -91,14 +90,14 @@ const PersonalInfoSection = ({
               <Select defaultValue="55">
                 <SelectTrigger className="w-24 h-9 border-gray-300 flex-shrink-0 text-xs px-2">
                   <div className="flex items-center">
-                    <span className="mr-1">🇧🇷</span>
+                    <span className="mr-1 text-lg">🇧🇷</span>
                     <span>+55</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="55">
                     <div className="flex items-center text-xs">
-                      <span className="mr-1">🇧🇷</span>
+                      <span className="mr-1 text-lg">🇧🇷</span>
                       <span>+55</span>
                     </div>
                   </SelectItem>
