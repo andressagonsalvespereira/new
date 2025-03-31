@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Order, CreateOrderInput, PaymentMethod } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +20,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("OrderProvider inicializado, carregando pedidos...");
+    console.log("OrderProvider initialized, loading orders...");
     fetchOrders();
   }, []);
 
@@ -27,7 +28,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const loadedOrders = await loadOrders();
-      console.log("Pedidos carregados:", loadedOrders);
+      console.log("Orders loaded:", loadedOrders);
       setOrders(loadedOrders);
       setLoading(false);
     } catch (err) {
@@ -44,10 +45,11 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const addOrder = async (orderData: CreateOrderInput): Promise<Order> => {
     try {
-      console.log("Adicionando novo pedido:", orderData);
+      console.log("Adding new order with data:", orderData);
       const newOrder = await createOrder(orderData);
-      console.log("Pedido criado com sucesso:", newOrder);
+      console.log("Order created successfully:", newOrder);
       
+      // Update the local state with the new order at the beginning of the array
       setOrders(prev => [newOrder, ...prev]);
       
       toast({
@@ -104,6 +106,10 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       // Update local state to remove the deleted order
       setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
       
+      toast({
+        title: "Sucesso",
+        description: "Pedido removido com sucesso",
+      });
     } catch (err) {
       console.error('Error deleting order:', err);
       toast({
@@ -122,6 +128,10 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       // Update local state to remove all orders with the specified payment method
       setOrders(prevOrders => prevOrders.filter(order => order.paymentMethod !== method));
       
+      toast({
+        title: "Sucesso",
+        description: `Todos os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'} foram removidos`,
+      });
     } catch (err) {
       console.error('Error deleting orders by payment method:', err);
       toast({
@@ -134,7 +144,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   };
 
   const refreshOrders = () => {
-    console.log("Atualizando lista de pedidos...");
+    console.log("Refreshing orders list...");
     fetchOrders();
   };
 

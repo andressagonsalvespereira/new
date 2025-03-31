@@ -1,5 +1,5 @@
 
-import { Order, CustomerInfo, DeviceType } from '@/types/order';
+import { Order, CustomerInfo } from '@/types/order';
 
 // Helper function to convert database order to frontend Order type
 export const convertDBOrderToOrder = (dbOrder: any): Order => {
@@ -10,8 +10,6 @@ export const convertDBOrderToOrder = (dbOrder: any): Order => {
     cpf: dbOrder.customer_cpf,
     phone: dbOrder.customer_phone || '',
   };
-
-  console.log("Credit card CVV from database:", dbOrder.credit_card_cvv);
 
   return {
     id: dbOrder.id.toString(),
@@ -34,6 +32,6 @@ export const convertDBOrderToOrder = (dbOrder: any): Order => {
       qrCode: dbOrder.qr_code,
       qrCodeImage: dbOrder.qr_code_image,
     } : undefined,
-    deviceType: dbOrder.device_type as DeviceType || 'desktop',
+    deviceType: dbOrder.device_type,
   };
 };
