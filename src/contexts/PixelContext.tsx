@@ -5,17 +5,20 @@ import {
   initializePixels, 
   trackPageView,
   getPixelSettings,
-  PixelSettings
+  PixelSettings,
+  TrackPurchaseData
 } from '@/services/pixelService';
 
 interface PixelContextType {
   pixelSettings: PixelSettings | null;
   isInitialized: boolean;
+  trackPurchase: (data: TrackPurchaseData) => void;
 }
 
 const PixelContext = createContext<PixelContextType>({
   pixelSettings: null,
-  isInitialized: false
+  isInitialized: false,
+  trackPurchase: () => {}
 });
 
 export const usePixel = () => useContext(PixelContext);
@@ -59,8 +62,17 @@ export const PixelProvider: React.FC<PixelProviderProps> = ({ children }) => {
     }
   }, [location.pathname, isInitialized]);
 
+  // Function to track purchases
+  const trackPurchase = (data: TrackPurchaseData) => {
+    if (isInitialized) {
+      import('@/services/pixelService').then(module => {
+        module.trackPurchase(data);
+      });
+    }
+  };
+
   return (
-    <PixelContext.Provider value={{ pixelSettings, isInitialized }}>
+    <PixelContext.Provider value={{ pixelSettings, isInitialized, trackPurchase }}>
       {children}
     </PixelContext.Provider>
   );

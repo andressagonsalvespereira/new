@@ -7,11 +7,12 @@ import CheckoutLayout from '@/components/checkout/CheckoutLayout';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import { getProductDetails } from '@/components/checkout/ProductDetails';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
-import { trackPurchase } from '@/services/pixelService';
+import { usePixel } from '@/contexts/PixelContext';
 
 const Checkout = () => {
   const { slug } = useParams();
   const { toast } = useToast();
+  const { trackPurchase } = usePixel();
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);

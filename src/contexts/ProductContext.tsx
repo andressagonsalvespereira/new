@@ -1,18 +1,18 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, CreateProductInput, UpdateProductInput } from '@/types/product';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Product, CreateProductInput } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ProductContextType, 
   ProductProviderProps 
-} from './product/productContextTypes';
+} from '@/contexts/product/productContextTypes';
 import { 
   loadProducts, 
   createProduct, 
-  updateProductData, 
-  deleteProductData, 
-  findProductById 
-} from './product/productUtils';
+  updateProduct, 
+  deleteProduct,
+  getProductById as getProductByIdUtil
+} from '@/contexts/product/productUtils';
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
@@ -66,11 +66,15 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     }
   };
 
-  const updateProduct = async (productData: UpdateProductInput): Promise<Product> => {
+  const editProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
     try {
-      const { updatedProduct, updatedProducts } = await updateProductData(products, productData);
+      const updatedProduct = await updateProduct(id, productData);
       
-      setProducts(updatedProducts);
+      setProducts(prev => 
+        prev.map(prod => 
+          prod.id === id ? { ...prod, ...updatedProduct } : prod
+        )
+      );
       
       toast({
         title: "Sucesso",
@@ -89,30 +93,40 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
     }
   };
 
-  const deleteProduct = async (id: string): Promise<boolean> => {
+  const removeProduct = async (id: string): Promise<void> => {
     try {
-      const updatedProducts = await deleteProductData(products, id);
-      setProducts(updatedProducts);
+      await deleteProduct(id);
+      
+      setProducts(prev => prev.filter(prod => prod.id !== id));
       
       toast({
         title: "Sucesso",
-        description: "Produto excluído com sucesso",
+        description: "Produto removido com sucesso",
       });
-      
-      return true;
     } catch (err) {
       console.error('Error deleting product:', err);
       toast({
         title: "Erro",
-        description: "Falha ao excluir produto",
+        description: "Falha ao remover produto",
         variant: "destructive",
       });
-      return false;
+      throw err;
     }
   };
 
-  const getProduct = async (id: string): Promise<Product | undefined> => {
-    return findProductById(products, id);
+  // Updated to resolve types properly for async operation
+  const getProductById = async (id: string): Promise<Product | undefined> => {
+    try {
+      return await getProductByIdUtil(id);
+    } catch (err) {
+      console.error('Error getting product by ID:', err);
+      toast({
+        title: "Erro",
+        description: "Falha ao buscar produto",
+        variant: "destructive",
+      });
+      throw err;
+    }
   };
 
   return (
@@ -121,9 +135,10 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       loading, 
       error, 
       addProduct, 
-      updateProduct, 
-      deleteProduct, 
-      getProduct 
+      editProduct, 
+      removeProduct,
+      getProductById,
+      refreshProducts: fetchProducts
     }}>
       {children}
     </ProductContext.Provider>

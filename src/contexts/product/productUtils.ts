@@ -1,46 +1,41 @@
 
-import { Product, CreateProductInput, UpdateProductInput } from '@/types/product';
-import { v4 as uuidv4 } from 'uuid';
+import { Product, CreateProductInput } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 
-// Carrega produtos do Supabase
+// Helper function to convert database product to frontend Product type
+const convertDBProductToProduct = (dbProduct: any): Product => {
+  return {
+    id: dbProduct.id.toString(),
+    name: dbProduct.name,
+    price: dbProduct.price,
+    description: dbProduct.description || '',
+    imageUrl: dbProduct.image_url || '',
+    isDigital: dbProduct.is_digital || false,
+    createdAt: new Date(dbProduct.created_at).toISOString(),
+    updatedAt: new Date(dbProduct.updated_at).toISOString(),
+  };
+};
+
+// Load all products from the database
 export const loadProducts = async (): Promise<Product[]> => {
   try {
     const { data, error } = await supabase
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) {
-      console.error('Erro ao carregar produtos:', error);
-      throw error;
+      throw new Error(`Error loading products: ${error.message}`);
     }
-    
-    // Mapear os dados do banco para o formato da aplicação
-    return data.map(item => ({
-      id: item.id.toString(),
-      name: item.name,
-      price: Number(item.price),
-      description: item.description || undefined,
-      imageUrl: item.image_url || undefined,
-      isDigital: item.is_digital || false,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at
-    }));
+
+    return data.map(convertDBProductToProduct);
   } catch (error) {
-    console.error('Erro ao carregar produtos:', error);
-    // Se falhar, retorna um array vazio
-    return [];
+    console.error('Failed to load products:', error);
+    throw error;
   }
 };
 
-// Salva produtos no Supabase - não é mais necessário, pois o Supabase já persiste os dados
-export const saveProducts = async (): Promise<void> => {
-  // Esta função não é mais necessária, pois o Supabase já salva os dados no banco
-  return;
-};
-
-// Cria um novo produto
+// Create a new product
 export const createProduct = async (productData: CreateProductInput): Promise<Product> => {
   try {
     const { data, error } = await supabase
@@ -48,145 +43,93 @@ export const createProduct = async (productData: CreateProductInput): Promise<Pr
       .insert({
         name: productData.name,
         price: productData.price,
-        description: productData.description,
-        image_url: productData.imageUrl,
-        is_digital: productData.isDigital
+        description: productData.description || null,
+        image_url: productData.imageUrl || null,
+        is_digital: productData.isDigital || false,
       })
       .select()
       .single();
-    
+
     if (error) {
-      console.error('Erro ao criar produto:', error);
-      throw error;
+      throw new Error(`Error creating product: ${error.message}`);
     }
-    
-    return {
-      id: data.id.toString(),
-      name: data.name,
-      price: Number(data.price),
-      description: data.description || undefined,
-      imageUrl: data.image_url || undefined,
-      isDigital: data.is_digital || false,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
+
+    return convertDBProductToProduct(data);
   } catch (error) {
-    console.error('Erro ao criar produto:', error);
+    console.error('Failed to create product:', error);
     throw error;
   }
 };
 
-// Atualiza um produto existente
-export const updateProductData = async (
-  products: Product[], 
-  productData: UpdateProductInput
-): Promise<{ updatedProduct: Product; updatedProducts: Product[] }> => {
+// Get a product by ID
+export const getProductById = async (id: string): Promise<Product | undefined> => {
   try {
     const { data, error } = await supabase
       .from('products')
-      .update({
-        name: productData.name,
-        price: productData.price,
-        description: productData.description,
-        image_url: productData.imageUrl,
-        is_digital: productData.isDigital
-      })
-      .eq('id', productData.id)
-      .select()
+      .select('*')
+      .eq('id', parseInt(id, 10))
       .single();
-    
+
     if (error) {
-      console.error('Erro ao atualizar produto:', error);
-      throw error;
+      if (error.code === 'PGRST116') {
+        // No rows found
+        return undefined;
+      }
+      throw new Error(`Error getting product: ${error.message}`);
     }
-    
-    const updatedProduct: Product = {
-      id: data.id.toString(),
-      name: data.name,
-      price: Number(data.price),
-      description: data.description || undefined,
-      imageUrl: data.image_url || undefined,
-      isDigital: data.is_digital || false,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
-    
-    // Atualiza o produto na lista local
-    const productIndex = products.findIndex(p => p.id === productData.id);
-    const updatedProducts = [...products];
-    if (productIndex >= 0) {
-      updatedProducts[productIndex] = updatedProduct;
-    }
-    
-    return { updatedProduct, updatedProducts };
+
+    return convertDBProductToProduct(data);
   } catch (error) {
-    console.error('Erro ao atualizar produto:', error);
+    console.error(`Failed to get product with id ${id}:`, error);
     throw error;
   }
 };
 
-// Exclui um produto
-export const deleteProductData = async (
-  products: Product[], 
-  id: string
-): Promise<Product[]> => {
+// Update an existing product
+export const updateProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
+  try {
+    // Convert frontend data format to database format
+    const dbData: any = {};
+    if (productData.name !== undefined) dbData.name = productData.name;
+    if (productData.price !== undefined) dbData.price = productData.price;
+    if (productData.description !== undefined) dbData.description = productData.description;
+    if (productData.imageUrl !== undefined) dbData.image_url = productData.imageUrl;
+    if (productData.isDigital !== undefined) dbData.is_digital = productData.isDigital;
+    
+    // Always update the updated_at timestamp
+    dbData.updated_at = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from('products')
+      .update(dbData)
+      .eq('id', parseInt(id, 10))
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Error updating product: ${error.message}`);
+    }
+
+    return convertDBProductToProduct(data);
+  } catch (error) {
+    console.error(`Failed to update product with id ${id}:`, error);
+    throw error;
+  }
+};
+
+// Delete a product
+export const deleteProduct = async (id: string): Promise<void> => {
   try {
     const { error } = await supabase
       .from('products')
       .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Erro ao excluir produto:', error);
-      throw error;
-    }
-    
-    // Remove o produto da lista local
-    return products.filter(product => product.id !== id);
-  } catch (error) {
-    console.error('Erro ao excluir produto:', error);
-    throw error;
-  }
-};
+      .eq('id', parseInt(id, 10));
 
-// Encontra um produto pelo ID
-export const findProductById = async (
-  products: Product[], 
-  id: string
-): Promise<Product | undefined> => {
-  try {
-    // Primeiro verifica se o produto está na lista local
-    const localProduct = products.find(product => product.id === id);
-    if (localProduct) return localProduct;
-    
-    // Se não estiver na lista local, busca do Supabase
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
     if (error) {
-      if (error.code === 'PGRST116') {
-        // Produto não encontrado
-        return undefined;
-      }
-      console.error('Erro ao buscar produto:', error);
-      throw error;
+      throw new Error(`Error deleting product: ${error.message}`);
     }
-    
-    return {
-      id: data.id.toString(),
-      name: data.name,
-      price: Number(data.price),
-      description: data.description || undefined,
-      imageUrl: data.image_url || undefined,
-      isDigital: data.is_digital || false,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
   } catch (error) {
-    console.error('Erro ao buscar produto:', error);
-    return undefined;
+    console.error(`Failed to delete product with id ${id}:`, error);
+    throw error;
   }
 };

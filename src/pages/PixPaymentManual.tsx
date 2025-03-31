@@ -1,355 +1,243 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { QrCode, Copy, CheckCircle, Clock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Check, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import { useOrders } from '@/contexts/OrderContext';
-import { trackPurchase } from '@/services/pixelService';
-
-interface LocationState {
-  customer: {
-    name: string;
-    email: string;
-    cpf: string;
-    phone: string;
-    address?: {
-      street: string;
-      number: string;
-      complement?: string;
-      neighborhood: string;
-      city: string;
-      state: string;
-      postalCode: string;
-    };
-  };
-  product: {
-    id: string;
-    name: string;
-    price: number;
-  };
-}
+import { usePixel } from '@/contexts/PixelContext';
 
 const PixPaymentManual = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addOrder } = useOrders();
-  const [isCopied, setIsCopied] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { updateOrderStatus } = useOrders();
+  const { trackPurchase } = usePixel();
   
-  // Get data from navigation state or use default values
-  const state = location.state as LocationState || {
-    customer: {
-      name: 'Cliente',
-      email: 'cliente@exemplo.com',
-      cpf: '000.000.000-00',
-      phone: '(00) 00000-0000'
-    },
-    product: {
-      id: 'prod-001',
-      name: 'Produto',
-      price: 39.90
+  const [confirmationCode, setConfirmationCode] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  
+  // Extract data from location state
+  const { state } = location;
+  const orderData = state?.orderData;
+  const pixData = state?.pixData;
+  
+  if (!orderData || !pixData) {
+    // Redirect back to home if no data is available
+    navigate('/');
+    return null;
+  }
+  
+  const handleCopyPixCode = () => {
+    if (pixData.pixCopiaECola) {
+      navigator.clipboard.writeText(pixData.pixCopiaECola)
+        .then(() => {
+          toast({
+            title: "Código PIX copiado!",
+            description: "Cole no seu aplicativo de banco para fazer o pagamento.",
+            duration: 3000,
+          });
+        })
+        .catch(err => {
+          console.error('Erro ao copiar código PIX:', err);
+          toast({
+            title: "Erro ao copiar",
+            description: "Não foi possível copiar o código automaticamente. Tente copiar manualmente.",
+            variant: "destructive",
+            duration: 3000,
+          });
+        });
     }
   };
   
-  const { customer, product } = state;
-  
-  // Simulated PIX data
-  const pixData = {
-    qrCode: 'QR Code Simulado',
-    pixKey: '11881232875', // Random PIX key example
-    expirationDate: new Date(Date.now() + 3600000).toISOString() // 1 hour from now
-  };
-  
-  const handleCopyPixKey = () => {
-    navigator.clipboard.writeText(pixData.pixKey);
-    setIsCopied(true);
-    toast({
-      title: "Código PIX copiado!",
-      description: "O código PIX foi copiado para a área de transferência.",
-      duration: 3000,
-    });
-    
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 3000);
-  };
-  
   const handleConfirmPayment = async () => {
-    setIsProcessing(true);
+    if (!confirmationCode.trim()) {
+      toast({
+        title: "Código de confirmação necessário",
+        description: "Por favor, insira o código de confirmação do PIX.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
     
     try {
-      // Create an order with pending status
-      const pixDetails = {
-        qrCode: pixData.qrCode,
-        qrCodeImage: '/lovable-uploads/db42b0b5-b7f2-4418-a818-b1dd1ef078cd.png', // Use the uploaded image
-        expirationDate: pixData.expirationDate
-      };
+      // Simulate API call to validate confirmation code
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      await addOrder({
-        customer: customer,
-        productId: product.id,
-        productName: product.name,
-        productPrice: product.price,
-        paymentMethod: 'pix',
-        paymentStatus: 'pending',
-        pixDetails
-      });
+      // Update order status
+      const orderId = pixData.orderId || 'unknown';
+      await updateOrderStatus(orderId, 'Pago');
       
-      // Track purchase event
+      // Track purchase
       trackPurchase({
-        value: product.price,
-        transactionId: `order-${Date.now()}`,
+        value: orderData.productPrice,
+        transactionId: `order-${orderId}`,
         products: [{
-          id: product.id,
-          name: product.name,
-          price: product.price,
+          id: orderData.productId || 'unknown',
+          name: orderData.productName,
+          price: orderData.productPrice,
           quantity: 1
         }]
       });
       
+      setIsConfirmed(true);
+      
       toast({
-        title: "Pagamento enviado!",
-        description: "Seu pagamento foi enviado para análise manual e você receberá o acesso via e-mail.",
+        title: "Pagamento confirmado!",
+        description: "Recebemos a confirmação do seu pagamento via PIX.",
         duration: 5000,
       });
-      
-      // Redirect to home page
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-      
     } catch (error) {
       console.error('Erro ao confirmar pagamento:', error);
       toast({
-        title: "Erro ao confirmar pagamento",
-        description: "Ocorreu um erro ao processar seu pagamento. Por favor, tente novamente.",
+        title: "Erro na confirmação",
+        description: "Não foi possível confirmar seu pagamento. Tente novamente ou contate o suporte.",
         variant: "destructive",
         duration: 5000,
       });
     } finally {
-      setIsProcessing(false);
+      setIsSubmitting(false);
     }
   };
   
-  const formattedPrice = product.price.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-
-  return (
-    <div className="min-h-screen bg-white py-8">
-      <div className="max-w-lg mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold mb-2">Pagamento via PIX</h1>
-          <p className="text-gray-600">
-            Envie o valor de {formattedPrice} para a chave PIX abaixo.
-            Após confirmar o pagamento, você receberá o acesso via e-mail.
-          </p>
-        </div>
-        
-        {/* Alert countdown (simulated) */}
-        <div className="bg-pink-100 text-pink-800 p-3 rounded-md mb-8 text-center text-sm flex items-center justify-center">
-          <Clock className="h-4 w-4 mr-2" />
-          Faltam 15:52 para o pagamento expirar...
-        </div>
-        
-        {/* Main content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            {/* PIX QR Code section */}
-            <Card className="shadow-sm mb-6">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-center">Pague com PIX</CardTitle>
-                <p className="text-center text-sm text-gray-500">
-                  Escaneie o QR Code ou use o código para fazer o pagamento
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* QR Code */}
-                <div className="flex justify-center">
-                  <div className="border-2 border-gray-200 p-2 rounded-md">
-                    <img 
-                      src="/lovable-uploads/db42b0b5-b7f2-4418-a818-b1dd1ef078cd.png" 
-                      alt="QR Code PIX" 
-                      className="w-40 h-40 mx-auto" 
-                    />
-                  </div>
-                </div>
-                
-                <div className="text-center text-sm text-gray-500">
-                  Escaneie o QR Code com o app do seu banco para copiar o código PIX
-                </div>
-                
-                {/* PIX Key */}
-                <div className="mt-4">
-                  <div className="flex items-center border rounded-md overflow-hidden">
-                    <input
-                      type="text"
-                      value={pixData.pixKey}
-                      readOnly
-                      className="flex-1 p-2 text-gray-600 bg-gray-50 focus:outline-none"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-full px-3 hover:bg-gray-100"
-                      onClick={handleCopyPixKey}
-                    >
-                      {isCopied ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                      <span className="ml-2">{isCopied ? 'Copiado' : 'Copiar'}</span>
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Confirm Button */}
-                <Button
-                  onClick={handleConfirmPayment}
-                  className="w-full bg-green-600 hover:bg-green-700 mt-4"
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? (
-                    <>Processando...</>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Confirmar pagamento
-                    </>
-                  )}
-                </Button>
-                
-                <div className="text-center text-xs text-gray-500">
-                  <span className="flex items-center justify-center text-green-600">
-                    <CheckCircle className="h-3 w-3 mr-1" /> Pagamento 100% seguro
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+  if (isConfirmed) {
+    return (
+      <CheckoutContainer>
+        <Card className="border-green-200 bg-green-50 shadow-sm">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <Check className="h-8 w-8 text-green-600" />
+            </div>
             
-            {/* Receiver Info */}
-            <Card className="shadow-sm bg-blue-50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Dados do Recebedor</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center">
-                  <span className="text-gray-500 text-sm w-24">Nome:</span>
-                  <span className="text-sm font-medium">Marcos Aurelio B Martins</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-gray-500 text-sm w-24">E-mail:</span>
-                  <span className="text-sm">email@example.com</span>
-                </div>
-              </CardContent>
-            </Card>
+            <h2 className="text-xl font-semibold text-green-700 mb-2">
+              Pagamento Confirmado
+            </h2>
+            
+            <p className="text-green-600 mb-6">
+              Seu pagamento via PIX foi confirmado com sucesso!
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={() => navigate('/')}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Voltar para a página inicial
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </CheckoutContainer>
+    );
+  }
+  
+  return (
+    <CheckoutContainer>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-center">Pagamento via PIX</CardTitle>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          <div className="text-center mb-4">
+            <div className="font-semibold">{orderData.productName}</div>
+            <div className="text-xl font-bold text-green-600">R$ {orderData.productPrice.toFixed(2)}</div>
           </div>
           
-          <div>
-            {/* Order Summary */}
-            <Card className="shadow-sm mb-6">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Resumo da Compra</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span>Produto:</span>
-                  <span className="font-medium">{product.name}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formattedPrice}</span>
-                </div>
-                
-                <Separator />
-                
-                <div className="bg-pink-50 p-4 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold">Total:</span>
-                    <span className="text-xl font-bold text-pink-700">{formattedPrice}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* QR Code Display */}
+          <div className="flex flex-col items-center py-4">
+            {pixData.qrCodeImage ? (
+              <img 
+                src={pixData.qrCodeImage} 
+                alt="QR Code PIX" 
+                className="w-48 h-48 mb-4 border p-2 rounded-lg"
+              />
+            ) : (
+              <div className="w-48 h-48 bg-gray-200 flex items-center justify-center mb-4 rounded-lg">
+                <span className="text-gray-500">QR Code não disponível</span>
+              </div>
+            )}
             
-            {/* Payment Instructions */}
-            <Card className="shadow-sm mb-6">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Para realizar o pagamento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0">
-                    1
-                  </div>
-                  <p>Abra o aplicativo do seu banco.</p>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0">
-                    2
-                  </div>
-                  <p>Escolha a opção PIX e cole o código ou use a câmera do celular para escanear o QR Code.</p>
-                </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0">
-                    3
-                  </div>
-                  <p>Confirme as informações e finalize o pagamento.</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* FAQ */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Perguntas Frequentes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger className="text-sm font-medium">
-                      Como funciona o pagamento?
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm">
-                      O pagamento via PIX é instantâneo. Após fazer o pagamento, nosso sistema irá verificar e liberar seu acesso automaticamente em até 5 minutos.
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="item-2">
-                    <AccordionTrigger className="text-sm font-medium">
-                      Quanto tempo leva para ter acesso?
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm">
-                      Geralmente o acesso é liberado em até 5 minutos após a confirmação do pagamento. Você receberá um e-mail com as instruções de acesso.
-                    </AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="item-3">
-                    <AccordionTrigger className="text-sm font-medium">
-                      Posso pedir reembolso?
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm">
-                      Sim, você tem até 7 dias após a compra para solicitar reembolso, conforme o Código de Defesa do Consumidor. Entre em contato conosco pelo e-mail de suporte.
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </CardContent>
-            </Card>
+            <div className="text-sm text-gray-600 text-center mb-2">
+              Escaneie o QR Code acima com o aplicativo do seu banco
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+          
+          {/* Copy and Paste PIX Code */}
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <div className="flex justify-between items-center mb-2">
+              <Label className="text-sm font-medium">PIX Copia e Cola</Label>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCopyPixCode}
+                className="h-8 px-2"
+              >
+                <Copy className="h-4 w-4 mr-1" />
+                Copiar
+              </Button>
+            </div>
+            <div className="bg-white border rounded p-2 text-sm text-gray-600 break-all">
+              {pixData.pixCopiaECola || 'Código PIX não disponível'}
+            </div>
+          </div>
+          
+          {/* Payment Confirmation Section */}
+          <div className="border-t pt-6 mt-6">
+            <h3 className="font-semibold mb-3">Confirmar Pagamento</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Após realizar o pagamento via PIX, insira o código de confirmação recebido:
+            </p>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="confirmationCode">Código de confirmação:</Label>
+                <Input
+                  id="confirmationCode"
+                  placeholder="Ex: PIX123456"
+                  value={confirmationCode}
+                  onChange={(e) => setConfirmationCode(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              
+              <Button 
+                onClick={handleConfirmPayment}
+                disabled={isSubmitting || !confirmationCode.trim()}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  'Confirmar Pagamento'
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+        
+        <CardFooter className="flex justify-center border-t pt-4">
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="text-sm"
+          >
+            Voltar para a página inicial
+          </Button>
+        </CardFooter>
+      </Card>
+    </CheckoutContainer>
   );
 };
 
