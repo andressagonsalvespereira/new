@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useOrders } from '@/contexts/OrderContext';
@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Eye, Info, Loader2, QrCode } from 'lucide-react';
+import { CreditCard, Eye, Info, Loader2, QrCode, RefreshCw } from 'lucide-react';
 import { Order, PaymentMethod, PaymentStatus } from '@/types/order';
+import { useToast } from '@/hooks/use-toast';
 
 const OrderStatusBadge = ({ status }: { status: Order['paymentStatus'] }) => {
   const statusConfig = {
@@ -200,9 +201,11 @@ const OrderDetailsModal = ({
 };
 
 const Orders = () => {
-  const { loading, getOrdersByPaymentMethod } = useOrders();
+  const { loading, getOrdersByPaymentMethod, refreshOrders } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
 
   const pixOrders = getOrdersByPaymentMethod('PIX' as PaymentMethod);
   const cardOrders = getOrdersByPaymentMethod('CREDIT_CARD' as PaymentMethod);
@@ -223,6 +226,30 @@ const Orders = () => {
     }).format(value);
   };
 
+  const handleRefreshOrders = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshOrders();
+      toast({
+        title: "Lista atualizada",
+        description: "A lista de pedidos foi atualizada com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a lista de pedidos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Lista de pedidos PIX:", pixOrders);
+    console.log("Lista de pedidos Cartão:", cardOrders);
+  }, [pixOrders, cardOrders]);
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -236,9 +263,23 @@ const Orders = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Pedidos</h1>
-        <p className="text-muted-foreground">Gerenciamento de todos os pedidos realizados</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Pedidos</h1>
+          <p className="text-muted-foreground">Gerenciamento de todos os pedidos realizados</p>
+        </div>
+        <Button 
+          onClick={handleRefreshOrders} 
+          disabled={isRefreshing}
+          className="flex items-center"
+        >
+          {isRefreshing ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4 mr-2" />
+          )}
+          Atualizar
+        </Button>
       </div>
 
       <Tabs defaultValue="card" className="mb-8">

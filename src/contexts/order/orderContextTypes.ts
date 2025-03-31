@@ -9,6 +9,7 @@ export interface OrderContextType {
   addOrder: (order: CreateOrderInput) => Promise<Order>;
   getOrdersByPaymentMethod: (method: PaymentMethod) => Order[];
   updateOrderStatus: (id: string, status: Order['paymentStatus']) => Promise<Order>;
+  refreshOrders: () => void;
 }
 
 export interface OrderProviderProps {

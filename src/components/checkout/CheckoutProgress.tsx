@@ -59,13 +59,15 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
     pixDetails?: PixDetails
   ) => {
     try {
+      console.log("Criando pedido com dados do produto:", productDetails);
+      
       const orderData: CreateOrderInput = {
         customer: {
           name: formState.fullName,
           email: formState.email,
           cpf: formState.cpf,
           phone: formState.phone,
-          address: {
+          address: formState.street ? {
             street: formState.street,
             number: formState.number,
             complement: formState.complement,
@@ -73,7 +75,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
             city: formState.city,
             state: formState.state,
             postalCode: formState.cep.replace(/\D/g, '')
-          }
+          } : undefined
         },
         productId: productDetails.id,
         productName: productDetails.name,
@@ -82,13 +84,17 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         paymentStatus: status === 'pending' ? 'Aguardando' as PaymentStatus : 'Pago' as PaymentStatus,
         paymentId: paymentId,
         cardDetails,
-        pixDetails
+        pixDetails,
+        orderDate: new Date().toISOString()
       };
 
-      await addOrder(orderData);
+      console.log("Enviando dados do pedido:", orderData);
+      const newOrder = await addOrder(orderData);
+      console.log("Pedido criado:", newOrder);
       
       // Execute finalização da compra após processar o pagamento
       handlePayment();
+      return newOrder;
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
     }

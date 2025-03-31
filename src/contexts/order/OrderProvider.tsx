@@ -18,6 +18,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("OrderProvider inicializado, carregando pedidos...");
     fetchOrders();
   }, []);
 
@@ -25,6 +26,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const loadedOrders = await loadOrders();
+      console.log("Pedidos carregados:", loadedOrders);
       setOrders(loadedOrders);
       setLoading(false);
     } catch (err) {
@@ -41,8 +43,11 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const addOrder = async (orderData: CreateOrderInput): Promise<Order> => {
     try {
+      console.log("Adicionando novo pedido:", orderData);
       const newOrder = await createOrder(orderData);
-      setOrders(prev => [...prev, newOrder]);
+      console.log("Pedido criado com sucesso:", newOrder);
+      
+      setOrders(prev => [newOrder, ...prev]);
       
       toast({
         title: "Sucesso",
@@ -91,6 +96,11 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshOrders = () => {
+    console.log("Atualizando lista de pedidos...");
+    fetchOrders();
+  };
+
   return (
     <OrderContext.Provider value={{ 
       orders, 
@@ -98,7 +108,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       error, 
       addOrder, 
       getOrdersByPaymentMethod, 
-      updateOrderStatus 
+      updateOrderStatus,
+      refreshOrders
     }}>
       {children}
     </OrderContext.Provider>

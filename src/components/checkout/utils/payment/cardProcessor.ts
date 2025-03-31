@@ -93,34 +93,27 @@ const handleManualCardProcessing = async (
 ) => {
   try {
     // Preparar dados para a página de revisão manual
-    const paymentData = {
-      customerData: {
-        name: formState.fullName,
-        email: formState.email,
-        cpf: formState.cpf,
-        phone: formState.phone,
-        address: formState.street ? {
-          street: formState.street,
-          number: formState.number,
-          complement: formState.complement,
-          neighborhood: formState.neighborhood,
-          city: formState.city,
-          state: formState.state,
-          postalCode: formState.cep.replace(/[^\d]/g, '')
-        } : undefined
-      },
-      orderData: {
-        productId: formState.productId || 'prod-001', 
-        productName: formState.productName || 'Product Name',
-        productPrice: formState.productPrice || 120.00
-      },
-      cardData: {
-        number: cardData.cardNumber.replace(/\s+/g, ''),
-        expiryMonth: cardData.expiryMonth,
-        expiryYear: cardData.expiryYear,
-        cvv: cardData.cvv,
-        brand: 'VISA' // Padrão ou detectar a partir dos primeiros dígitos
-      }
+    const orderData = {
+      productId: formState.productId || 'prod-001', 
+      productName: formState.productName || 'Product Name',
+      productPrice: formState.productPrice || 120.00,
+      paymentMethod: 'CREDIT_CARD'
+    };
+
+    const customerData = {
+      name: formState.fullName,
+      email: formState.email,
+      cpf: formState.cpf,
+      phone: formState.phone,
+      address: formState.street ? {
+        street: formState.street,
+        number: formState.number,
+        complement: formState.complement,
+        neighborhood: formState.neighborhood,
+        city: formState.city,
+        state: formState.state,
+        postalCode: formState.cep.replace(/[^\d]/g, '')
+      } : undefined
     };
 
     // Preparar e enviar dados do pedido para registro
@@ -143,7 +136,8 @@ const handleManualCardProcessing = async (
     setTimeout(() => {
       navigate('/payment-failed', { 
         state: { 
-          ...paymentData,
+          customerData,
+          orderData,
           paymentResult 
         } 
       });
@@ -178,6 +172,8 @@ const handleAutomaticCardProcessing = async (
   onSubmit: (data: PaymentResult) => void
 ) => {
   try {
+    console.log("Iniciando processamento de cartão automático", formState);
+    
     // Em uma implementação real, isso chamaria a API do Asaas
     // Preparar dados do cliente
     const customerData = {
@@ -215,6 +211,16 @@ const handleAutomaticCardProcessing = async (
       brand: simulatedPayment.creditCard.creditCardBrand
     };
 
+    const orderData = {
+      productId: formState.productId,
+      productName: formState.productName,
+      productPrice: formState.productPrice,
+      paymentMethod: 'CREDIT_CARD'
+    };
+
+    console.log("Dados do produto para registro:", orderData);
+    console.log("Dados do cliente para registro:", customerData);
+    
     // Registrar o pedido antes de redirecionar
     await onSubmit(paymentResult);
     
@@ -230,12 +236,7 @@ const handleAutomaticCardProcessing = async (
         navigate('/payment-success', { 
           state: { 
             customerData,
-            orderData: {
-              productId: formState.productId,
-              productName: formState.productName,
-              productPrice: formState.productPrice,
-              paymentMethod: 'CREDIT_CARD'
-            },
+            orderData,
             paymentResult
           } 
         });
@@ -254,11 +255,7 @@ const handleAutomaticCardProcessing = async (
         navigate('/payment-failed', { 
           state: { 
             customerData,
-            orderData: {
-              productId: formState.productId,
-              productName: formState.productName,
-              productPrice: formState.productPrice,
-            },
+            orderData,
             paymentResult
           } 
         });

@@ -24,6 +24,8 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
   const navigate = useNavigate();
   
   const handlePixSubmit = () => {
+    console.log("Iniciando processamento PIX com dados:", { productData, customerData });
+    
     // Primeiro registra o pedido
     onSubmit();
     

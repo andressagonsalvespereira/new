@@ -13,6 +13,8 @@ const PaymentSuccess = () => {
   const { state } = location;
   const { trackPurchase } = usePixel();
 
+  console.log("PaymentSuccess - Estado recebido:", state);
+
   // Added dummy purchase event data for when state is missing
   const defaultPurchaseData = {
     value: 0,
