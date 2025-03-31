@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -89,34 +88,26 @@ const PersonalInfoSection = ({
             <label htmlFor="phone" className="block text-sm mb-1">Celular</label>
             <div className="flex flex-wrap sm:flex-nowrap gap-2">
               <Select defaultValue="55">
-                <SelectTrigger className="w-20 h-9 border-gray-300 flex-shrink-0 text-xs px-2">
+                <SelectTrigger className="w-24 h-9 border-gray-300 flex-shrink-0 text-xs px-2">
                   <div className="flex items-center space-x-1">
-                    <span className="text-xs inline-block w-4 h-3 bg-green-500 relative overflow-hidden" style={{ 
-                      borderRadius: '1px',
-                      boxShadow: '0 0 1px rgba(0,0,0,0.2)'
-                    }}>
-                      <span className="absolute inset-0 flex items-center justify-center">
-                        <span className="w-3 h-3 bg-yellow-400 transform rotate-45 translate-x-0 translate-y-0" style={{
-                          clipPath: 'polygon(50% 50%, 0% 0%, 100% 0%, 100% 100%, 0% 100%)'
-                        }}></span>
-                      </span>
-                    </span>
+                    <div className="w-5 h-3 rounded-sm overflow-hidden">
+                      <div className="w-full h-1/2 bg-green-500"></div>
+                      <div className="w-full h-1/2 bg-yellow-400 relative">
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full"></div>
+                      </div>
+                    </div>
                     <span>+55</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="55">
                     <div className="flex items-center space-x-1 text-xs">
-                      <span className="text-xs inline-block w-4 h-3 bg-green-500 relative overflow-hidden" style={{ 
-                        borderRadius: '1px',
-                        boxShadow: '0 0 1px rgba(0,0,0,0.2)'
-                      }}>
-                        <span className="absolute inset-0 flex items-center justify-center">
-                          <span className="w-3 h-3 bg-yellow-400 transform rotate-45 translate-x-0 translate-y-0" style={{
-                            clipPath: 'polygon(50% 50%, 0% 0%, 100% 0%, 100% 100%, 0% 100%)'
-                          }}></span>
-                        </span>
-                      </span>
+                      <div className="w-5 h-3 rounded-sm overflow-hidden">
+                        <div className="w-full h-1/2 bg-green-500"></div>
+                        <div className="w-full h-1/2 bg-yellow-400 relative">
+                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full"></div>
+                        </div>
+                      </div>
                       <span>+55</span>
                     </div>
                   </SelectItem>
