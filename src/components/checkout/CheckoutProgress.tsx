@@ -7,6 +7,7 @@ import OrderSummarySection from '@/components/checkout/OrderSummarySection';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useOrders } from '@/contexts/OrderContext';
 import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus, Order } from '@/types/order';
+import { useAsaas } from '@/contexts/AsaasContext';
 
 interface CheckoutProgressProps {
   paymentMethod: 'card' | 'pix';
@@ -51,6 +52,23 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
   } = useCheckoutForm();
   
   const { addOrder } = useOrders();
+  const { settings } = useAsaas();
+
+  // Validate if the selected payment method is allowed based on settings
+  React.useEffect(() => {
+    if (!settings.loading) {
+      // If the current payment method is not allowed, switch to an allowed method
+      if (paymentMethod === 'card' && !settings.allowCreditCard) {
+        if (settings.allowPix) {
+          setPaymentMethod('pix');
+        }
+      } else if (paymentMethod === 'pix' && !settings.allowPix) {
+        if (settings.allowCreditCard) {
+          setPaymentMethod('card');
+        }
+      }
+    }
+  }, [settings, paymentMethod, setPaymentMethod]);
 
   const createOrder = async (
     paymentId: string, 

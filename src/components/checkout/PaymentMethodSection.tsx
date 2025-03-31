@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -48,19 +47,21 @@ const PaymentMethodSection = ({
   const [error, setError] = useState<string | null>(null);
   const [showPixPayment, setShowPixPayment] = useState(false);
 
-  // Set default payment method based on available options
   useEffect(() => {
-    if (!loading && settings.isEnabled) {
-      if (!settings.allowPix && settings.allowCreditCard) {
+    if (!loading) {
+      const paymentConfigEnabled = settings.isEnabled || settings.manualPaymentConfig;
+      const pixEnabled = paymentConfigEnabled && settings.allowPix;
+      const cardEnabled = paymentConfigEnabled && settings.allowCreditCard;
+
+      if (!pixEnabled && cardEnabled) {
         setPaymentMethod('card');
-      } else if (settings.allowPix && !settings.allowCreditCard) {
+      } else if (pixEnabled && !cardEnabled) {
         setPaymentMethod('pix');
       }
     }
   }, [loading, settings, setPaymentMethod]);
 
   const handleCardSubmit = async (data: any) => {
-    // Example of masked card data for secure storage
     if (createOrder) {
       const cardDetails: CardDetails = {
         number: data.cardNumber.replace(/\d(?=\d{4})/g, '*'),
@@ -79,10 +80,11 @@ const PaymentMethodSection = ({
   };
 
   const handlePixSubmit = async (data: any) => {
-    // Check if Asaas integration is enabled
-    if (!settings.isEnabled && paymentMethod === 'pix') {
+    const useManualPix = (!settings.isEnabled && settings.manualPaymentConfig) || 
+                         (settings.isEnabled && settings.manualPixPage);
+    
+    if (useManualPix && paymentMethod === 'pix') {
       if (createOrder) {
-        // Se formos criar o pedido antes, faça isso aqui
         await createOrder(
           `pix-${Date.now()}`, 
           'pending',
@@ -113,9 +115,13 @@ const PaymentMethodSection = ({
     }
   };
 
-  // Handle PIX option click - show the PIX payment form
   const handlePixOptionClick = () => {
-    if (settings.isEnabled) {
+    const useManualPix = (!settings.isEnabled && settings.manualPaymentConfig) || 
+                         (settings.isEnabled && settings.manualPixPage);
+    
+    if (useManualPix) {
+      handlePixSubmit({});
+    } else if (settings.isEnabled) {
       setShowPixPayment(true);
     } else {
       handlePixSubmit({});
@@ -134,55 +140,32 @@ const PaymentMethodSection = ({
     );
   }
 
-  // Preparar dados do produto para os componentes de pagamento
-  const productData = productDetails ? {
-    productId: productDetails.id,
-    productName: productDetails.name,
-    productPrice: productDetails.price
-  } : undefined;
+  const paymentConfigEnabled = settings.isEnabled || settings.manualPaymentConfig;
+  const pixEnabled = paymentConfigEnabled && settings.allowPix;
+  const cardEnabled = paymentConfigEnabled && settings.allowCreditCard;
 
-  // If Asaas is disabled, show simplified payment options
-  if (!settings.isEnabled) {
+  if (!pixEnabled && !cardEnabled) {
     return (
       <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
         <div className="flex items-center mb-4">
           <div className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2">3</div>
           <h2 className="font-medium text-lg">Pagamento</h2>
         </div>
-        
-        <PaymentOptions 
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          settings={settings}
-        />
-        
-        <PaymentError error={error} />
-        
-        {paymentMethod === 'card' && (
-          <CheckoutForm 
-            onSubmit={handleCardSubmit}
-            isSandbox={false}
-          />
-        )}
-        
-        {paymentMethod === 'pix' && !showPixPayment && (
-          <SimplifiedPixOption 
-            onSubmit={handlePixOptionClick} 
-            isProcessing={isProcessing}
-            productData={productData}
-            customerData={customerData}
-          />
-        )}
-        
-        {paymentMethod === 'pix' && showPixPayment && (
-          <PixPayment 
-            onSubmit={handlePixSubmit}
-            isSandbox={false}
-          />
-        )}
+        <Alert className="bg-red-50 border-red-200">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            Nenhum método de pagamento está habilitado. Por favor, contate o administrador.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
+
+  const productData = productDetails ? {
+    productId: productDetails.id,
+    productName: productDetails.name,
+    productPrice: productDetails.price
+  } : undefined;
 
   return (
     <div className="mb-8 border rounded-lg p-4 bg-white shadow-sm">
@@ -192,22 +175,24 @@ const PaymentMethodSection = ({
       </div>
       
       <div>
-        <PaymentOptions 
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          settings={settings}
-        />
+        {pixEnabled && cardEnabled && (
+          <PaymentOptions 
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            settings={settings}
+          />
+        )}
         
         <PaymentError error={error} />
         
-        {settings.allowCreditCard && paymentMethod === 'card' && (
+        {cardEnabled && paymentMethod === 'card' && (
           <CheckoutForm 
             onSubmit={handleCardSubmit}
             isSandbox={settings.sandboxMode}
           />
         )}
         
-        {settings.allowPix && paymentMethod === 'pix' && !showPixPayment && (
+        {pixEnabled && paymentMethod === 'pix' && !showPixPayment && (
           <SimplifiedPixOption 
             onSubmit={handlePixOptionClick} 
             isProcessing={isProcessing}
@@ -216,7 +201,7 @@ const PaymentMethodSection = ({
           />
         )}
         
-        {settings.allowPix && paymentMethod === 'pix' && showPixPayment && (
+        {pixEnabled && paymentMethod === 'pix' && showPixPayment && (
           <PixPayment 
             onSubmit={handlePixSubmit}
             isSandbox={settings.sandboxMode}
