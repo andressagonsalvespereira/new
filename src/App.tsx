@@ -10,6 +10,7 @@ import Products from "@/pages/admin/Products";
 import Orders from "@/pages/admin/Orders";
 import PixelSettings from "@/pages/admin/PixelSettings";
 import QuickCheckout from "@/pages/QuickCheckout";
+import PaymentFailed from "@/pages/PaymentFailed";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import { AsaasProvider } from "@/contexts/AsaasContext";
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/admin/orders" element={<Orders />} />
                 <Route path="/checkout/:slug" element={<Checkout />} />
                 <Route path="/quick-checkout/:productId" element={<QuickCheckout />} />
+                <Route path="/payment-failed" element={<PaymentFailed />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />

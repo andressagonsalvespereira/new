@@ -17,7 +17,7 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const { validateForm } = useCheckoutForm();
-  const productDetails = getProductDetails();
+  const productDetails = getProductDetails(slug);
 
   const handlePayment = () => {
     if (!validateForm()) {
@@ -31,6 +31,8 @@ const Checkout = () => {
 
     setIsProcessing(true);
     
+    // For manually processed payments, the success state is set in the CheckoutForm component
+    // This is only for automatic payments or PIX
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);

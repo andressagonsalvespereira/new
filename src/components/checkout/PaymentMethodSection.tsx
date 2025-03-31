@@ -9,6 +9,15 @@ import PixPayment from '@/components/checkout/PixPayment';
 import { useAsaas } from '@/contexts/AsaasContext';
 import { CardDetails, PixDetails } from '@/types/order';
 
+interface ProductDetailsType {
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+  isDigital: boolean;
+  id: string;
+}
+
 interface PaymentMethodSectionProps {
   paymentMethod: 'card' | 'pix';
   setPaymentMethod: React.Dispatch<React.SetStateAction<'card' | 'pix'>>;
@@ -18,12 +27,14 @@ interface PaymentMethodSectionProps {
     cardDetails?: CardDetails,
     pixDetails?: PixDetails
   ) => Promise<void>;
+  productDetails?: ProductDetailsType;
 }
 
 const PaymentMethodSection = ({ 
   paymentMethod, 
   setPaymentMethod,
-  createOrder
+  createOrder,
+  productDetails
 }: PaymentMethodSectionProps) => {
   const { settings, loading } = useAsaas();
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +51,7 @@ const PaymentMethodSection = ({
   }, [loading, settings, setPaymentMethod]);
 
   const handleCardSubmit = async (data: any) => {
-    // Exemplo de dados de cartão mascarados para armazenamento seguro
+    // Example of masked card data for secure storage
     if (createOrder) {
       const cardDetails: CardDetails = {
         number: data.cardNumber.replace(/\d(?=\d{4})/g, '*'),

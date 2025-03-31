@@ -1,88 +1,111 @@
 
 // Define types for pixel settings
-export interface CustomEvent {
-  id: string;
-  name: string;
-  trigger: string;
-  enabled: boolean;
-}
-
-export interface GooglePixelSettings {
-  enabled: boolean;
-  tagId: string;
-  events: {
-    pageView: boolean;
-    purchase: boolean;
-  };
-  customEvents: CustomEvent[];
-}
-
-export interface FacebookPixelSettings {
-  enabled: boolean;
-  pixelId: string;
-  events: {
-    pageView: boolean;
-    addToCart: boolean;
-    purchase: boolean;
-  };
-  customEvents: CustomEvent[];
-}
-
 export interface PixelSettings {
-  google: GooglePixelSettings;
-  facebook: FacebookPixelSettings;
+  google: {
+    enabled: boolean;
+    tagId: string;
+    events: {
+      pageView: boolean;
+      purchase: boolean;
+    };
+    customEvents: Array<{
+      name: string;
+      trigger: string;
+    }>;
+  };
+  facebook: {
+    enabled: boolean;
+    pixelId: string;
+    events: {
+      pageView: boolean;
+      purchase: boolean;
+      addToCart: boolean;
+    };
+    customEvents: Array<{
+      name: string;
+      trigger: string;
+    }>;
+  };
 }
 
-// Load pixel settings from localStorage
-export const getPixelSettings = (): PixelSettings | null => {
-  try {
-    const savedSettings = localStorage.getItem('pixelSettings');
-    if (savedSettings) {
-      return JSON.parse(savedSettings);
-    }
-    return null;
-  } catch (error) {
-    console.error('Error loading pixel settings:', error);
-    return null;
+const defaultPixelSettings: PixelSettings = {
+  google: {
+    enabled: false,
+    tagId: '',
+    events: {
+      pageView: true,
+      purchase: true
+    },
+    customEvents: []
+  },
+  facebook: {
+    enabled: false,
+    pixelId: '',
+    events: {
+      pageView: true,
+      purchase: true,
+      addToCart: true
+    },
+    customEvents: []
   }
 };
 
+// Get pixel settings from localStorage or return defaults
+export const getPixelSettings = (): PixelSettings => {
+  try {
+    const settings = localStorage.getItem('pixelSettings');
+    if (settings) {
+      return JSON.parse(settings);
+    }
+  } catch (error) {
+    console.error('Error loading pixel settings:', error);
+  }
+  return defaultPixelSettings;
+};
+
 // Save pixel settings to localStorage
-export const savePixelSettings = (settings: PixelSettings): boolean => {
+export const savePixelSettings = (settings: PixelSettings): void => {
   try {
     localStorage.setItem('pixelSettings', JSON.stringify(settings));
-    return true;
   } catch (error) {
     console.error('Error saving pixel settings:', error);
-    return false;
+  }
+};
+
+// Initialize pixels based on settings
+export const initializePixels = (): void => {
+  const settings = getPixelSettings();
+  
+  // Initialize Google Tag Manager
+  if (settings.google.enabled && settings.google.tagId) {
+    initializeGoogleTagManager(settings.google.tagId);
+  }
+  
+  // Initialize Facebook Pixel
+  if (settings.facebook.enabled && settings.facebook.pixelId) {
+    initializeFacebookPixel(settings.facebook.pixelId);
   }
 };
 
 // Initialize Google Tag Manager
-export const initGoogleTagManager = (tagId: string): void => {
-  if (!tagId) return;
-  
+const initializeGoogleTagManager = (tagId: string): void => {
   try {
-    // Add Google Tag Manager script
-    const script = document.createElement('script');
-    script.innerHTML = `
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','${tagId}');
-    `;
-    document.head.appendChild(script);
-    
     // Create dataLayer if it doesn't exist
     window.dataLayer = window.dataLayer || [];
     
-    // Optional: Initialize with a PageView event
+    // Push gtm.js event
     window.dataLayer.push({
-      event: 'gtm.js',
       'gtm.start': new Date().getTime(),
-      'gtm.uniqueEventId': 1
+      event: 'gtm.js'
     });
+    
+    // Create script element
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${tagId}`;
+    
+    // Append to head
+    document.head.appendChild(script);
     
     console.log('Google Tag Manager initialized with ID:', tagId);
   } catch (error) {
@@ -91,15 +114,15 @@ export const initGoogleTagManager = (tagId: string): void => {
 };
 
 // Initialize Facebook Pixel
-export const initFacebookPixel = (pixelId: string): void => {
-  if (!pixelId) return;
-  
+const initializeFacebookPixel = (pixelId: string): void => {
   try {
-    // Add Facebook Pixel script
-    !function(f, b, e, v, n, t, s) {
+    // Initialize Facebook Pixel
+    !function(f: any, b, e, v, n, t, s) {
       if (f.fbq) return;
       n = f.fbq = function() {
-        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        n.callMethod ?
+          n.callMethod.apply(n, arguments) :
+          n.queue.push(arguments)
       };
       if (!f._fbq) f._fbq = n;
       n.push = n;
@@ -110,161 +133,155 @@ export const initFacebookPixel = (pixelId: string): void => {
       t.async = !0;
       t.src = v;
       s = b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t, s);
+      if (s && s.parentNode) {
+        s.parentNode.insertBefore(t, s);
+      } else {
+        b.head.appendChild(t);
+      }
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
     
-    // Initialize pixel
-    window.fbq('init', pixelId);
+    // Initialize with pixel ID
+    if (window.fbq) {
+      window.fbq('init', pixelId);
+    }
+    
     console.log('Facebook Pixel initialized with ID:', pixelId);
   } catch (error) {
     console.error('Error initializing Facebook Pixel:', error);
   }
 };
 
-// Send event to Google Tag Manager
-export const sendGoogleEvent = (eventName: string, eventData?: Record<string, any>): void => {
-  if (!window.dataLayer) return;
-  
-  try {
-    window.dataLayer.push({
-      event: eventName,
-      ...eventData
-    });
-    console.log('Google event sent:', eventName, eventData);
-  } catch (error) {
-    console.error('Error sending Google event:', error);
-  }
-};
-
-// Send event to Facebook Pixel
-export const sendFacebookEvent = (eventName: string, eventData?: Record<string, any>): void => {
-  if (!window.fbq) return;
-  
-  try {
-    window.fbq('track', eventName, eventData);
-    console.log('Facebook event sent:', eventName, eventData);
-  } catch (error) {
-    console.error('Error sending Facebook event:', error);
-  }
-};
-
-// Initialize all enabled pixels
-export const initializePixels = (): void => {
-  const settings = getPixelSettings();
-  if (!settings) return;
-  
-  // Initialize Google Tag Manager if enabled
-  if (settings.google.enabled && settings.google.tagId) {
-    initGoogleTagManager(settings.google.tagId);
-  }
-  
-  // Initialize Facebook Pixel if enabled
-  if (settings.facebook.enabled && settings.facebook.pixelId) {
-    initFacebookPixel(settings.facebook.pixelId);
-  }
-};
-
-// Send Page View event if enabled
+// Track page view
 export const trackPageView = (pagePath: string): void => {
   const settings = getPixelSettings();
-  if (!settings) return;
   
-  // Track Google Page View
-  if (settings.google.enabled && settings.google.events.pageView) {
-    sendGoogleEvent('page_view', { page_path: pagePath });
-  }
-  
-  // Track Facebook Page View
-  if (settings.facebook.enabled && settings.facebook.events.pageView) {
-    sendFacebookEvent('PageView');
+  try {
+    // Track with Google Tag Manager
+    if (settings.google.enabled && settings.google.events.pageView && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'page_view',
+        page_path: pagePath
+      });
+      console.log('Google Tag Manager: Page view tracked', pagePath);
+    }
+    
+    // Track with Facebook Pixel
+    if (settings.facebook.enabled && settings.facebook.events.pageView && window.fbq) {
+      window.fbq('track', 'PageView');
+      console.log('Facebook Pixel: Page view tracked', pagePath);
+    }
+  } catch (error) {
+    console.error('Error tracking page view:', error);
   }
 };
 
 // Track purchase event
-export const trackPurchase = (purchaseData: {
+interface PurchaseEventData {
   value: number;
-  currency?: string;
-  transactionId?: string;
-  products?: any[];
-}): void => {
+  transactionId: string;
+  products: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+}
+
+export const trackPurchase = (data: PurchaseEventData): void => {
   const settings = getPixelSettings();
-  if (!settings) return;
   
-  const { value, currency = 'BRL', transactionId, products } = purchaseData;
-  
-  // Track Google Purchase
-  if (settings.google.enabled && settings.google.events.purchase) {
-    sendGoogleEvent('purchase', {
-      transaction_id: transactionId,
-      value: value,
-      currency: currency,
-      items: products
-    });
-  }
-  
-  // Track Facebook Purchase
-  if (settings.facebook.enabled && settings.facebook.events.purchase) {
-    sendFacebookEvent('Purchase', {
-      value: value,
-      currency: currency,
-      content_ids: products?.map(p => p.id) || [],
-      content_type: 'product'
-    });
+  try {
+    // Track with Google Tag Manager
+    if (settings.google.enabled && settings.google.events.purchase && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'purchase',
+        ecommerce: {
+          transaction_id: data.transactionId,
+          value: data.value,
+          items: data.products.map(product => ({
+            item_id: product.id,
+            item_name: product.name,
+            price: product.price,
+            quantity: product.quantity
+          }))
+        }
+      });
+      console.log('Google Tag Manager: Purchase tracked', data);
+    }
+    
+    // Track with Facebook Pixel
+    if (settings.facebook.enabled && settings.facebook.events.purchase && window.fbq) {
+      window.fbq('track', 'Purchase', {
+        value: data.value,
+        currency: 'BRL',
+        content_type: 'product',
+        content_ids: data.products.map(product => product.id),
+        contents: data.products.map(product => ({
+          id: product.id,
+          quantity: product.quantity,
+          item_price: product.price
+        }))
+      });
+      console.log('Facebook Pixel: Purchase tracked', data);
+    }
+  } catch (error) {
+    console.error('Error tracking purchase:', error);
   }
 };
 
-// Track Add to Cart event
-export const trackAddToCart = (cartData: {
+// Track add to cart event
+interface AddToCartEventData {
   value: number;
-  currency?: string;
-  productId?: string;
-  productName?: string;
-}): void => {
+  productId: string;
+  productName: string;
+}
+
+export const trackAddToCart = (data: AddToCartEventData): void => {
   const settings = getPixelSettings();
-  if (!settings) return;
   
-  const { value, currency = 'BRL', productId, productName } = cartData;
-  
-  // Facebook Add to Cart
-  if (settings.facebook.enabled && settings.facebook.events.addToCart) {
-    sendFacebookEvent('AddToCart', {
-      value: value,
-      currency: currency,
-      content_ids: [productId],
-      content_name: productName,
-      content_type: 'product'
-    });
+  try {
+    // Track with Google Tag Manager
+    if (settings.google.enabled && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'add_to_cart',
+        ecommerce: {
+          value: data.value,
+          items: [{
+            item_id: data.productId,
+            item_name: data.productName,
+            price: data.value,
+            quantity: 1
+          }]
+        }
+      });
+      console.log('Google Tag Manager: Add to cart tracked', data);
+    }
+    
+    // Track with Facebook Pixel
+    if (settings.facebook.enabled && settings.facebook.events.addToCart && window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        value: data.value,
+        currency: 'BRL',
+        content_type: 'product',
+        content_ids: [data.productId],
+        contents: [{
+          id: data.productId,
+          quantity: 1,
+          item_price: data.value
+        }]
+      });
+      console.log('Facebook Pixel: Add to cart tracked', data);
+    }
+  } catch (error) {
+    console.error('Error tracking add to cart:', error);
   }
 };
 
-// Track custom event
-export const trackCustomEvent = (
-  platform: 'google' | 'facebook',
-  eventName: string,
-  eventData?: Record<string, any>
-): void => {
-  const settings = getPixelSettings();
-  if (!settings) return;
-  
-  // Find if this custom event is enabled
-  const isEnabled = platform === 'google'
-    ? settings.google.enabled && settings.google.customEvents.some(e => e.name === eventName && e.enabled)
-    : settings.facebook.enabled && settings.facebook.customEvents.some(e => e.name === eventName && e.enabled);
-  
-  if (!isEnabled) return;
-  
-  // Send the event
-  if (platform === 'google') {
-    sendGoogleEvent(eventName, eventData);
-  } else {
-    sendFacebookEvent(eventName, eventData);
-  }
-};
-
-// Add type definitions for global objects
+// Declare global types for window
 declare global {
   interface Window {
     dataLayer: any[];
     fbq: any;
+    _fbq: any;
   }
 }

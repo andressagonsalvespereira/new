@@ -53,7 +53,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
   
   const { addOrder } = useOrders();
 
-  // Função para criar o pedido após pagamento bem-sucedido
+  // Function to create order after successful payment
   const createOrder = async (
     paymentId: string, 
     status: 'pending' | 'confirmed',
@@ -134,6 +134,7 @@ const CheckoutProgress: React.FC<CheckoutProgressProps> = ({
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
         createOrder={createOrder}
+        productDetails={productDetails}
       />
       
       <OrderSummarySection 

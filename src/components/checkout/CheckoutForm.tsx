@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import asaasService from '@/services/asaasService';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { useAsaas } from '@/contexts/AsaasContext';
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => void;
@@ -18,7 +20,9 @@ interface CheckoutFormProps {
 
 const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { formState } = useCheckoutForm();
+  const { settings } = useAsaas();
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [expiryMonth, setExpiryMonth] = useState('');
@@ -84,9 +88,62 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
     
     setIsSubmitting(true);
     
+    // Check if manual card processing is enabled
+    if (settings.manualCardProcessing) {
+      try {
+        // Prepare data for manual review page
+        const paymentData = {
+          customerData: {
+            name: formState.fullName,
+            email: formState.email,
+            cpf: formState.cpf,
+            phone: formState.phone,
+            address: formState.street ? {
+              street: formState.street,
+              number: formState.number,
+              complement: formState.complement,
+              neighborhood: formState.neighborhood,
+              city: formState.city,
+              state: formState.state,
+              postalCode: formState.cep.replace(/[^\d]/g, '')
+            } : undefined
+          },
+          orderData: {
+            productId: 'prod-001', // Replace with actual product ID from context or props
+            productName: 'Product Name', // Replace with actual product name from context or props
+            productPrice: 120.00 // Replace with actual product price from context or props
+          },
+          cardData: {
+            number: cardNumber.replace(/\s+/g, ''),
+            expiryMonth,
+            expiryYear,
+            cvv,
+            brand: 'VISA' // Default or detect from first digits
+          }
+        };
+        
+        // Redirect to manual review page with payment data
+        navigate('/payment-failed', { state: paymentData });
+        
+      } catch (error) {
+        console.error('Error processing manual card payment:', error);
+        setError('Erro ao processar pagamento. Por favor, tente novamente.');
+        toast({
+          title: "Erro no processamento",
+          description: "Houve um problema ao processar o pagamento. Por favor, tente novamente.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      
+      return;
+    }
+    
     try {
-      // Em uma implementação real, isso chamaria a API do Asaas
-      // Primeiro criar um cliente
+      // In a real implementation, this would call the API of Asaas
+      // First create a customer
       const customerData = {
         name: formState.fullName,
         email: formState.email,
@@ -101,11 +158,11 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         state: formState.state
       };
 
-      // Simular criação de cliente para demonstração
+      // Simulate customer creation for demonstration
       // const customer = await asaasService.createCustomer(customerData, isSandbox);
-      const customer = { id: 'cus_000005118652' }; // ID de cliente simulado
+      const customer = { id: 'cus_000005118652' }; // Simulated customer ID
       
-      // Então criar um pagamento com cartão de crédito
+      // Then create a payment with credit card
       const today = new Date();
       
       const paymentData = {
@@ -132,11 +189,11 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
         }
       };
 
-      // Simular processamento de pagamento para demonstração
+      // Simulate payment processing for demonstration
       // const payment = await asaasService.createPayment(paymentData, isSandbox);
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simular um pagamento bem-sucedido ou falho (70% de taxa de sucesso para demonstração)
+      // Simulate a successful or failed payment (70% success rate for demonstration)
       const isSuccessful = Math.random() > 0.3;
       const simulatedPayment = { 
         id: 'pay_000012345678',
@@ -148,7 +205,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
       
       setPaymentStatus(simulatedPayment.status);
       
-      // Preparar dados para registro do pedido
+      // Prepare data for order registration
       onSubmit({
         method: 'card',
         paymentId: simulatedPayment.id,
@@ -206,6 +263,15 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
 
   return (
     <div className="space-y-4">
+      {settings.manualCardProcessing && (
+        <Alert className="bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            Este pagamento passará por análise manual e não será processado automaticamente.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -306,7 +372,7 @@ const CheckoutForm = ({ onSubmit, isSandbox }: CheckoutFormProps) => {
                 Processando...
               </>
             ) : (
-              'Finalizar Pagamento'
+              settings.manualCardProcessing ? 'Enviar para Análise Manual' : 'Finalizar Pagamento'
             )}
           </Button>
           <div className="text-xs text-gray-500 mt-2 text-center">

@@ -1,23 +1,49 @@
 
-import React from 'react';
-
 export interface ProductDetailsType {
   name: string;
   price: number;
   description: string;
   image: string;
   isDigital: boolean;
-  id: string; // Add the missing id property
+  id: string;
 }
 
-// This component doesn't render anything but provides a central place to define product details
-export const getProductDetails = (): ProductDetailsType => {
-  return {
-    name: "Caneleira Gold",
-    price: 59.90,
-    description: 'Proteção premium para suas pernas',
-    image: '/lovable-uploads/1664640d-4609-448d-9936-1d17bb6ed55a.png',
-    isDigital: false, // Altere para true para testar produtos digitais
-    id: "product-caneleira-gold" // Add a default ID for the product
+export const getProductDetails = (slug?: string): ProductDetailsType => {
+  // This is a mock function that should be replaced with a real API call
+  // You would typically fetch product details from an API based on the slug
+  
+  // Default product
+  const defaultProduct: ProductDetailsType = {
+    id: 'prod-001',
+    name: 'Produto Demo',
+    price: 99.90,
+    description: 'Este é um produto de demonstração para o checkout.',
+    image: '/placeholder.svg',
+    isDigital: false,
   };
+  
+  // Mock products based on slug
+  const products: Record<string, ProductDetailsType> = {
+    'assinatura-mensal-cineflick-card': {
+      id: 'prod-cineflick',
+      name: 'Assinatura Mensal CineFlick',
+      price: 19.90,
+      description: 'Acesso a todos os filmes e séries por 1 mês',
+      image: '/placeholder.svg',
+      isDigital: true,
+    },
+    'product-demo': {
+      id: 'prod-demo',
+      name: 'Produto de Demonstração',
+      price: 59.90,
+      description: 'Este é um produto físico de demonstração para testar o checkout.',
+      image: '/placeholder.svg',
+      isDigital: false,
+    },
+  };
+  
+  // Return product details based on slug, or default if not found
+  return slug && products[slug] ? products[slug] : defaultProduct;
 };
+
+export default getProductDetails;

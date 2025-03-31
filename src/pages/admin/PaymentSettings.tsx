@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, QrCode, Settings, Save, AlertCircle } from 'lucide-react';
+import { CreditCard, QrCode, Settings, Save, AlertCircle, CreditCardIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAsaas } from '@/contexts/AsaasContext';
 
@@ -132,6 +132,37 @@ const PaymentSettings = () => {
                   </p>
                 </div>
               </div>
+              
+              {/* Manual Card Processing Option */}
+              {formState.allowCreditCard && (
+                <div className="mt-4 pl-8 border-l-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Manual Card Processing</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enable manual review of credit card payments instead of automatic processing
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formState.manualCardProcessing}
+                      onCheckedChange={(checked) => 
+                        setFormState(prev => ({ ...prev, manualCardProcessing: checked }))
+                      }
+                      disabled={loading || !formState.isEnabled || !formState.allowCreditCard}
+                    />
+                  </div>
+                  
+                  {formState.manualCardProcessing && (
+                    <Alert className="mt-2 bg-amber-50 border-amber-200">
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-amber-800">
+                        With manual processing enabled, card payments will not be processed automatically. 
+                        Instead, customers will be redirected to a manual review page.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
               
               {(!formState.allowPix && !formState.allowCreditCard && formState.isEnabled) && (
                 <Alert variant="destructive">
