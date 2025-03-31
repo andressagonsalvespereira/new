@@ -370,7 +370,8 @@ const Orders = () => {
                                 <QrCode className="h-4 w-4 mr-1 text-green-600" />
                                 Ver QR Code
                               </Button>
-                            ) : (
+                            )}
+                            {order.paymentStatus !== 'pending' && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 Pago
                               </span>

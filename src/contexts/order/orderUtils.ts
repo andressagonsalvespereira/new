@@ -89,9 +89,8 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
 };
 
 // Filter orders by payment method
-export const filterOrdersByPaymentMethod = (orders: Order[], method: 'pix' | 'card'): Order[] => {
-  const paymentMethod = method === 'pix' ? 'PIX' : 'CREDIT_CARD';
-  return orders.filter(order => order.paymentMethod === paymentMethod);
+export const filterOrdersByPaymentMethod = (orders: Order[], method: PaymentMethod): Order[] => {
+  return orders.filter(order => order.paymentMethod === method);
 };
 
 // Update order status

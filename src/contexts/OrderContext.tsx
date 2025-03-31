@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Order, CreateOrderInput } from '@/types/order';
+import { Order, CreateOrderInput, PaymentMethod } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
 import { 
   OrderContextType, 
@@ -65,7 +65,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     }
   };
 
-  const getOrdersByPaymentMethod = (method: 'pix' | 'card'): Order[] => {
+  const getOrdersByPaymentMethod = (method: PaymentMethod): Order[] => {
     return filterOrdersByPaymentMethod(orders, method);
   };
 
