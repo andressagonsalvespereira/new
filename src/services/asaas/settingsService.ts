@@ -8,19 +8,43 @@ import { AsaasSettings } from '@/types/asaas';
  */
 export const getAsaasSettings = async (): Promise<AsaasSettings> => {
   try {
-    // First, query the settings table
+    // First, query the settings table - now handling multiple rows by taking the first one
     const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('*')
-      .single();
+      .order('updated_at', { ascending: false })
+      .limit(1);
 
     if (settingsError) throw settingsError;
+    
+    // If no settings data found, return default values
+    if (!settingsData || settingsData.length === 0) {
+      console.warn('No settings found, using defaults');
+      return {
+        isEnabled: false,
+        apiKey: '',
+        allowPix: true,
+        allowCreditCard: true,
+        manualCreditCard: false,
+        sandboxMode: true,
+        sandboxApiKey: '',
+        productionApiKey: '',
+        manualCardProcessing: false,
+        manualPixPage: false,
+        manualPaymentConfig: false,
+        manualCardStatus: 'ANALYSIS'
+      };
+    }
+
+    // Use the first (most recently updated) settings row
+    const settings = settingsData[0];
 
     // Then, query the asaas_config table for API keys
     const { data: configData, error: configError } = await supabase
       .from('asaas_config')
       .select('*')
-      .single();
+      .order('updated_at', { ascending: false })
+      .limit(1);
 
     if (configError && configError.code !== 'PGRST116') {
       // PGRST116 is "no rows returned" - this is OK if there's no config yet
@@ -28,23 +52,37 @@ export const getAsaasSettings = async (): Promise<AsaasSettings> => {
     }
 
     return {
-      isEnabled: settingsData.asaas_enabled ?? false,
-      apiKey: settingsData.sandbox_mode ? 
-        (configData?.sandbox_api_key || '') : (configData?.production_api_key || ''),
-      allowPix: settingsData.allow_pix ?? true,
-      allowCreditCard: settingsData.allow_credit_card ?? true,
-      manualCreditCard: settingsData.manual_credit_card ?? false,
-      sandboxMode: settingsData.sandbox_mode ?? true,
-      sandboxApiKey: configData?.sandbox_api_key || '',
-      productionApiKey: configData?.production_api_key || '',
-      manualCardProcessing: settingsData.manual_card_processing ?? false,
-      manualPixPage: settingsData.manual_pix_page ?? false,
-      manualPaymentConfig: settingsData.manual_payment_config ?? false,
-      manualCardStatus: (settingsData.manual_card_status as 'APPROVED' | 'DENIED' | 'ANALYSIS') || 'ANALYSIS'
+      isEnabled: settings.asaas_enabled ?? false,
+      apiKey: settings.sandbox_mode ? 
+        (configData?.[0]?.sandbox_api_key || '') : (configData?.[0]?.production_api_key || ''),
+      allowPix: settings.allow_pix ?? true,
+      allowCreditCard: settings.allow_credit_card ?? true,
+      manualCreditCard: settings.manual_credit_card ?? false,
+      sandboxMode: settings.sandbox_mode ?? true,
+      sandboxApiKey: configData?.[0]?.sandbox_api_key || '',
+      productionApiKey: configData?.[0]?.production_api_key || '',
+      manualCardProcessing: settings.manual_card_processing ?? false,
+      manualPixPage: settings.manual_pix_page ?? false,
+      manualPaymentConfig: settings.manual_payment_config ?? false,
+      manualCardStatus: (settings.manual_card_status as 'APPROVED' | 'DENIED' | 'ANALYSIS') || 'ANALYSIS'
     };
   } catch (error) {
     console.error('Error fetching Asaas settings:', error);
-    throw error;
+    // Return default settings in case of error
+    return {
+      isEnabled: false,
+      apiKey: '',
+      allowPix: true,
+      allowCreditCard: true,
+      manualCreditCard: false,
+      sandboxMode: true,
+      sandboxApiKey: '',
+      productionApiKey: '',
+      manualCardProcessing: false,
+      manualPixPage: false,
+      manualPaymentConfig: false,
+      manualCardStatus: 'ANALYSIS'
+    };
   }
 };
 
