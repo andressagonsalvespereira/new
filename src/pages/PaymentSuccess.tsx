@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Check, Clock } from 'lucide-react';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import { usePixel } from '@/contexts/PixelContext';
-import PaymentStatusMessage from '@/components/checkout/payment-methods/PaymentStatusMessage';
 
 const PaymentSuccess = () => {
   const location = useLocation();
@@ -49,6 +48,8 @@ const PaymentSuccess = () => {
   // Determinar o status de pagamento
   const paymentStatus = state?.orderData?.paymentStatus || 'CONFIRMED';
   const isAnalysis = paymentStatus === 'PENDING' || paymentStatus === 'ANALYSIS';
+  
+  console.log("Estado do pagamento:", paymentStatus, "isAnalysis:", isAnalysis);
   
   // Se estiver no PaymentSuccess com status "em análise", mostrar informações específicas
   if (isAnalysis) {
