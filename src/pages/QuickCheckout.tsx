@@ -113,7 +113,7 @@ const QuickCheckout = () => {
               paymentMethod={paymentMethod === 'CREDIT_CARD' ? 'card' : 'pix'} 
               setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX')} 
               productDetails={productDetails}
-              handlePayment={handlePaymentSubmit} 
+              handlePayment={() => handlePaymentSubmit({})} 
               isProcessing={false} 
             />
           </CardContent>
