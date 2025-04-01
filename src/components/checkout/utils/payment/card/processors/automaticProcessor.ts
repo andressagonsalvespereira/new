@@ -1,4 +1,3 @@
-
 import { CardFormData } from '@/components/checkout/payment-methods/CardForm';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +6,7 @@ import { detectCardBrand } from '../cardDetection';
 import { simulatePayment } from '../../paymentSimulator';
 import { DeviceType } from '@/types/order';
 import { logger } from '@/utils/logger';
+import { logCardProcessingDecisions } from '../cardProcessorLogs';
 
 interface ProcessAutomaticPaymentParams {
   cardData: CardFormData;
@@ -54,6 +54,14 @@ export async function processAutomaticPayment({
     // For automatic processing, we always confirm immediately
     const resolvedStatus = 'CONFIRMED';
     setPaymentStatus(resolvedStatus);
+    
+    // Log processing decisions
+    logCardProcessingDecisions(
+      false, // automatic processing is not custom
+      undefined, // no product manual status
+      settings.manualCardStatus,
+      resolvedStatus
+    );
     
     // Format the data for creating the order
     const orderData = {
