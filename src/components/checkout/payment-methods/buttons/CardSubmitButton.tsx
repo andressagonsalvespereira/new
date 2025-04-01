@@ -23,6 +23,8 @@ const CardSubmitButton = ({
       className="w-full" 
       disabled={isLoading || isSubmitting}
       style={buttonStyle}
+      // Adicionar data attribute para ajudar a previnir múltiplos cliques
+      data-submitting={isSubmitting ? "true" : "false"}
     >
       {isLoading || isSubmitting ? (
         <div className="w-full">

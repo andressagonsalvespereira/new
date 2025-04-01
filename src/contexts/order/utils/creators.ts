@@ -14,6 +14,40 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       } : undefined
     });
     
+    // Verificar se existe um pedido idêntico criado nos últimos 5 minutos
+    // para evitar duplicações por cliques múltiplos
+    if (orderData.customer && orderData.customer.email && orderData.productId) {
+      const fiveMinutesAgo = new Date();
+      fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+      
+      const { data: existingOrders, error: checkError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('customer_email', orderData.customer.email)
+        .eq('product_id', parseInt(orderData.productId, 10))
+        .eq('product_name', orderData.productName)
+        .eq('payment_method', orderData.paymentMethod)
+        .gte('created_at', fiveMinutesAgo.toISOString());
+      
+      if (checkError) {
+        console.warn("Erro ao verificar pedidos existentes:", checkError);
+      } else if (existingOrders && existingOrders.length > 0) {
+        console.warn("Pedido similar encontrado nos últimos 5 minutos, possível duplicação:", existingOrders[0].id);
+        // Se for um pedido exatamente igual (mesmo preço), retornamos o existente
+        // para evitar criar um duplicado
+        const exactMatch = existingOrders.find(order => 
+          order.price === orderData.productPrice &&
+          order.customer_name === orderData.customer.name &&
+          order.customer_cpf === orderData.customer.cpf
+        );
+        
+        if (exactMatch) {
+          console.log("Pedido idêntico encontrado, retornando existente:", exactMatch.id);
+          return convertDBOrderToOrder(exactMatch);
+        }
+      }
+    }
+    
     // Converter o productId para número se necessário
     let productIdNumber = null;
     if (orderData.productId) {

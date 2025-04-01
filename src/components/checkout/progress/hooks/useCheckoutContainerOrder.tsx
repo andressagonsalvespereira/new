@@ -34,6 +34,7 @@ export const useCheckoutContainerOrder = ({
 }: UseCheckoutContainerOrderProps) => {
   const { addOrder } = useOrders();
   const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const createOrder = async (
     paymentId: string, 
@@ -42,6 +43,14 @@ export const useCheckoutContainerOrder = ({
     pixDetails?: PixDetails
   ): Promise<Order> => {
     try {
+      // Prevent duplicate order creation when the function is called multiple times
+      if (isProcessing) {
+        console.log("Order creation already in progress, preventing duplicate");
+        throw new Error("Processamento em andamento. Por favor, aguarde.");
+      }
+      
+      setIsProcessing(true);
+      
       console.log("Creating order with product details:", productDetails);
       console.log("Order status:", status);
       console.log("Card details:", cardDetails ? {...cardDetails, cvv: '***'} : 'None');
@@ -107,6 +116,8 @@ export const useCheckoutContainerOrder = ({
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -128,6 +139,7 @@ export const useCheckoutContainerOrder = ({
 
   return {
     createOrder,
-    customerData
+    customerData,
+    isProcessing
   };
 };
