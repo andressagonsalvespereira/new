@@ -8,6 +8,7 @@ import { simulatePayment } from '../paymentSimulator';
 import { v4 as uuidv4 } from 'uuid';
 import { DeviceType, PaymentStatus } from '@/types/order';
 import { logger } from '@/utils/logger';
+import { logCardProcessingDecisions } from './cardProcessorLogs';
 
 interface ProcessCardPaymentParams {
   cardData: CardFormData;
@@ -164,8 +165,15 @@ async function processManualPayment({
       logger.log("Using global manual card status:", globalStatus, "normalized to:", paymentStatus);
     }
     
+    // Log using the utility function with correct parameters
+    const logResult = logCardProcessingDecisions(
+      formState.useCustomProcessing === true,
+      formState.manualCardStatus,
+      settings.manualCardStatus
+    );
+    
     // Log the final payment status to be used
-    logger.log("Final manual payment status decision:", paymentStatus);
+    logger.log("Final manual payment status decision:", paymentStatus, "Log result:", logResult);
     
     // Detect card brand
     const brand = detectCardBrand(cardData.cardNumber);
