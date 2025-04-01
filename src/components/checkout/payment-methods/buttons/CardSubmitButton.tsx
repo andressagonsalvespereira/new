@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -17,13 +17,30 @@ const CardSubmitButton = ({
   buttonText, 
   buttonStyle 
 }: CardSubmitButtonProps) => {
+  // Adicionar estado local para evitar cliques múltiplos
+  const [wasClicked, setWasClicked] = useState(false);
+  
+  // Combina os estados para determinar se o botão deve estar desabilitado
+  const isDisabled = isLoading || isSubmitting || wasClicked;
+
+  // Função para lidar com o clique e prevenir múltiplos cliques
+  const handleButtonClick = () => {
+    if (!isDisabled) {
+      setWasClicked(true);
+      // Resetar após 5 segundos para permitir nova tentativa se necessário
+      setTimeout(() => {
+        setWasClicked(false);
+      }, 5000);
+    }
+  };
+
   return (
     <Button 
       type="submit" 
       className="w-full" 
-      disabled={isLoading || isSubmitting}
+      disabled={isDisabled}
       style={buttonStyle}
-      // Adicionar data attribute para ajudar a previnir múltiplos cliques
+      onClick={handleButtonClick}
       data-submitting={isSubmitting ? "true" : "false"}
     >
       {isLoading || isSubmitting ? (
