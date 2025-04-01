@@ -72,21 +72,13 @@ const CardForm: React.FC<CardFormProps> = ({
 
   const displayButtonText = customization?.button_text || buttonText;
 
-  // Adicionado log para verificar quando o formulário é renderizado
   React.useEffect(() => {
     console.log("CardForm renderizado, pronto para submissão");
   }, []);
 
-  // Adicionado handler para debug do formulário
-  const formSubmitHandler = handleSubmit(enhancedSubmit);
-  const debugFormSubmit = (e: React.FormEvent) => {
-    console.log("Formulário submetido, chamando handleSubmit");
-    formSubmitHandler(e);
-  };
-
   return (
     <FormProvider {...methods}>
-      <form onSubmit={debugFormSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(enhancedSubmit)} className="space-y-4">
         <CardNameField 
           disabled={loading || isSubmitting}
           error={errors.cardName?.message}
