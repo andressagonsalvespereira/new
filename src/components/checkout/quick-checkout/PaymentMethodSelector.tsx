@@ -1,11 +1,13 @@
 
 import React from 'react';
-import { PaymentMethod } from '@/types/order';
 import { AsaasSettings } from '@/types/asaas';
 
+// Define a more restricted type for PaymentMethod in this component
+type RestrictedPaymentMethod = 'CREDIT_CARD' | 'PIX';
+
 interface PaymentMethodSelectorProps {
-  paymentMethod: PaymentMethod;
-  setPaymentMethod: React.Dispatch<React.SetStateAction<PaymentMethod>>;
+  paymentMethod: RestrictedPaymentMethod;
+  setPaymentMethod: React.Dispatch<React.SetStateAction<any>>;
   settings: AsaasSettings;
 }
 

@@ -68,13 +68,13 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     }
     
     // Converter o productId para número se necessário
-    let productIdNumber = null;
+    let productIdNumber: number | null = null;
     if (orderData.productId) {
       try {
         // Se já for um número, mantém como está, se for string, converte
         productIdNumber = typeof orderData.productId === 'string' 
           ? parseInt(orderData.productId, 10)
-          : orderData.productId;
+          : Number(orderData.productId);
           
         if (isNaN(productIdNumber)) {
           productIdNumber = null;

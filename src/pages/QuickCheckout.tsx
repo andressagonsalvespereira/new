@@ -113,7 +113,7 @@ const QuickCheckout = () => {
                 <h3 className="font-semibold mb-3">Forma de Pagamento</h3>
                 
                 <PaymentMethodSelector 
-                  paymentMethod={paymentMethod}
+                  paymentMethod={safePaymentMethod}
                   setPaymentMethod={setPaymentMethod}
                   settings={settings}
                 />
@@ -139,7 +139,7 @@ const QuickCheckout = () => {
               </div>
             </div>
           ) : (
-            <OrderSuccessMessage paymentMethod={paymentMethod} />
+            <OrderSuccessMessage paymentMethod={safePaymentMethod} />
           )}
         </CardContent>
       </Card>
