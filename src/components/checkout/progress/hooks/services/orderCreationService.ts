@@ -1,8 +1,8 @@
 
 import { useOrders } from '@/contexts/OrderContext';
-import { Order, PaymentStatus, PaymentMethod, DeviceType } from '@/types/order';
+import { Order, PaymentStatus, PaymentMethod, DeviceType, CardDetails, PixDetails } from '@/types/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
-import { CustomerData } from '@/components/checkout/utils/payment/types';
+import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { detectDeviceType } from '../utils/deviceDetection';
 
 interface CreateOrderServiceProps {
@@ -10,8 +10,8 @@ interface CreateOrderServiceProps {
   productDetails: ProductDetailsType;
   status: 'pending' | 'confirmed';
   paymentId: string;
-  cardDetails?: any;
-  pixDetails?: any;
+  cardDetails?: CardDetails;
+  pixDetails?: PixDetails;
   toast: any;
 }
 

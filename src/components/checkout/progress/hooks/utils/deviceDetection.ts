@@ -2,11 +2,13 @@
 import { DeviceType } from '@/types/order';
 
 /**
- * Detects the current device type (mobile or desktop)
- * @returns The detected device type
+ * Detects the device type based on the user agent
+ * @returns 'mobile' | 'desktop'
  */
 export const detectDeviceType = (): DeviceType => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-    ? 'mobile' 
-    : 'desktop';
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+  
+  return isMobileDevice ? 'mobile' : 'desktop';
 };

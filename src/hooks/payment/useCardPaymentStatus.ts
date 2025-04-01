@@ -2,9 +2,7 @@
 import { useState } from 'react';
 import { AsaasSettings } from '@/types/asaas';
 
-export type CardStatus = 'APPROVED' | 'DENIED' | 'ANALYSIS';
-
-interface CardPaymentStatusOptions {
+interface UseCardPaymentStatusProps {
   settings?: AsaasSettings;
   useCustomProcessing?: boolean;
   manualCardStatus?: string;
@@ -14,79 +12,98 @@ export const useCardPaymentStatus = ({
   settings,
   useCustomProcessing = false,
   manualCardStatus
-}: CardPaymentStatusOptions) => {
+}: UseCardPaymentStatusProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   
-  // Default settings if none are provided
+  // Fallback settings for when they're not provided
   const defaultSettings: AsaasSettings = {
     isEnabled: false,
-    manualCardProcessing: true,
-    manualCreditCard: false,
-    apiKey: '',
-    allowPix: true,
     allowCreditCard: true,
+    allowPix: true,
     sandboxMode: true,
-    sandboxApiKey: '',
-    productionApiKey: '',
-    manualPixPage: false,
-    manualPaymentConfig: true,
+    manualCardProcessing: false,
     manualCardStatus: 'ANALYSIS'
   };
-  
-  // Determine button text based on settings
-  const getButtonText = () => {
+
+  const getButtonText = (): string => {
     if (!settings?.manualCardProcessing) {
-      return 'Finalizar Pagamento';
+      return "Pagar com Cartão";
     }
     
-    // Check if should use product-specific settings
-    const cardStatus = useCustomProcessing && manualCardStatus
-      ? manualCardStatus
+    // Choose between product-specific and global settings
+    const status = useCustomProcessing && manualCardStatus 
+      ? manualCardStatus 
       : settings?.manualCardStatus;
-    
-    switch (cardStatus) {
+      
+    switch (status) {
       case 'APPROVED':
-        return 'Enviar para Aprovação Manual';
+        return "Simular Aprovação";
       case 'DENIED':
-        return 'Enviar para Verificação (será recusado)';
+        return "Simular Reprovação";
       case 'ANALYSIS':
       default:
-        return 'Enviar para Análise Manual';
+        return "Simular Pagamento em Análise";
     }
   };
 
-  // Alert message based on processing configuration
-  const getAlertMessage = () => {
-    // Check if should use product-specific settings
-    const cardStatus = useCustomProcessing && manualCardStatus
-      ? manualCardStatus
-      : settings?.manualCardStatus;
+  const getAlertMessage = (): string => {
+    if (!settings?.manualCardProcessing) {
+      return "";
+    }
     
-    switch (cardStatus) {
-      case 'DENIED':
-        return 'Este pagamento será processado manualmente e será RECUSADO automáticamente.';
+    // Choose between product-specific and global settings
+    const status = useCustomProcessing && manualCardStatus 
+      ? manualCardStatus 
+      : settings?.manualCardStatus;
+      
+    switch (status) {
       case 'APPROVED':
-        return 'Este pagamento será processado manualmente e aprovado temporariamente.';
+        return "Este checkout está configurado para sempre aprovar pagamentos.";
+      case 'DENIED':
+        return "Este checkout está configurado para sempre reprovar pagamentos.";
       case 'ANALYSIS':
       default:
-        return 'Este pagamento passará por análise manual e não será processado automaticamente.';
+        return "Este checkout está configurado para colocar pagamentos em análise.";
     }
   };
 
-  // Alert style based on processing configuration
   const getAlertStyles = () => {
-    // Check if should use product-specific settings
-    const cardStatus = useCustomProcessing && manualCardStatus
-      ? manualCardStatus
-      : settings?.manualCardStatus;
+    if (!settings?.manualCardProcessing) {
+      return {
+        alertClass: "bg-blue-50 border-blue-200 mb-4",
+        iconClass: "text-blue-600",
+        textClass: "text-blue-800"
+      };
+    }
     
-    return {
-      alertClass: cardStatus === 'DENIED' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200',
-      iconClass: cardStatus === 'DENIED' ? 'text-red-600' : 'text-amber-600',
-      textClass: cardStatus === 'DENIED' ? 'text-red-800' : 'text-amber-800'
-    };
+    // Choose between product-specific and global settings
+    const status = useCustomProcessing && manualCardStatus 
+      ? manualCardStatus 
+      : settings?.manualCardStatus;
+      
+    switch (status) {
+      case 'APPROVED':
+        return {
+          alertClass: "bg-green-50 border-green-200 mb-4",
+          iconClass: "text-green-600",
+          textClass: "text-green-800"
+        };
+      case 'DENIED':
+        return {
+          alertClass: "bg-red-50 border-red-200 mb-4",
+          iconClass: "text-red-600",
+          textClass: "text-red-800"
+        };
+      case 'ANALYSIS':
+      default:
+        return {
+          alertClass: "bg-yellow-50 border-yellow-200 mb-4",
+          iconClass: "text-yellow-600",
+          textClass: "text-yellow-800"
+        };
+    }
   };
 
   return {
@@ -99,6 +116,6 @@ export const useCardPaymentStatus = ({
     getButtonText,
     getAlertMessage,
     getAlertStyles,
-    settings: settings || defaultSettings
+    settings: defaultSettings,
   };
 };

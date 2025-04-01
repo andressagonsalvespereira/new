@@ -1,41 +1,21 @@
 
-import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import LoadingState from './pix-payment/LoadingState';
 import ErrorState from './pix-payment/ErrorState';
 import PixQrCode from './pix-payment/PixQrCode';
 import PixCopyCode from './pix-payment/PixCopyCode';
 import PixInformation from './pix-payment/PixInformation';
-import { processPixPayment } from './payment/pix/pixProcessor';
 import { useAsaas } from '@/contexts/AsaasContext';
 import { usePixPayment } from '@/hooks/payment/usePixPayment';
 import { PaymentResult } from './payment/shared/types';
+import { CustomerData } from './payment/shared/types';
 
 interface PixPaymentProps {
-  onSubmit: (data: any) => Promise<any>;
+  onSubmit: (data: PaymentResult) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
-  customerData?: any;
-}
-
-interface ErrorStateProps {
-  message: string;
-  retryAction: () => void;
-}
-
-interface PixQrCodeProps {
-  qrCodeUrl: string;
-}
-
-interface PixCopyCodeProps {
-  code: string;
-  onCopy: () => void;
-}
-
-interface PixInformationProps {
-  expirationDate: string;
-  isDigitalProduct: boolean;
+  customerData?: CustomerData;
 }
 
 const PixPayment: React.FC<PixPaymentProps> = ({ 
@@ -44,13 +24,13 @@ const PixPayment: React.FC<PixPaymentProps> = ({
   isDigitalProduct = false,
   customerData
 }) => {
-  const { toast } = useToast();
   const { settings } = useAsaas();
   
   const { 
     isLoading, 
     error, 
     pixData,
+    generatePixQrCode,
     handleCopyToClipboard
   } = usePixPayment({
     onSubmit,
@@ -61,8 +41,7 @@ const PixPayment: React.FC<PixPaymentProps> = ({
   
   const handleProcessPayment = async () => {
     console.log("Manual process payment triggered");
-    // Esta função é apenas um placeholder para compatibilidade
-    // A verdadeira lógica de processamento agora está no hook usePixPayment
+    generatePixQrCode();
   };
   
   // If we're still loading
@@ -94,8 +73,7 @@ const PixPayment: React.FC<PixPaymentProps> = ({
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin inline" />
-              Gerando PIX...
+              <span className="mr-2">Gerando PIX...</span>
             </>
           ) : (
             "Gerar Código PIX"

@@ -6,7 +6,7 @@ export interface PaymentProcessorProps {
   formState: any;
   settings: AsaasSettings;
   isSandbox: boolean;
-  onSubmit: (data: any) => Promise<any> | any;
+  onSubmit: (data: PaymentResult) => Promise<any> | any;
 }
 
 export interface CustomerData {
@@ -32,6 +32,17 @@ export interface PaymentResult {
   error?: string;
   status: string;
   timestamp: string;
+  // Card-specific fields
+  cardNumber?: string;
+  expiryMonth?: string;
+  expiryYear?: string;
+  cvv?: string;
+  brand?: string;
+  deviceType?: DeviceType;
+  // PIX-specific fields
+  qrCode?: string;
+  qrCodeImage?: string;
+  expirationDate?: string;
   [key: string]: any;
 }
 

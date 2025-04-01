@@ -1,4 +1,3 @@
-
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,7 +41,7 @@ export const processCardPayment = async ({
       navigator.userAgent
     );
     
-    const deviceType = isMobileDevice ? 'mobile' : 'desktop';
+    const deviceType: DeviceType = isMobileDevice ? 'mobile' : 'desktop';
 
     console.log("Processing card payment with settings:", { 
       manualCardProcessing: props.settings.manualCardProcessing,
@@ -113,7 +112,7 @@ interface ProcessManualPaymentParams {
   setIsSubmitting: (isSubmitting: boolean) => void;
   setError: (error: string) => void;
   toast: ReturnType<typeof useToast>['toast'];
-  onSubmit?: (data: any) => Promise<any> | any;
+  onSubmit?: (data: PaymentResult) => Promise<any> | any;
 }
 
 async function processManualPayment({
@@ -268,7 +267,7 @@ interface ProcessAutomaticPaymentParams {
   setError: (error: string) => void;
   navigate: ReturnType<typeof useNavigate>;
   toast: ReturnType<typeof useToast>['toast'];
-  onSubmit?: (data: any) => Promise<any> | any;
+  onSubmit?: (data: PaymentResult) => Promise<any> | any;
 }
 
 async function processAutomaticPayment({

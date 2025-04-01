@@ -2,10 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
-import { CustomerData } from '@/components/checkout/utils/payment/types';
+import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { validateCustomerData } from './utils/customerValidation';
 import { createOrderService } from './services/orderCreationService';
 import { UseCheckoutContainerOrderProps } from './types/checkoutOrderTypes';
+import { Order, CardDetails, PixDetails } from '@/types/order';
 
 export const useCheckoutContainerOrder = ({
   formState,
@@ -36,9 +37,9 @@ export const useCheckoutContainerOrder = ({
   const createOrder = async (
     paymentId: string, 
     status: 'pending' | 'confirmed',
-    cardDetails?: any,
-    pixDetails?: any
-  ) => {
+    cardDetails?: CardDetails,
+    pixDetails?: PixDetails
+  ): Promise<Order> => {
     try {
       // Verificação dupla para prevenir criação de pedidos duplicados
       if (isProcessing || processingRef.current) {
@@ -51,7 +52,7 @@ export const useCheckoutContainerOrder = ({
       processingRef.current = true;
       
       // Preparar os dados do cliente
-      const customerData = prepareCustomerData(formState);
+      const customerData: CustomerData = prepareCustomerData(formState);
       
       // Validar dados do cliente
       const validationError = validateCustomerData(customerData);

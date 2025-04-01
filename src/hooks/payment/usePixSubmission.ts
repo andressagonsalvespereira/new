@@ -1,164 +1,116 @@
 
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-
-interface CustomerData {
-  name?: string;
-  email?: string;
-  cpf?: string;
-  phone?: string;
-}
-
-interface ProductData {
-  productId?: string;
-  productName?: string;
-  productPrice?: number;
-}
+import { useNavigate } from 'react-router-dom';
+import { processPixPayment } from '@/components/checkout/payment/pix/pixProcessor';
+import { PaymentResult } from '@/components/checkout/payment/shared/types';
+import { CustomerData } from '@/components/checkout/payment/shared/types';
 
 interface UsePixSubmissionProps {
   customerData?: CustomerData;
-  productData?: ProductData;
-  onSubmit: () => void;
+  productId?: string;
+  productName?: string;
+  productPrice?: number;
+  isDigitalProduct?: boolean;
+  isSandbox?: boolean;
+  onSubmitSuccess?: (result: PaymentResult) => void;
+  redirectToSuccess?: boolean;
 }
 
 export const usePixSubmission = ({
   customerData,
-  productData,
-  onSubmit
+  productId,
+  productName,
+  productPrice,
+  isDigitalProduct = false,
+  isSandbox = true,
+  onSubmitSuccess,
+  redirectToSuccess = true
 }: UsePixSubmissionProps) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [wasClicked, setWasClicked] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  // Use a ref to prevent parallel processing
-  const isSubmittingRef = useRef(false);
-
-  const validateCustomerData = () => {
-    if (!customerData) {
-      console.error("PIX: customerData is null or undefined");
-      return "Informações do cliente não fornecidas";
-    }
-    
-    if (!customerData.name || customerData.name.trim().length < 3) {
-      console.error("PIX validation failed: Invalid name", customerData.name);
-      return "Nome completo é obrigatório (mínimo 3 caracteres)";
-    }
-    
-    if (!customerData.email || !customerData.email.includes('@')) {
-      console.error("PIX validation failed: Invalid email", customerData.email);
-      return "E-mail inválido";
-    }
-    
-    const cpf = customerData.cpf ? customerData.cpf.replace(/\D/g, '') : '';
-    if (!cpf || cpf.length !== 11) {
-      console.error("PIX validation failed: Invalid CPF", customerData.cpf);
-      return "CPF inválido";
-    }
-    
-    const phone = customerData.phone ? customerData.phone.replace(/\D/g, '') : '';
-    if (!phone || phone.length < 10) {
-      console.error("PIX validation failed: Invalid phone", customerData.phone);
-      return "Telefone inválido";
-    }
-    
-    console.log("PIX: Customer data validation passed", {
-      name: customerData.name,
-      email: customerData.email,
-      cpf: cpf.substring(0, 3) + '...',
-      phone: phone.substring(0, 3) + '...'
-    });
-    
-    return null;
-  };
-
-  const handlePixSubmit = () => {
-    // Prevent parallel processing and multiple clicks
-    if (isProcessing || wasClicked || isSubmittingRef.current) {
-      console.log("PIX button already clicked or processing in progress, ignoring click");
-      return;
-    }
-    
-    // Set both state and ref to track submission
-    setWasClicked(true);
-    setIsProcessing(true);
-    isSubmittingRef.current = true;
-    
-    console.log("PIX button clicked, validating customer data:", {
-      customerName: customerData?.name,
-      customerEmail: customerData?.email,
-      productName: productData?.productName,
-      productPrice: productData?.productPrice
-    });
-    
-    const error = validateCustomerData();
-    if (error) {
-      setValidationError(error);
-      toast({
-        title: "Erro de validação",
-        description: error,
-        variant: "destructive",
-      });
-      
-      // Reset submission flags after error
-      setTimeout(() => {
-        setWasClicked(false);
-        setIsProcessing(false);
-        isSubmittingRef.current = false;
-      }, 2000);
-      return;
-    }
-    
-    setValidationError(null);
-    console.log("PIX: Data validated, initiating order processing");
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pixData, setPixData] = useState<PaymentResult | null>(null);
+  
+  const handleSubmit = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     
     try {
-      // First register the order
-      console.log("PIX: Calling onSubmit to register order");
-      onSubmit();
+      const formState = {
+        customerInfo: customerData,
+        productId,
+        productName,
+        productPrice,
+        isDigitalProduct
+      };
       
-      // Then redirect to the PIX payment screen
-      setTimeout(() => {
-        console.log("PIX: Redirecting to PIX payment page with:", {
-          productId: productData?.productId,
-          productName: productData?.productName,
-          customerName: customerData?.name
-        });
-        
-        navigate('/pix-payment-manual', { 
-          state: { 
-            orderData: {
-              productId: productData?.productId,
-              productName: productData?.productName,
-              productPrice: productData?.productPrice,
-              paymentMethod: 'PIX'
-            },
-            customerData
-          } 
-        });
-      }, 500);
-    } catch (error) {
-      console.error("PIX: Error processing payment:", error);
+      await processPixPayment(
+        {
+          formState,
+          settings: {
+            isEnabled: true,
+            allowPix: true,
+            sandboxMode: isSandbox
+          },
+          isSandbox,
+          onSubmit: (data: PaymentResult) => {
+            setPixData(data);
+            
+            if (onSubmitSuccess) {
+              onSubmitSuccess(data);
+            }
+            
+            if (redirectToSuccess) {
+              navigate('/payment-success', { 
+                state: { 
+                  paymentId: data.paymentId,
+                  method: 'pix',
+                  productName 
+                } 
+              });
+            }
+            
+            return Promise.resolve(data);
+          }
+        },
+        (pixResult: PaymentResult) => {
+          setPixData(pixResult);
+          
+          toast({
+            title: "QR Code PIX gerado com sucesso",
+            description: "Escaneie o QR code ou copie o código para realizar o pagamento",
+          });
+        },
+        (errMsg: string) => {
+          setError(errMsg);
+          
+          toast({
+            title: "Erro ao gerar PIX",
+            description: errMsg,
+            variant: "destructive",
+          });
+        }
+      );
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Erro ao gerar QR Code PIX';
+      setError(errMsg);
+      
       toast({
-        title: "Erro no processamento",
-        description: "Ocorreu um erro ao processar o pagamento PIX. Tente novamente.",
+        title: "Erro ao gerar PIX",
+        description: errMsg,
         variant: "destructive",
       });
-      
-      // Reset submission flags after error
-      setTimeout(() => {
-        setWasClicked(false);
-        setIsProcessing(false);
-        isSubmittingRef.current = false;
-      }, 2000);
+    } finally {
+      setLoading(false);
     }
-  };
-
+  }, [customerData, productId, productName, productPrice, isDigitalProduct, isSandbox, onSubmitSuccess, redirectToSuccess, navigate, toast]);
+  
   return {
-    validationError,
-    wasClicked,
-    isProcessing,
-    handlePixSubmit
+    loading,
+    error,
+    pixData,
+    handleSubmit
   };
 };

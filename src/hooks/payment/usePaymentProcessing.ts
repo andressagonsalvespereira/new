@@ -4,8 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/contexts/OrderContext';
 import { usePixel } from '@/contexts/PixelContext';
-import { CustomerInfo } from '@/types/order';
+import { CustomerInfo, PaymentMethod, PaymentStatus } from '@/types/order';
 import { Product } from '@/types/product';
+
+interface PaymentData {
+  status?: string;
+  cardNumber?: string;
+  expiryMonth?: string;
+  expiryYear?: string;
+  cvv?: string;
+  brand?: string;
+  qrCodeBase64?: string;
+  qrCodeImage?: string;
+  expirationDate?: string;
+  [key: string]: any;
+}
 
 export const usePaymentProcessing = (
   product: Product | null,
@@ -16,10 +29,10 @@ export const usePaymentProcessing = (
   const { addOrder } = useOrders();
   const { trackPurchase } = usePixel();
   
-  const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('CREDIT_CARD');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CREDIT_CARD');
   const [isOrderSubmitted, setIsOrderSubmitted] = useState(false);
   
-  const handlePaymentSubmit = async (paymentData: any) => {
+  const handlePaymentSubmit = async (paymentData: PaymentData) => {
     try {
       console.log("Starting handlePaymentSubmit with data:", {
         ...paymentData,
@@ -63,13 +76,15 @@ export const usePaymentProcessing = (
         manualCardStatus: product.statusCartaoManual
       });
       
+      const paymentStatus: PaymentStatus = paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando';
+      
       const newOrder = await addOrder({
         customer: customerDetails,
         productId: product.id,
         productName: product.nome,
         productPrice: product.preco,
         paymentMethod: paymentMethod,
-        paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando',
+        paymentStatus: paymentStatus,
         isDigitalProduct: product.digital,
         cardDetails: paymentData.cardNumber ? {
           number: paymentData.cardNumber,

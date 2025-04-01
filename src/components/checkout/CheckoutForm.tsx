@@ -11,9 +11,10 @@ import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
 import { processCardPayment } from './payment/card/cardProcessor';
 import { useCardPaymentStatus } from '@/hooks/payment/useCardPaymentStatus';
+import { PaymentResult } from './payment/shared/types';
 
 interface CheckoutFormProps {
-  onSubmit: (data: any) => Promise<any>;
+  onSubmit: (data: PaymentResult) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
   useCustomProcessing?: boolean;
