@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
@@ -16,18 +17,13 @@ const CardSubmitButton = ({
   buttonText, 
   buttonStyle 
 }: CardSubmitButtonProps) => {
-  const [wasClicked, setWasClicked] = useState(false);
+  // Removida a lógica de wasClicked que poderia estar interferindo na submissão
+  const isDisabled = isLoading || isSubmitting;
 
-  const isDisabled = isLoading || isSubmitting || wasClicked;
-
-  useEffect(() => {
-    if (!isSubmitting && wasClicked) {
-      const timeout = setTimeout(() => {
-        setWasClicked(false);
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
-  }, [isSubmitting, wasClicked]);
+  // Apenas para debug - remover em produção
+  const handleClick = () => {
+    console.log("Botão de pagamento clicado");
+  };
 
   return (
     <Button 
@@ -36,6 +32,7 @@ const CardSubmitButton = ({
       disabled={isDisabled}
       style={buttonStyle}
       data-submitting={isSubmitting ? "true" : "false"}
+      onClick={handleClick}
     >
       {isLoading || isSubmitting ? (
         <div className="w-full">

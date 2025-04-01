@@ -1,11 +1,10 @@
-
 import { AsaasSettings } from '@/types/asaas';
 
 export interface PaymentProcessorProps {
   formState: any;
   settings: AsaasSettings;
   isSandbox: boolean;
-  onSubmit: (data: any) => Promise<any> | any;
+  onSubmit: (data: any) => Promise<any> | any;  // Atualizado para aceitar Promise<any> | any
 }
 
 export interface CustomerData {

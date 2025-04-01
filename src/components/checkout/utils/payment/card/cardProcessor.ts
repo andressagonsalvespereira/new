@@ -1,3 +1,4 @@
+
 import { CardFormData } from '../../../payment-methods/CardForm';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +28,13 @@ export const processCardPayment = async ({
   isDigitalProduct = false
 }: ProcessCardPaymentParams): Promise<PaymentResult | void> => {
   try {
+    console.log("processCardPayment iniciado - Processando pagamento", { cardData: { 
+      cardName: cardData.cardName,
+      cardNumber: cardData.cardNumber ? `****${cardData.cardNumber.slice(-4)}` : '',
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear
+    }});
+    
     // Update browser detection for statistics
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
