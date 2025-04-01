@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,6 +47,7 @@ const CardForm: React.FC<CardFormProps> = ({
   const { handleSubmit, formState: { errors, isValid } } = methods;
 
   const enhancedSubmit = async (data: CardFormData) => {
+    console.log("✅ Form onSubmit triggered");
     console.log("Card form submitted with data:", {
       cardName: data.cardName,
       cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : '',
@@ -60,7 +60,7 @@ const CardForm: React.FC<CardFormProps> = ({
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error("Error in enhancedSubmit:", error);
+      console.error("❌ Error in enhancedSubmit:", error);
     }
   };
 
@@ -71,18 +71,9 @@ const CardForm: React.FC<CardFormProps> = ({
 
   const displayButtonText = customization?.button_text || buttonText;
 
-  console.log("CardForm rendering with state:", { 
-    loading, isSubmitting, 
-    hasErrors: Object.keys(errors).length > 0,
-    isValid 
-  });
-
   return (
     <FormProvider {...methods}>
-      <form 
-        onSubmit={handleSubmit(enhancedSubmit)}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit(enhancedSubmit)} className="space-y-4">
         <CardNameField 
           disabled={loading || isSubmitting}
           error={errors.cardName?.message}
