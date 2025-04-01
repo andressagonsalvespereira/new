@@ -43,26 +43,21 @@ const CardSubmitButton = ({
     }
   }, [isSubmitting, wasClicked]);
 
-  // Function to handle button click and prevent multiple submissions
-  const handleButtonClick = (e: React.MouseEvent) => {
-    console.log("Card payment button clicked", { isDisabled, wasClicked, isSubmitting, isLoading });
-    
-    if (!isDisabled) {
-      console.log("Card payment button click being processed - submitting form");
-      setWasClicked(true);
-      
-      // Don't prevent default or stop propagation - let the form submission happen
-      // This just prevents multiple clicks
-    }
-  };
-
   return (
     <Button 
       type="submit" 
       className="w-full" 
       disabled={isDisabled}
       style={buttonStyle}
-      onClick={handleButtonClick}
+      onClick={() => {
+        console.log("Card payment button clicked", { isDisabled, wasClicked, isSubmitting, isLoading });
+        if (!isDisabled) {
+          console.log("Setting wasClicked to true");
+          setWasClicked(true);
+          // Removemos o handleButtonClick e apenas definimos o estado
+          // O botão sendo do tipo "submit" cuidará da submissão do formulário
+        }
+      }}
       data-submitting={isSubmitting ? "true" : "false"}
       data-wasclicked={wasClicked ? "true" : "false"}
       data-loading={isLoading ? "true" : "false"}

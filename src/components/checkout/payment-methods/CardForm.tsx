@@ -57,7 +57,11 @@ const CardForm: React.FC<CardFormProps> = ({
       isFormValid: isValid
     });
     
-    await onSubmit(data);
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      console.error("Error in enhancedSubmit:", error);
+    }
   };
 
   const buttonStyle = {
@@ -76,10 +80,7 @@ const CardForm: React.FC<CardFormProps> = ({
   return (
     <FormProvider {...methods}>
       <form 
-        onSubmit={handleSubmit((data) => {
-          console.log("Form onSubmit triggered with valid data");
-          enhancedSubmit(data);
-        })}
+        onSubmit={handleSubmit(enhancedSubmit)}
         className="space-y-4"
       >
         <CardNameField 
