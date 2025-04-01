@@ -6,9 +6,10 @@ import { useOrders } from '@/contexts/OrderContext';
 import { usePixel } from '@/contexts/PixelContext';
 import { CustomerInfo, PaymentMethod, PaymentStatus } from '@/types/order';
 import { Product } from '@/types/product';
+import { logger } from '@/utils/logger';
 
 interface PaymentData {
-  status?: string;
+  status?: PaymentStatus | string;
   cardNumber?: string;
   expiryMonth?: string;
   expiryYear?: string;
@@ -34,8 +35,7 @@ export const usePaymentProcessing = (
   
   const handlePaymentSubmit = async (paymentData: PaymentData) => {
     try {
-      console.log("Starting handlePaymentSubmit with data:", {
-        ...paymentData,
+      logger.log("Starting handlePaymentSubmit with data:", {
         customerDetails,
         productDetails: product ? {
           id: product.id,
@@ -43,11 +43,12 @@ export const usePaymentProcessing = (
           price: product.preco,
           isDigital: product.digital
         } : 'No product available',
-        paymentMethod
+        paymentMethod,
+        paymentStatus: paymentData.status
       });
       
       if (!product) {
-        console.error("Trying to submit payment without product data");
+        logger.error("Trying to submit payment without product data");
         throw new Error("Dados do produto não disponíveis");
       }
       
@@ -60,7 +61,7 @@ export const usePaymentProcessing = (
         }
       };
       
-      console.log("Submitting order with payment data:", {
+      logger.log("Submitting order with payment data:", {
         customerId: customerDetails.name,
         customerEmail: customerDetails.email,
         productId: product.id,
@@ -73,11 +74,28 @@ export const usePaymentProcessing = (
         } : undefined,
         isDigitalProduct: product.digital,
         useCustomProcessing: product.usarProcessamentoPersonalizado,
-        manualCardStatus: product.statusCartaoManual
+        manualCardStatus: product.statusCartaoManual,
+        paymentDataStatus: paymentData.status
       });
       
-      // Fixed: Using standardized PaymentStatus values
-      const paymentStatus: PaymentStatus = paymentData.status === 'CONFIRMED' ? 'PAID' : 'PENDING';
+      // Normalize the status based on the input
+      let paymentStatus: PaymentStatus;
+      
+      // If the status is coming from paymentData, make sure it's valid
+      if (paymentData.status) {
+        if (paymentData.status === 'CONFIRMED') {
+          paymentStatus = 'PAID';
+        } else if (typeof paymentData.status === 'string' && 
+                 ['PENDING', 'PAID', 'APPROVED', 'DENIED', 'ANALYSIS', 'CANCELLED'].includes(paymentData.status)) {
+          paymentStatus = paymentData.status as PaymentStatus;
+        } else {
+          paymentStatus = 'PENDING'; // Default fallback
+        }
+      } else {
+        paymentStatus = 'PENDING'; // Default when no status is provided
+      }
+      
+      logger.log("Final normalized payment status:", paymentStatus);
       
       const newOrder = await addOrder({
         customer: customerDetails,
@@ -101,7 +119,7 @@ export const usePaymentProcessing = (
         } : undefined
       });
       
-      console.log("Order successfully created:", newOrder);
+      logger.log("Order successfully created:", newOrder);
       
       setIsOrderSubmitted(true);
       
@@ -116,7 +134,7 @@ export const usePaymentProcessing = (
         }]
       });
       
-      if (paymentMethod === 'PIX' || paymentData.status === 'CONFIRMED') {
+      if (paymentMethod === 'PIX' || ['PAID', 'APPROVED'].includes(paymentStatus)) {
         toast({
           title: "Pedido realizado com sucesso!",
           description: paymentMethod === 'PIX' 
@@ -128,7 +146,7 @@ export const usePaymentProcessing = (
       
       return newOrder;
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
+      logger.error('Erro ao processar pagamento:', error);
       toast({
         title: "Erro no processamento",
         description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",

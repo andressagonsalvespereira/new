@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Order } from '@/types/order';
+import { Order, PaymentStatus } from '@/types/order';
 import { formatDate } from '../utils/formatUtils';
 
 interface PixDetailsSectionProps {
@@ -9,10 +9,14 @@ interface PixDetailsSectionProps {
 }
 
 const PixDetailsSection: React.FC<PixDetailsSectionProps> = ({ pixDetails, paymentStatus }) => {
+  // Determine if we should show the QR code based on payment status
+  const showQrCode = paymentStatus === 'PENDING' || 
+                     paymentStatus === 'ANALYSIS';
+
   return (
     <div className="mt-4 border-t pt-4">
       <h4 className="font-medium mb-2">Dados do PIX</h4>
-      {paymentStatus === 'PENDING' && pixDetails.qrCodeImage && (
+      {showQrCode && pixDetails.qrCodeImage && (
         <div className="flex justify-center mb-4">
           <img 
             src={pixDetails.qrCodeImage} 
