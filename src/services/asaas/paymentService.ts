@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { AsaasPayment, AsaasPaymentResponse } from '@/types/asaas';
+import { AsaasPayment, AsaasPaymentResponse } from '@/types/asaas';
 
 export const saveAsaasPayment = async (
   orderId: number, 

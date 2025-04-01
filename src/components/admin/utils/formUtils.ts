@@ -32,7 +32,7 @@ export const formValuesToAsaasSettings = (values: PaymentSettingsFormValues): As
     sandboxApiKey: values.sandboxApiKey || '',
     productionApiKey: values.productionApiKey || '',
     manualCardProcessing: values.manualCardProcessing ?? false,
-    manualCardStatus: values.manualCardStatus || 'ANALYSIS',
+    manualCardStatus: values.manualCardStatus as ManualCardStatus,
     manualPixPage: values.manualPixPage ?? false,
     manualPaymentConfig: values.manualPaymentConfig ?? false,
   };

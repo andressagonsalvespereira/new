@@ -1,26 +1,22 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { useCheckoutForm } from '@/hooks/useCheckoutForm';
-import { useAsaas } from '@/contexts/AsaasContext';
 import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
-import { processCardPayment } from './payment/card/cardProcessor';
-import { useCardPaymentStatus } from '@/hooks/payment/useCardPaymentStatus';
-import { PaymentResult } from './payment/shared/types';
+import { useCardPayment } from '@/hooks/payment/useCardPayment';
+import { PaymentResult } from '@/types/payment';
 import { logger } from '@/utils/logger';
-import { AsaasSettings } from '@/types/asaas';
+import { AsaasSettings, ManualCardStatus } from '@/types/asaas';
 
 interface CheckoutFormProps {
   onSubmit: (data: PaymentResult) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
   useCustomProcessing?: boolean;
-  manualCardStatus?: string;
+  manualCardStatus?: ManualCardStatus;
 }
 
 const CheckoutForm = ({ 
@@ -28,12 +24,9 @@ const CheckoutForm = ({
   isSandbox, 
   isDigitalProduct = false,
   useCustomProcessing = false,
-  manualCardStatus = undefined
+  manualCardStatus
 }: CheckoutFormProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { formState } = useCheckoutForm();
-  const { settings } = useAsaas();
   
   const {
     isSubmitting,
@@ -41,88 +34,34 @@ const CheckoutForm = ({
     error,
     setError,
     paymentStatus,
-    setPaymentStatus,
+    handleSubmit,
     getButtonText,
     getAlertMessage,
     getAlertStyles
-  } = useCardPaymentStatus({
+  } = useCardPayment({
     isSandbox,
-    settings: settings as AsaasSettings,
     useCustomProcessing,
-    manualCardStatus
+    manualCardStatus,
+    isDigitalProduct,
+    onSubmit
   });
-  
-  useEffect(() => {
-    logger.log("CheckoutForm mounted with props", {
-      isSandbox,
-      isDigitalProduct,
-      useCustomProcessing,
-      manualCardStatus,
-      settings
-    });
-  }, [isSandbox, isDigitalProduct, useCustomProcessing, manualCardStatus, settings]);
 
   const handleCardFormSubmit = async (cardData: CardFormData) => {
-    logger.log("Processing card payment", { 
-      isEnabled: settings?.isEnabled, 
-      manualCardProcessing: settings?.manualCardProcessing,
-      manualCardStatus: settings?.manualCardStatus,
-      useCustomProcessing,
-      isDigitalProduct
-    });
+    logger.log("Processing card payment form submission");
     
     try {
-      setIsSubmitting(true);
-      
-      const defaultSettings: AsaasSettings = {
-        isEnabled: false,
-        allowCreditCard: true,
-        allowPix: true,
-        manualCreditCard: false,
-        sandboxMode: true,
-        manualCardProcessing: false,
-        manualPixPage: false,
-        manualPaymentConfig: false,
-        manualCardStatus: 'ANALYSIS'
-      };
-      
-      await processCardPayment({
-        cardData,
-        props: { 
-          formState: { 
-            ...formState, 
-            isDigitalProduct,
-            useCustomProcessing,
-            manualCardStatus 
-          }, 
-          settings: settings || defaultSettings, 
-          isSandbox, 
-          onSubmit 
-        },
-        setError,
-        setPaymentStatus,
-        setIsSubmitting,
-        navigate,
-        toast: (config) => toast({
-          variant: config.variant as "default" | "destructive",
-          title: config.title,
-          description: config.description,
-          duration: config.duration
-        }),
-        isDigitalProduct
-      });
-      
+      return await handleSubmit(cardData);
     } catch (error) {
       logger.error("Error in handleCardFormSubmit:", error);
-      setError('Falha ao processar o pagamento. Por favor, tente novamente.');
-      setIsSubmitting(false);
       
       toast({
-        title: "Erro no processamento",
-        description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
+        title: "Payment processing error",
+        description: "There was an error processing your payment. Please try again.",
         variant: "destructive",
         duration: 5000,
       });
+      
+      throw error;
     }
   };
 
@@ -135,7 +74,7 @@ const CheckoutForm = ({
 
   return (
     <div className="space-y-4">
-      {settings?.manualCardProcessing && (
+      {useCustomProcessing && (
         <Alert className={alertStyles.alertClass}>
           <AlertCircle className={`h-4 w-4 ${alertStyles.iconClass}`} />
           <AlertDescription className={alertStyles.textClass}>

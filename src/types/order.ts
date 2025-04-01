@@ -1,43 +1,22 @@
 
-export type PaymentMethod = 'PIX' | 'CREDIT_CARD';
-export type PaymentStatus = 'Aguardando' | 'Pago' | 'Cancelado' | 'Pendente';
-export type DeviceType = 'mobile' | 'desktop';
-
-export interface Order {
-  id: string;
-  customer: CustomerInfo;
-  productId: string;
-  productName: string;
-  productPrice: number;
-  paymentMethod: PaymentMethod;
-  paymentStatus: PaymentStatus;
-  cardDetails?: CardDetails;
-  pixDetails?: PixDetails;
-  timestamp?: string;
-  orderDate?: string;
-  paymentId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  deviceType?: DeviceType;
-  isDigitalProduct?: boolean;
-}
+export type PaymentMethod = 'CREDIT_CARD' | 'PIX' | 'BANK_SLIP';
+export type PaymentStatus = 'Pendente' | 'Aguardando' | 'Pago' | 'Cancelado';
+export type DeviceType = 'mobile' | 'desktop' | 'tablet' | 'unknown';
 
 export interface CustomerInfo {
   name: string;
   email: string;
   cpf: string;
   phone: string;
-  address?: AddressInfo;
-}
-
-export interface AddressInfo {
-  street: string;
-  number: string;
-  complement?: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-  postalCode: string;
+  address?: {
+    street: string;
+    number: string;
+    complement?: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
 }
 
 export interface CardDetails {
@@ -45,7 +24,7 @@ export interface CardDetails {
   expiryMonth: string;
   expiryYear: string;
   cvv: string;
-  brand: string;
+  brand?: string;
 }
 
 export interface PixDetails {
@@ -54,17 +33,35 @@ export interface PixDetails {
   expirationDate?: string;
 }
 
-export interface CreateOrderInput {
+export interface Order {
+  id?: number;
   customer: CustomerInfo;
-  productId: string;
+  productId: string | number;
   productName: string;
   productPrice: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
+  paymentId?: string;
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
-  paymentId?: string;
-  orderDate?: string;
-  deviceType?: DeviceType;
   isDigitalProduct?: boolean;
+  deviceType?: DeviceType;
+  orderDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OrderContextType {
+  orders: Order[];
+  loading: boolean;
+  error: string | null;
+  addOrder: (order: Omit<Order, 'id'>) => Promise<Order>;
+  getOrdersByPaymentMethod: (paymentMethod: PaymentMethod) => Order[];
+  getOrdersByStatus: (status: PaymentStatus) => Order[];
+  getOrdersByDevice: (deviceType: DeviceType) => Order[];
+  getLatestOrders: (limit?: number) => Order[];
+  updateOrderStatus: (id: number, status: PaymentStatus) => Promise<void>;
+  refreshOrders: () => Promise<void>;
+  deleteOrder: (id: number) => Promise<void>;
+  deleteAllOrdersByPaymentMethod: (paymentMethod: PaymentMethod) => Promise<void>;
 }

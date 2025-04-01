@@ -1,6 +1,5 @@
 
-// Export all payment-related hooks from a single file
-export * from './useCardPaymentStatus';
-export * from './usePixSubmission';
+// Export all payment hooks from a central location
+export * from './useCardPayment';
 export * from './usePixPayment';
 export * from './usePaymentProcessing';

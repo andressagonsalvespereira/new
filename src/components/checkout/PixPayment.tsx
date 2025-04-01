@@ -8,8 +8,7 @@ import PixCopyCode from './pix-payment/PixCopyCode';
 import PixInformation from './pix-payment/PixInformation';
 import { useAsaas } from '@/contexts/AsaasContext';
 import { usePixPayment } from '@/hooks/payment/usePixPayment';
-import { PaymentResult } from './payment/shared/types';
-import { CustomerData } from './payment/shared/types';
+import { PaymentResult, CustomerData } from '@/types/payment';
 
 interface PixPaymentProps {
   onSubmit: (data: PaymentResult) => Promise<any>;
@@ -36,12 +35,13 @@ const PixPayment: React.FC<PixPaymentProps> = ({
     onSubmit,
     isSandbox,
     isDigitalProduct,
-    customerData
+    customerData,
+    settings
   });
   
   const handleProcessPayment = async () => {
-    console.log("Manual process payment triggered");
-    generatePixQrCode();
+    console.log("Manual PIX payment generation triggered");
+    await generatePixQrCode();
   };
   
   // If we're still loading
@@ -64,7 +64,7 @@ const PixPayment: React.FC<PixPaymentProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-8">
         <p className="text-center mb-6">
-          Clique no botão abaixo para gerar um código PIX para pagamento.
+          Click the button below to generate a PIX code for payment.
         </p>
         <button
           onClick={handleProcessPayment}
@@ -73,10 +73,10 @@ const PixPayment: React.FC<PixPaymentProps> = ({
         >
           {isLoading ? (
             <>
-              <span className="mr-2">Gerando PIX...</span>
+              <span className="mr-2">Generating PIX...</span>
             </>
           ) : (
-            "Gerar Código PIX"
+            "Generate PIX Code"
           )}
         </button>
       </div>
@@ -87,14 +87,14 @@ const PixPayment: React.FC<PixPaymentProps> = ({
   return (
     <div className="flex flex-col items-center space-y-6 py-4">
       <PixQrCode 
-        qrCodeUrl={pixData.qrCodeImage} 
+        qrCodeUrl={pixData.qrCodeImage || ''} 
       />
       <PixCopyCode 
-        code={pixData.qrCode} 
-        onCopy={() => handleCopyToClipboard(pixData.qrCode)} 
+        code={pixData.qrCode || ''} 
+        onCopy={() => handleCopyToClipboard(pixData.qrCode || '')} 
       />
       <PixInformation 
-        expirationDate={pixData.expirationDate} 
+        expirationDate={pixData.expirationDate || ''} 
         isDigitalProduct={isDigitalProduct} 
       />
     </div>

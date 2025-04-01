@@ -1,119 +1,133 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useAsaas } from '@/contexts/AsaasContext';
-import { processPixPayment } from '@/components/checkout/payment/pix/pixProcessor';
-import { PaymentResult, CustomerData } from '@/components/checkout/payment/shared/types';
+import { PaymentResult, CustomerData } from '@/types/payment';
+import { processPixPayment } from '@/utils/payment/paymentProcessor';
+import { AsaasSettings } from '@/types/asaas';
+import { DeviceType } from '@/types/order';
 import { logger } from '@/utils/logger';
 
-interface UsePixPaymentProps {
+export interface UsePixPaymentProps {
   onSubmit: (data: PaymentResult) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
   customerData?: CustomerData;
+  settings: AsaasSettings;
 }
 
-interface PixData {
-  qrCode: string;
-  qrCodeImage: string;
-  expirationDate: string;
-  paymentId: string;
-}
-
-export const usePixPayment = ({
+export function usePixPayment({
   onSubmit,
   isSandbox,
   isDigitalProduct = false,
-  customerData
-}: UsePixPaymentProps) => {
+  customerData,
+  settings
+}: UsePixPaymentProps) {
   const { toast } = useToast();
-  const { settings } = useAsaas();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pixData, setPixData] = useState<PixData | null>(null);
+  const [pixData, setPixData] = useState<PaymentResult | null>(null);
+  
+  // Detect device type for analytics
+  const isMobileDevice = typeof window !== 'undefined' ? 
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) : 
+    false;
+  
+  const deviceType: DeviceType = isMobileDevice ? 'mobile' : 'desktop';
   
   const generatePixQrCode = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      if (!settings) {
-        throw new Error("Configurações de pagamento não disponíveis");
-      }
-      
-      logger.log("Gerando QR Code PIX", { 
-        isSandbox, 
+      logger.log("Generating PIX QR Code", {
+        isSandbox,
         isDigitalProduct,
         hasCustomerData: !!customerData
       });
       
-      await processPixPayment(
-        {
-          formState: { 
-            customerInfo: customerData,
-            isDigitalProduct
-          },
-          settings,
-          isSandbox,
-          onSubmit
-        },
-        (paymentResult: PaymentResult) => {
-          // Store PIX data for display
-          if (paymentResult.qrCode && paymentResult.qrCodeImage && paymentResult.expirationDate) {
-            setPixData({
-              qrCode: paymentResult.qrCode,
-              qrCodeImage: paymentResult.qrCodeImage,
-              expirationDate: paymentResult.expirationDate,
-              paymentId: paymentResult.paymentId || `pix_${Date.now()}`
-            });
-            
-            toast({
-              title: "QR Code PIX gerado com sucesso",
-              description: "Escaneie o QR code ou copie o código para realizar o pagamento",
-            });
-          } else {
-            throw new Error("Dados de PIX incompletos retornados");
-          }
-        },
-        (errorMessage: string) => {
-          setError(errorMessage);
-          toast({
-            title: "Erro ao gerar PIX",
-            description: errorMessage,
-            variant: "destructive",
-          });
+      // Validate customer data if available
+      if (customerData) {
+        // Basic validation for required fields
+        if (!customerData.name || !customerData.email || !customerData.cpf || !customerData.phone) {
+          throw new Error('Incomplete customer information. Please fill in all required fields.');
         }
-      );
+      }
+      
+      const result = await processPixPayment({
+        customerInfo: customerData,
+        productDetails: {
+          isDigitalProduct
+        },
+        paymentSettings: {
+          isSandbox
+        },
+        callbacks: {
+          onSuccess: async (paymentResult: PaymentResult) => {
+            setPixData(paymentResult);
+            toast({
+              title: "PIX QR Code Generated",
+              description: "Scan the QR code or copy the code to make the payment",
+              duration: 5000,
+            });
+            await onSubmit(paymentResult);
+          },
+          onError: (errorMessage: string) => {
+            setError(errorMessage);
+            toast({
+              title: "Error Generating PIX",
+              description: errorMessage,
+              variant: "destructive",
+              duration: 5000,
+            });
+          },
+          onSubmitting: setIsLoading
+        },
+        deviceInfo: {
+          deviceType
+        }
+      });
+      
+      return result;
     } catch (error) {
-      logger.error("Erro ao gerar QR Code PIX:", error);
-      setError("Não foi possível gerar o código PIX. Por favor, tente novamente.");
+      logger.error("Error generating PIX QR Code:", error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Could not generate PIX code. Please try again.";
+      
+      setError(errorMessage);
       
       toast({
-        title: "Erro ao gerar PIX",
-        description: "Não foi possível gerar o código PIX. Por favor, tente novamente.",
+        title: "Error Generating PIX",
+        description: errorMessage,
         variant: "destructive",
+        duration: 5000,
       });
+      
+      return null;
     } finally {
       setIsLoading(false);
     }
-  }, [onSubmit, isSandbox, isDigitalProduct, customerData, toast, settings]);
+  }, [onSubmit, isSandbox, isDigitalProduct, customerData, toast, deviceType]);
   
-  const handleCopyToClipboard = (text: string) => {
+  const handleCopyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text)
       .then(() => {
         toast({
-          title: "Código PIX copiado!",
-          description: "Cole o código no seu app do banco para fazer o pagamento",
+          title: "PIX Code Copied!",
+          description: "Paste the code in your banking app to make the payment",
+          duration: 3000,
         });
       })
       .catch(() => {
         toast({
-          title: "Erro ao copiar",
-          description: "Não foi possível copiar o código. Tente selecionar e copiar manualmente.",
+          title: "Copy Failed",
+          description: "Could not copy the code. Try selecting and copying manually.",
           variant: "destructive",
+          duration: 3000,
         });
       });
-  };
+  }, [toast]);
   
   // Auto-generate PIX on hook initialization if needed
   useEffect(() => {
@@ -129,4 +143,4 @@ export const usePixPayment = ({
     generatePixQrCode,
     handleCopyToClipboard
   };
-};
+}

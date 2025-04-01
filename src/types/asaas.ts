@@ -14,7 +14,7 @@ export interface AsaasSettings {
   manualCardStatus: ManualCardStatus;
 }
 
-// Criando um tipo específico para o status do cartão manual
+// Strong typing for card status values
 export type ManualCardStatus = 'APPROVED' | 'DENIED' | 'ANALYSIS';
 
 export interface AsaasContextType {

@@ -3,7 +3,7 @@ import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
-import { CardSchema } from '@/components/checkout/payment/card/utils/validators';
+import { CardSchema } from '@/utils/payment/validators';
 import CardNameField from './form-fields/CardNameField';
 import CardNumberField from './form-fields/CardNumberField';
 import CardExpiryFields from './form-fields/CardExpiryFields';
@@ -16,7 +16,7 @@ export interface CardFormData {
   expiryMonth: string;
   expiryYear: string;
   cvv: string;
-  holderName?: string; // Adicionado para compatibilidade
+  holderName?: string; // Added for compatibility
 }
 
 export interface CardFormProps {
@@ -30,7 +30,7 @@ const CardForm: React.FC<CardFormProps> = ({
   onSubmit, 
   loading = false, 
   isSubmitting = false,
-  buttonText = "Pagar com cartão"
+  buttonText = "Pay with Card"
 }) => {
   const { customization } = useCheckoutCustomization();
   
@@ -46,13 +46,14 @@ const CardForm: React.FC<CardFormProps> = ({
     mode: 'onBlur'
   });
 
-  const { handleSubmit, formState: { errors, isValid } } = methods;
+  const { handleSubmit, formState: { errors } } = methods;
 
   const enhancedSubmit = async (data: CardFormData) => {
     try {
       await onSubmit(data);
     } catch (error) {
       // Error is handled by the parent component
+      console.error("Error in card form submit:", error);
     }
   };
 
