@@ -69,7 +69,10 @@ export const processCardPayment = async ({
         },
         settings: props.settings,
         isSandbox: props.isSandbox,
-        onSubmit: props.onSubmit,
+        onSubmit: async (data) => {
+          // Ensure this returns a Promise
+          return await Promise.resolve(props.onSubmit(data));
+        },
         setError,
         setPaymentStatus,
         setIsSubmitting,
