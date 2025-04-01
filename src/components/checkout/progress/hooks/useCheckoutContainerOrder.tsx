@@ -83,7 +83,7 @@ export const useCheckoutContainerOrder = ({
       // Call the handlePayment function to complete the checkout process
       const paymentResult = {
         orderId: newOrder.id,
-        status: newOrder.paymentStatus === 'Paid' ? 'confirmed' : 'pending',
+        status: newOrder.paymentStatus === 'Pago' ? 'confirmed' : 'pending',
         paymentMethod: newOrder.paymentMethod,
         cardDetails: newOrder.cardDetails,
         pixDetails: newOrder.pixDetails

@@ -14,7 +14,7 @@ interface ProcessCardPaymentParams {
   setPaymentStatus?: (status: string) => void;
   setIsSubmitting: (isSubmitting: boolean) => void;
   navigate: (path: string, state?: any) => void;
-  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
+  toast: (config: { title: string; description: string; variant?: "default" | "destructive"; duration?: number }) => void;
   isDigitalProduct?: boolean;
 }
 
@@ -118,7 +118,7 @@ interface ProcessManualPaymentParams {
   navigate: (path: string, state?: any) => void;
   setIsSubmitting: (isSubmitting: boolean) => void;
   setError: (error: string) => void;
-  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
+  toast: (config: { title: string; description: string; variant?: "default" | "destructive"; duration?: number }) => void;
   onSubmit?: (data: any) => Promise<any> | any;
 }
 
@@ -209,16 +209,17 @@ async function processManualPayment({
     // Notificação toast com base no status
     if (paymentStatus !== 'DENIED') {
       toast({
-        title: paymentStatus === 'APPROVED' ? "Pagamento Aprovado" : "Pagamento em Análise",
+        title: paymentStatus === 'APPROVED' ? "Payment Approved" : "Payment Under Review",
         description: paymentStatus === 'APPROVED' 
-          ? "Seu pagamento foi aprovado com sucesso!" 
-          : "Seu pagamento foi recebido e está em análise.",
+          ? "Your payment has been successfully approved!" 
+          : "Your payment has been received and is under review.",
         duration: 5000,
+        variant: "default"
       });
     } else {
       toast({
-        title: "Pagamento Recusado",
-        description: "Seu pagamento foi recusado. Por favor, tente novamente.",
+        title: "Payment Declined",
+        description: "Your payment was declined. Please try again.",
         variant: "destructive",
         duration: 5000,
       });
@@ -236,8 +237,8 @@ async function processManualPayment({
     
     // Mostrar toast de erro
     toast({
-      title: "Erro no processamento",
-      description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
+      title: "Processing Error",
+      description: "An error occurred while processing your payment. Please try again.",
       variant: "destructive",
       duration: 5000,
     });
@@ -265,7 +266,7 @@ interface ProcessAutomaticPaymentParams {
   setIsSubmitting: (isSubmitting: boolean) => void;
   setError: (error: string) => void;
   navigate: (path: string, state?: any) => void;
-  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
+  toast: (config: { title: string; description: string; variant?: "default" | "destructive"; duration?: number }) => void;
   onSubmit?: (data: any) => Promise<any> | any;
 }
 
@@ -325,9 +326,10 @@ async function processAutomaticPayment({
     
     // Mostra mensagem de sucesso
     toast({
-      title: "Pagamento aprovado!",
-      description: "Seu pagamento foi processado com sucesso.",
+      title: "Payment approved!",
+      description: "Your payment was processed successfully.",
       duration: 5000,
+      variant: "default"
     });
     
     // Navega para a página de sucesso

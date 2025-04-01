@@ -12,7 +12,7 @@ interface CreateOrderServiceProps {
   paymentId: string;
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
-  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
+  toast: (config: { title: string; description: string; variant?: "default" | "destructive"; duration?: number }) => void;
   addOrder: (orderData: any) => Promise<Order>;
 }
 
@@ -43,7 +43,7 @@ export const createOrderService = async ({
     productName: productDetails.name,
     productPrice: productDetails.price,
     paymentMethod: cardDetails ? 'CREDIT_CARD' as PaymentMethod : 'PIX' as PaymentMethod,
-    paymentStatus: status === 'pending' ? 'Pending' as PaymentStatus : 'Paid' as PaymentStatus,
+    paymentStatus: status === 'pending' ? 'Pending' as PaymentStatus : 'Pago' as PaymentStatus,
     paymentId: paymentId,
     cardDetails,
     pixDetails,
@@ -58,6 +58,7 @@ export const createOrderService = async ({
     toast({
       title: "Order created",
       description: "Your order has been registered successfully!",
+      variant: "default",
     });
     
     return newOrder;
