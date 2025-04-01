@@ -1,3 +1,4 @@
+
 import { CardFormData } from '@/components/checkout/payment-methods/CardForm';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -85,8 +86,10 @@ export async function processAutomaticPayment({
     };
     
     // Call the onSubmit function if provided (to create the order)
+    let orderResult;
     if (onSubmit) {
-      await onSubmit(orderData);
+      orderResult = await onSubmit(orderData);
+      logger.log("Order created through onSubmit callback:", orderResult);
     }
     
     // Show success message
@@ -96,16 +99,29 @@ export async function processAutomaticPayment({
       duration: 5000,
     });
     
-    // Navigate to the success page
+    // Navigate to the success page with all relevant order data
     setTimeout(() => {
       navigate('/payment-success', { 
         state: { 
           paymentId,
           productName: formState.productName,
-          automatic: true 
+          automatic: true,
+          orderData: {
+            productId: formState.productId,
+            productName: formState.productName,
+            productPrice: formState.productPrice,
+            paymentMethod: 'CREDIT_CARD',
+            paymentStatus: resolvedStatus,
+            cardDetails: {
+              brand,
+              last4: cardData.cardNumber.replace(/\D/g, '').slice(-4)
+            },
+            customer: formState.personalInfo
+          },
+          order: orderResult
         } 
       });
-    }, 2000);
+    }, 1000);
     
     return { 
       success: true, 
