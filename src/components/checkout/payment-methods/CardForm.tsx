@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,8 +46,7 @@ const CardForm: React.FC<CardFormProps> = ({
 
   const { handleSubmit, formState: { errors, isValid } } = methods;
 
-  // Enhanced submit handler with logging
-  const enhancedSubmit = (data: CardFormData) => {
+  const enhancedSubmit = async (data: CardFormData) => {
     console.log("Card form submitted with data:", {
       cardName: data.cardName,
       cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : '',
@@ -58,20 +56,16 @@ const CardForm: React.FC<CardFormProps> = ({
       isFormValid: isValid
     });
     
-    // Call the onSubmit function passed from parent
-    onSubmit(data);
+    await onSubmit(data);
   };
 
-  // Get button styles from customization
   const buttonStyle = {
     backgroundColor: customization?.button_color || '#4caf50',
     color: customization?.button_text_color || '#ffffff'
   };
 
-  // Use custom button text from customization if available
   const displayButtonText = customization?.button_text || buttonText;
 
-  // Log component render
   console.log("CardForm rendering with state:", { 
     loading, isSubmitting, 
     hasErrors: Object.keys(errors).length > 0,
