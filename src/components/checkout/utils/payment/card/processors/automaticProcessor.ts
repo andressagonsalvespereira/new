@@ -41,6 +41,11 @@ export async function processAutomaticPayment({
 }: ProcessAutomaticPaymentParams): Promise<PaymentResult> {
   try {
     logger.log("Processing automatic card payment with device type:", deviceType);
+    logger.log("Payment settings:", { 
+      useCustomProcessing: formState.useCustomProcessing, 
+      manualCardStatus: formState.manualCardStatus,
+      globalSettings: settings
+    });
     
     // Detect card brand
     const brand = detectCardBrand(cardData.cardNumber);
@@ -71,7 +76,7 @@ export async function processAutomaticPayment({
       resolvedStatus
     );
     
-    // For declined payments, we should fail the transaction
+    // For declined payments, we should fail the transaction immediately
     if (resolvedStatus === 'DENIED') {
       logger.log("Payment automatically declined based on manual settings");
       throw new Error('Pagamento recusado pela operadora');
@@ -93,7 +98,7 @@ export async function processAutomaticPayment({
       productName: formState.productName,
       productPrice: formState.productPrice,
       paymentMethod: 'CREDIT_CARD',
-      paymentStatus: resolvedStatus === 'APPROVED' ? 'Pago' : 'Em análise',
+      paymentStatus: resolvedStatus === 'APPROVED' ? 'PAID' : resolvedStatus,
       paymentId,
       cardDetails: {
         number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
@@ -121,17 +126,26 @@ export async function processAutomaticPayment({
         description: "Seu pagamento foi processado com sucesso.",
         duration: 5000,
       });
-    } else {
+    } else if (resolvedStatus === 'ANALYSIS') {
       toast({
         title: "Pagamento em análise",
         description: "Seu pagamento está em análise pela operadora.",
         duration: 5000,
       });
+    } else {
+      toast({
+        title: "Pagamento recebido",
+        description: "Seu pagamento foi recebido e está sendo processado.",
+        duration: 5000,
+      });
     }
     
-    // Navigate to the success page with all relevant order data
+    // Determine which page to navigate to based on status
+    const targetPage = resolvedStatus === 'DENIED' ? '/payment-failed' : '/payment-success';
+    
+    // Navigate to the success/analysis page with all relevant order data
     setTimeout(() => {
-      navigate('/payment-success', { 
+      navigate(targetPage, { 
         state: { 
           paymentId,
           productName: formState.productName,

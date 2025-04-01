@@ -60,11 +60,11 @@ const PaymentSuccess = () => {
   }, [state, trackPurchase]);
   
   // Determine payment status checking multiple possible locations
-  // This handles different formats that might have been used when navigating here
   const paymentStatus = 
     state?.orderData?.paymentStatus || 
     state?.paymentStatus || 
-    (state?.orderData?.status === 'ANALYSIS' ? 'ANALYSIS' : 'CONFIRMED'); // Add support for direct status check
+    (state?.order?.paymentStatus) || 
+    'CONFIRMED';
   
   console.log("Detected payment status:", paymentStatus);
   
