@@ -51,7 +51,9 @@ export async function processAutomaticPayment({
       throw new Error(error || 'Falha no processamento do pagamento');
     }
     
-    setPaymentStatus('CONFIRMED');
+    // For automatic processing, we always confirm immediately
+    const resolvedStatus = 'CONFIRMED';
+    setPaymentStatus(resolvedStatus);
     
     // Format the data for creating the order
     const orderData = {

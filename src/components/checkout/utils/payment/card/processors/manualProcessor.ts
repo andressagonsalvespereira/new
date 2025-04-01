@@ -75,7 +75,8 @@ export async function processManualPayment({
     const logResult = logCardProcessingDecisions(
       formState.useCustomProcessing === true,
       formState.manualCardStatus,
-      settings.manualCardStatus
+      settings.manualCardStatus,
+      paymentStatus
     );
     
     // Log the final payment status to be used
