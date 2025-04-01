@@ -40,7 +40,9 @@ function App() {
               <PixelProvider>
                 <CheckoutCustomizationProvider>
                   <Routes>
-                    <Route path="/" element={<Index />} />
+                    {/* Redirect home page to checkout */}
+                    <Route path="/" element={<Navigate to="/checkout/test-product" replace />} />
+                    <Route path="/index" element={<Index />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/customers" element={<Customers />} />
                     

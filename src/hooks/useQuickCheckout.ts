@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +26,6 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
   const [isOrderSubmitted, setIsOrderSubmitted] = useState(false);
   
   useEffect(() => {
-    // If we already have a product from useProductCheckout, skip fetching
     if (preloadedProduct) {
       console.log('useQuickCheckout - Usando produto pré-carregado:', preloadedProduct);
       setProduct(preloadedProduct);
@@ -72,7 +70,6 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
     }
   }, [productId, getProductById, toast, preloadedProduct]);
   
-  // If preloadedProduct changes, update the state
   useEffect(() => {
     if (preloadedProduct) {
       setProduct(preloadedProduct);
@@ -145,9 +142,9 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
           brand: paymentData.brand || 'Desconhecida'
         } : undefined,
         pixDetails: paymentMethod === 'PIX' ? {
-          qrCodeBase64: paymentData.qrCodeBase64,
+          qrCode: paymentData.qrCodeBase64,
           pixKey: paymentData.pixKey,
-          pixCopyPaste: paymentData.pixCopyPaste
+          copyPaste: paymentData.pixCopyPaste
         } : undefined
       });
       
@@ -155,7 +152,6 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
       
       setIsOrderSubmitted(true);
       
-      // Track purchase event
       trackPurchase({
         value: product.preco,
         transactionId: `order-${newOrder.id}`,
