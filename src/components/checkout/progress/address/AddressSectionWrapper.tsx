@@ -1,10 +1,11 @@
 
 import React from 'react';
 import AddressSection from '@/components/checkout/AddressSection';
+import { ChangeEvent } from 'react';
 
 interface AddressSectionWrapperProps {
   cep: string;
-  handleCepChange: (cep: string) => void;
+  handleCepChange: (e: ChangeEvent<HTMLInputElement>) => void;
   street: string;
   setStreet: (street: string) => void;
   number: string;

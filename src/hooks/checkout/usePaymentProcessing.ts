@@ -81,7 +81,7 @@ export const usePaymentProcessing = (
         pixDetails: paymentMethod === 'PIX' ? {
           qrCode: paymentData.qrCodeBase64,
           qrCodeImage: paymentData.qrCodeImage,
-          copyPaste: paymentData.pixCopyPaste
+          expirationDate: paymentData.expirationDate
         } : undefined
       });
       
