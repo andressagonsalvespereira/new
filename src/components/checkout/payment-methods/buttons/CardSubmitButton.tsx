@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
@@ -17,28 +16,15 @@ const CardSubmitButton = ({
   buttonText, 
   buttonStyle 
 }: CardSubmitButtonProps) => {
-  // Local state for preventing multiple clicks
   const [wasClicked, setWasClicked] = useState(false);
-  
-  // Combined state to determine if button should be disabled
+
   const isDisabled = isLoading || isSubmitting || wasClicked;
 
-  // Debug logs to trace button states
   useEffect(() => {
-    console.log("CardSubmitButton render state:", { isLoading, isSubmitting, wasClicked, isDisabled });
-  }, [isLoading, isSubmitting, wasClicked, isDisabled]);
-
-  // Reset wasClicked when component unmounts or when isSubmitting changes to false
-  useEffect(() => {
-    console.log("Button state changed:", { isSubmitting, wasClicked });
-    
     if (!isSubmitting && wasClicked) {
-      // Delay to prevent immediate re-clicking
       const timeout = setTimeout(() => {
-        console.log("Resetting wasClicked state after timeout");
         setWasClicked(false);
       }, 2000);
-      
       return () => clearTimeout(timeout);
     }
   }, [isSubmitting, wasClicked]);
@@ -49,18 +35,7 @@ const CardSubmitButton = ({
       className="w-full" 
       disabled={isDisabled}
       style={buttonStyle}
-      onClick={() => {
-        console.log("Card payment button clicked", { isDisabled, wasClicked, isSubmitting, isLoading });
-        if (!isDisabled) {
-          console.log("Setting wasClicked to true");
-          setWasClicked(true);
-          // Removemos o handleButtonClick e apenas definimos o estado
-          // O botão sendo do tipo "submit" cuidará da submissão do formulário
-        }
-      }}
       data-submitting={isSubmitting ? "true" : "false"}
-      data-wasclicked={wasClicked ? "true" : "false"}
-      data-loading={isLoading ? "true" : "false"}
     >
       {isLoading || isSubmitting ? (
         <div className="w-full">
