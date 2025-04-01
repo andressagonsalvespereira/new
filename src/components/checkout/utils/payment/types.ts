@@ -33,3 +33,29 @@ export interface PaymentResult {
   timestamp: string;
   [key: string]: any;
 }
+
+// New interface for checkout form state
+export interface CheckoutFormState {
+  fullName: string;
+  email: string;
+  cpf: string;
+  phone: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  cep: string;
+  selectedShipping: string;
+  deliveryEstimate: string;
+  formErrors: Record<string, string>;
+}
+
+// New interface for product details in the checkout
+export interface ProductCheckoutDetails {
+  id: string;
+  name: string;
+  price: number;
+  isDigital: boolean;
+}

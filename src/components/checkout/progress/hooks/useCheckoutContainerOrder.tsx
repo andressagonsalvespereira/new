@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/contexts/OrderContext';
 import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus, Order } from '@/types/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
+import { CustomerData } from '@/components/checkout/utils/payment/types';
 
 interface UseCheckoutContainerOrderProps {
   formState: {
@@ -109,7 +110,7 @@ export const useCheckoutContainerOrder = ({
     }
   };
 
-  const customerData = {
+  const customerData: CustomerData = {
     name: formState.fullName,
     email: formState.email,
     cpf: formState.cpf,
