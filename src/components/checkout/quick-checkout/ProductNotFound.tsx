@@ -14,7 +14,12 @@ const ProductNotFound: React.FC<ProductNotFoundProps> = ({ slug }) => {
   const navigate = useNavigate();
   const { products, retryFetchProducts, isOffline } = useProducts();
   
+  console.log('ProductNotFound - Componente renderizado para slug:', slug);
+  console.log('ProductNotFound - Produtos disponíveis:', products?.length || 0);
+  console.log('ProductNotFound - Estado offline:', isOffline);
+  
   const handleRetryFetch = async () => {
+    console.log('ProductNotFound - Tentando buscar produtos novamente');
     await retryFetchProducts();
     // Tenta carregar a página novamente após atualizar os produtos
     window.location.reload();
@@ -71,6 +76,7 @@ const ProductNotFound: React.FC<ProductNotFoundProps> = ({ slug }) => {
             <li>O URL pode estar incorreto</li>
             <li>O produto pode ter sido excluído</li>
             <li>O produto pode ter sido renomeado, alterando seu link</li>
+            <li>Você está na rota admin/dashboard ao invés da rota quick-checkout/{slug}</li>
           </ul>
         </div>
         
@@ -99,6 +105,17 @@ const ProductNotFound: React.FC<ProductNotFoundProps> = ({ slug }) => {
             <Search className="h-4 w-4 mr-2" />
             Ver todos os produtos
           </Button>
+          
+          {slug && (
+            <Button 
+              onClick={() => navigate(`/quick-checkout/${slug}`)}
+              variant="outline"
+              className="w-full flex items-center justify-center"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Tentar acessar Quick Checkout
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
