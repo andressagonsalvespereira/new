@@ -113,7 +113,11 @@ const QuickCheckout = () => {
               paymentMethod={paymentMethod === 'CREDIT_CARD' ? 'card' : 'pix'} 
               setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX')} 
               productDetails={productDetails}
-              handlePayment={(paymentData) => handlePaymentSubmit(paymentData || {})} 
+              handlePayment={() => {
+                // Wrap the Promise in a function that doesn't return anything
+                handlePaymentSubmit({});
+                // This function returns void, not Promise<void>
+              }} 
               isProcessing={false} 
             />
           </CardContent>
