@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Contexts
@@ -39,12 +38,13 @@ function App() {
               <PixelProvider>
                 <CheckoutCustomizationProvider>
                   <Routes>
-                    {/* Redirect home page to checkout */}
-                    <Route path="/" element={<Navigate to="/checkout" replace />} />
+                    {/* Redirecionar página raiz para login admin (pode alterar para landing depois) */}
+                    <Route path="/" element={<Navigate to="/admin/login" replace />} />
+
                     <Route path="/index" element={<Index />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/customers" element={<Customers />} />
-                    
+
                     {/* Admin Routes */}
                     <Route path="/admin/login" element={<Login />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -53,24 +53,23 @@ function App() {
                     <Route path="/admin/settings/payment" element={<PaymentSettings />} />
                     <Route path="/admin/pixel-settings" element={<PixelSettings />} />
                     <Route path="/admin/checkout-customization" element={<CheckoutCustomization />} />
-                    {/* Redirect old Asaas settings page to the new consolidated payment settings */}
-                    <Route path="/admin/asaas-settings" element={<Navigate to="/admin/settings/payment" replace />} />
-                    {/* Redirect payment process page to payment settings */}
-                    <Route path="/admin/payments" element={<Navigate to="/admin/settings/payment" replace />} />
-                    {/* Redirect any old references to the removed payments page */}
-                    <Route path="/payments" element={<Navigate to="/admin/settings/payment" replace />} />
                     
-                    {/* Checkout Routes - Simplificado para um único caminho principal */}
+                    {/* Redirecionamentos antigos */}
+                    <Route path="/admin/asaas-settings" element={<Navigate to="/admin/settings/payment" replace />} />
+                    <Route path="/admin/payments" element={<Navigate to="/admin/settings/payment" replace />} />
+                    <Route path="/payments" element={<Navigate to="/admin/settings/payment" replace />} />
+
+                    {/* Checkout Routes */}
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/checkout/:productSlug" element={<Checkout />} />
                     <Route path="/payment-failed" element={<PaymentFailed />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/pix-payment-manual" element={<PixPaymentManual />} />
-                    
-                    {/* Redirecionar o quick-checkout para o checkout principal */}
+
+                    {/* Redirecionamento de rota antiga */}
                     <Route path="/quick-checkout/:productId" element={<Navigate to="/checkout" replace />} />
-                    
-                    {/* Catch all */}
+
+                    {/* Rota de fallback */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Toaster />
