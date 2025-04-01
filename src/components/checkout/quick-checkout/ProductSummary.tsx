@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { formatCurrency } from '@/utils/formatters';
 import { Product } from '@/types/product';
 
 interface ProductSummaryProps {
@@ -7,18 +8,35 @@ interface ProductSummaryProps {
 }
 
 const ProductSummary: React.FC<ProductSummaryProps> = ({ product }) => {
-  const nome = product.nome || '';
-  const descricao = product.descricao || '';
-  const preco = product.preco || 0;
-  
+  // Format price as currency
+  const formattedPrice = typeof product.preco === 'number' 
+    ? formatCurrency(product.preco) 
+    : 'Preço indisponível';
+
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-4">
+    <div className="flex items-start space-x-4 mb-6 p-4 bg-gray-50 rounded-lg">
+      {product.urlImagem && (
+        <div className="flex-shrink-0">
+          <img 
+            src={product.urlImagem} 
+            alt={product.nome} 
+            className="w-16 h-16 object-cover rounded-md"
+          />
+        </div>
+      )}
+      
       <div className="flex-1">
-        <h3 className="font-semibold mb-2">{nome}</h3>
-        <p className="text-sm text-gray-600">{descricao}</p>
-      </div>
-      <div className="text-right font-bold text-lg">
-        R$ {typeof preco === 'number' ? preco.toFixed(2) : '0.00'}
+        <h3 className="font-medium text-lg">{product.nome}</h3>
+        <p className="text-gray-600 text-sm mb-1">{product.descricao}</p>
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-lg">{formattedPrice}</span>
+          
+          {product.digital && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              Produto Digital
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

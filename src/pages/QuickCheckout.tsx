@@ -16,6 +16,7 @@ import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFoun
 import { useProductCheckout } from '@/hooks/useProductCheckout';
 import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
+import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 
 const QuickCheckout = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -83,6 +84,40 @@ const QuickCheckout = () => {
     return (
       <CheckoutContainer>
         <ProductNotFound slug={productId} />
+      </CheckoutContainer>
+    );
+  }
+  
+  // Prepare product details for checkout progress component
+  const productDetails = {
+    id: product.id,
+    name: product.nome,
+    price: product.preco,
+    imageUrl: product.urlImagem,
+    description: product.descricao,
+    isDigital: product.digital
+  };
+  
+  // Use CheckoutProgress component if requested in URL parameter
+  const useFullCheckout = new URLSearchParams(location.search).get('fullCheckout') === 'true';
+  
+  if (useFullCheckout) {
+    return (
+      <CheckoutContainer>
+        <Card className="mb-6 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle>Checkout Completo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CheckoutProgress 
+              paymentMethod={paymentMethod === 'CREDIT_CARD' ? 'card' : 'pix'} 
+              setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX')} 
+              productDetails={productDetails}
+              handlePayment={() => {}} 
+              isProcessing={false} 
+            />
+          </CardContent>
+        </Card>
       </CheckoutContainer>
     );
   }
