@@ -89,9 +89,12 @@ export const useProductOperations = ({
   // Obter um produto pelo ID
   const getProductById = useCallback(async (id: string): Promise<Product | undefined> => {
     try {
+      console.log('getProductById chamado com ID:', id);
+      
       // Primeiro, verificar se já temos o produto em cache
       const cachedProduct = products.find(p => p.id === id);
       if (cachedProduct) {
+        console.log('Produto encontrado em cache por ID:', cachedProduct);
         return cachedProduct;
       }
       
@@ -102,7 +105,10 @@ export const useProductOperations = ({
       }
       
       // Buscar do servidor
+      console.log('Buscando produto do servidor pelo ID:', id);
       const product = await obterProdutoPorIdAPI(id);
+      console.log('Resposta do servidor para busca por ID:', product);
+      
       return product;
     } catch (error) {
       console.error('Erro ao obter produto por ID:', error);
@@ -113,12 +119,12 @@ export const useProductOperations = ({
   // Obter um produto pelo slug
   const getProductBySlug = useCallback(async (slug: string): Promise<Product | undefined> => {
     try {
-      console.log('Procurando produto pelo slug:', slug);
+      console.log('getProductBySlug chamado com slug:', slug);
       
       // Primeiro, verificar se já temos o produto em cache
       const cachedProduct = products.find(p => p.slug === slug);
       if (cachedProduct) {
-        console.log('Produto encontrado no cache:', cachedProduct);
+        console.log('Produto encontrado no cache pelo slug exato:', cachedProduct);
         return cachedProduct;
       }
       
@@ -133,12 +139,24 @@ export const useProductOperations = ({
       const product = await obterProdutoPorSlugAPI(slug);
       console.log('Resposta do servidor para busca por slug:', product);
       
+      if (product) {
+        // Adicionar ao cache para futuras consultas
+        setProducts(prevProducts => {
+          // Verificar se o produto já existe no cache
+          const exists = prevProducts.some(p => p.id === product.id);
+          if (!exists) {
+            return [...prevProducts, product];
+          }
+          return prevProducts;
+        });
+      }
+      
       return product;
     } catch (error) {
       console.error('Erro ao obter produto por slug:', error);
       return undefined;
     }
-  }, [products, isOffline]);
+  }, [products, isOffline, setProducts]);
   
   return {
     addProduct,

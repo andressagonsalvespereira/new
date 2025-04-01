@@ -14,10 +14,15 @@ import OrderSuccessMessage from '@/components/checkout/quick-checkout/OrderSucce
 import ProductSummary from '@/components/checkout/quick-checkout/ProductSummary';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
 import { useProductCheckout } from '@/hooks/useProductCheckout';
+import { useProducts } from '@/contexts/ProductContext';
 
 const QuickCheckout = () => {
   const { productId } = useParams<{ productId: string }>();
   const { settings } = useAsaas();
+  const { products } = useProducts();
+  
+  console.log(`QuickCheckout - Iniciando com productId: ${productId}`);
+  console.log('QuickCheckout - Produtos disponíveis:', products);
   
   // Using useProductCheckout for improved slug-based product fetching
   const {
@@ -27,8 +32,10 @@ const QuickCheckout = () => {
   } = useProductCheckout(productId);
   
   useEffect(() => {
-    console.log('QuickCheckout - Product loaded:', product);
-  }, [product]);
+    console.log('QuickCheckout - Status do carregamento:', loading);
+    console.log('QuickCheckout - Produto encontrado:', product);
+    console.log('QuickCheckout - Produto não encontrado:', productNotFound);
+  }, [product, loading, productNotFound]);
   
   const {
     paymentMethod,
@@ -39,11 +46,6 @@ const QuickCheckout = () => {
     handleSubmitCustomerInfo,
     handlePaymentSubmit
   } = useQuickCheckout(productId, product);
-  
-  console.log("QuickCheckout rendering with product ID:", productId);
-  console.log("Product data:", product);
-  console.log("Loading state:", loading);
-  console.log("Product not found state:", productNotFound);
   
   if (loading) {
     return (

@@ -129,22 +129,38 @@ export const removerProdutoAPI = async (id: string): Promise<void> => {
 
 // Obter produto por ID do Supabase
 export const obterProdutoPorIdAPI = async (id: string): Promise<Product | undefined> => {
+  console.log(`API: obterProdutoPorIdAPI chamado com ID ${id}`);
+  
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('id', parseInt(id)) // Converter string id para número
     .maybeSingle();
   
-  if (error) throw error;
-  if (!data) return undefined;
+  if (error) {
+    console.error('API: Erro ao buscar produto por ID:', error);
+    throw error;
+  }
+  
+  console.log('API: Resposta raw do Supabase para busca por ID:', data);
+  
+  if (!data) {
+    console.log(`API: Nenhum produto encontrado com ID ${id}`);
+    return undefined;
+  }
   
   // Converter para o tipo de Produto
-  return mapDbToProduct(data as unknown as LinhaSupabaseProduto);
+  const produto = mapDbToProduct(data as unknown as LinhaSupabaseProduto);
+  console.log('API: Produto convertido:', produto);
+  return produto;
 };
 
 // Obter produto por slug do Supabase
 export const obterProdutoPorSlugAPI = async (slug: string): Promise<Product | undefined> => {
-  console.log('Buscando produto no Supabase por slug:', slug);
+  console.log('API: obterProdutoPorSlugAPI chamado com slug:', slug);
+  
+  // Log da query SQL que será executada (apenas para debug)
+  console.log(`API: Executando consulta "SELECT * FROM products WHERE slug = '${slug}'"`);
   
   const { data, error } = await supabase
     .from('products')
@@ -153,17 +169,42 @@ export const obterProdutoPorSlugAPI = async (slug: string): Promise<Product | un
     .maybeSingle();
   
   if (error) {
-    console.error('Erro ao buscar produto por slug:', error);
+    console.error('API: Erro ao buscar produto por slug:', error);
     throw error;
   }
   
-  console.log('Resposta do Supabase para slug', slug, ':', data);
+  console.log('API: Resposta raw do Supabase para busca por slug:', data);
   
   if (!data) {
-    console.log('Nenhum produto encontrado com o slug:', slug);
-    return undefined;
+    console.log(`API: Nenhum produto encontrado com slug "${slug}"`);
+    
+    // Tentar buscar com uma consulta mais flexível, usando ilike para correspondência parcial
+    console.log(`API: Tentando busca parcial com "SELECT * FROM products WHERE slug ILIKE '%${slug}%'"`);
+    
+    const { data: partialMatchData, error: partialMatchError } = await supabase
+      .from('products')
+      .select('*')
+      .ilike('slug', `%${slug}%`)
+      .limit(1);
+    
+    if (partialMatchError) {
+      console.error('API: Erro na busca parcial:', partialMatchError);
+      return undefined;
+    }
+    
+    console.log('API: Resultado da busca parcial:', partialMatchData);
+    
+    if (!partialMatchData || partialMatchData.length === 0) {
+      return undefined;
+    }
+    
+    const produto = mapDbToProduct(partialMatchData[0] as unknown as LinhaSupabaseProduto);
+    console.log('API: Produto encontrado via busca parcial:', produto);
+    return produto;
   }
   
   // Converter para o tipo de Produto
-  return mapDbToProduct(data as unknown as LinhaSupabaseProduto);
+  const produto = mapDbToProduct(data as unknown as LinhaSupabaseProduto);
+  console.log('API: Produto convertido:', produto);
+  return produto;
 };
