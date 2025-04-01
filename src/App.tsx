@@ -61,9 +61,7 @@ function App() {
                     
                     {/* Checkout Routes */}
                     <Route path="/checkout/:productSlug" element={<Checkout />} />
-                    {/* Both ID-based and slug-based routes for QuickCheckout */}
                     <Route path="/quick-checkout/:productId" element={<QuickCheckout />} />
-                    <Route path="/checkout/:productId" element={<QuickCheckout />} />
                     <Route path="/payment-failed" element={<PaymentFailed />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/pix-payment-manual" element={<PixPaymentManual />} />
