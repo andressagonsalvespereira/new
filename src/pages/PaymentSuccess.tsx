@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,9 +13,16 @@ const PaymentSuccess = () => {
   const { state } = location;
   const { trackPurchase } = usePixel();
 
-  console.log("PaymentSuccess - Estado recebido:", state);
+  console.log("PaymentSuccess - State received:", state);
 
-  // Added dummy purchase event data for when state is missing
+  // Log mount
+  useEffect(() => {
+    console.log("PaymentSuccess component mounted");
+    console.log("State data available:", !!state);
+    console.log("Full state:", state);
+  }, [state]);
+
+  // Default purchase data for when state is missing
   const defaultPurchaseData = {
     value: 0,
     transactionId: `success-${Date.now()}`,
@@ -28,8 +35,14 @@ const PaymentSuccess = () => {
   };
 
   // Track successful purchase
-  React.useEffect(() => {
+  useEffect(() => {
     if (state?.orderData?.productPrice) {
+      console.log("Tracking purchase event with data:", {
+        price: state.orderData.productPrice,
+        productId: state.orderData.productId || "unknown",
+        productName: state.orderData.productName || "Unknown product"
+      });
+      
       trackPurchase({
         value: state.orderData.productPrice,
         transactionId: `success-${Date.now()}`,
@@ -41,17 +54,26 @@ const PaymentSuccess = () => {
         }]
       });
     } else {
+      console.log("No product data available, using default purchase data");
       trackPurchase(defaultPurchaseData);
     }
   }, [state, trackPurchase]);
   
-  // Determinar o status de pagamento
-  const paymentStatus = state?.orderData?.paymentStatus || 'CONFIRMED';
-  const isAnalysis = paymentStatus === 'PENDING' || paymentStatus === 'ANALYSIS';
+  // Determine payment status
+  // Checking multiple possible locations for the status to ensure backward compatibility
+  const paymentStatus = 
+    state?.orderData?.paymentStatus || 
+    state?.paymentStatus || 
+    'CONFIRMED';
   
-  console.log("Estado do pagamento:", paymentStatus, "isAnalysis:", isAnalysis);
+  const isAnalysis = 
+    paymentStatus === 'PENDING' || 
+    paymentStatus === 'ANALYSIS' || 
+    paymentStatus === 'Aguardando';
   
-  // Se estiver no PaymentSuccess com status "em análise", mostrar informações específicas
+  console.log("Payment status:", paymentStatus, "isAnalysis:", isAnalysis);
+  
+  // If status is "in analysis", show specific information
   if (isAnalysis) {
     return (
       <CheckoutContainer>
@@ -99,7 +121,7 @@ const PaymentSuccess = () => {
     );
   }
 
-  // Exibir página de sucesso normal (pagamento aprovado)
+  // Display normal success page (approved payment)
   return (
     <CheckoutContainer>
       <Card className="border-green-200 bg-green-50 shadow-sm">

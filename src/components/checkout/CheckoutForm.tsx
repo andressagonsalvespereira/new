@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,7 +13,7 @@ import { processCardPayment } from './utils/payment/card/cardProcessor';
 import { AsaasSettings } from '@/types/asaas';
 
 interface CheckoutFormProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
   useCustomProcessing?: boolean;
@@ -34,6 +34,17 @@ const CheckoutForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  
+  // Log component mount and props for debugging
+  useEffect(() => {
+    console.log("CheckoutForm mounted with props:", {
+      isSandbox,
+      isDigitalProduct,
+      useCustomProcessing,
+      manualCardStatus
+    });
+    console.log("Asaas settings:", settings);
+  }, [isSandbox, isDigitalProduct, useCustomProcessing, manualCardStatus, settings]);
 
   // Default settings if none are provided
   const defaultSettings: AsaasSettings = {
@@ -61,8 +72,18 @@ const CheckoutForm = ({
         productManualCardStatus: manualCardStatus
       });
     console.log("Is digital product:", isDigitalProduct);
+    console.log("Card data received:", {
+      cardName: cardData.cardName,
+      cardNumber: cardData.cardNumber ? `****${cardData.cardNumber.slice(-4)}` : '',
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear,
+      cvv: '***'
+    });
     
     try {
+      // Explicitly set isSubmitting to true
+      setIsSubmitting(true);
+      
       // Process payment with card using the utility with object parameter
       await processCardPayment({
         cardData,
@@ -84,10 +105,20 @@ const CheckoutForm = ({
         toast,
         isDigitalProduct
       });
+      
+      console.log("Payment processing completed");
     } catch (error) {
       console.error("Error in handleCardFormSubmit:", error);
       setError('Falha ao processar o pagamento. Por favor, tente novamente.');
       setIsSubmitting(false);
+      
+      // Show error toast
+      toast({
+        title: "Erro no processamento",
+        description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
     }
   };
 

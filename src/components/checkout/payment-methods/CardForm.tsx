@@ -45,7 +45,21 @@ const CardForm: React.FC<CardFormProps> = ({
     mode: 'onBlur'
   });
 
-  const { handleSubmit, watch, formState: { errors } } = methods;
+  const { handleSubmit, formState: { errors } } = methods;
+
+  // Enhanced submit handler with logging
+  const enhancedSubmit = (data: CardFormData) => {
+    console.log("Card form submitted with data:", {
+      cardName: data.cardName,
+      cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : '',
+      expiryMonth: data.expiryMonth,
+      expiryYear: data.expiryYear,
+      cvv: '***'
+    });
+    
+    // Call the onSubmit function passed from parent
+    onSubmit(data);
+  };
 
   // Get button styles from customization
   const buttonStyle = {
@@ -58,7 +72,7 @@ const CardForm: React.FC<CardFormProps> = ({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(enhancedSubmit)} className="space-y-4">
         <CardNameField 
           disabled={loading || isSubmitting}
           error={errors.cardName?.message}

@@ -17,16 +17,16 @@ const CardSubmitButton = ({
   buttonText, 
   buttonStyle 
 }: CardSubmitButtonProps) => {
-  // Adicionar estado local para evitar cliques múltiplos
+  // Local state for preventing multiple clicks
   const [wasClicked, setWasClicked] = useState(false);
   
-  // Combina os estados para determinar se o botão deve estar desabilitado
+  // Combined state to determine if button should be disabled
   const isDisabled = isLoading || isSubmitting || wasClicked;
 
-  // Reset wasClicked quando o componente é desmontado ou quando isSubmitting muda para false
+  // Reset wasClicked when component unmounts or when isSubmitting changes to false
   useEffect(() => {
     if (!isSubmitting && wasClicked) {
-      // Atraso para evitar que o usuário clique novamente imediatamente
+      // Delay to prevent immediate re-clicking
       const timeout = setTimeout(() => {
         setWasClicked(false);
       }, 2000);
@@ -35,10 +35,10 @@ const CardSubmitButton = ({
     }
   }, [isSubmitting, wasClicked]);
 
-  // Função para lidar com o clique e prevenir múltiplos cliques
+  // Function to handle button click and prevent multiple submissions
   const handleButtonClick = () => {
     if (!isDisabled) {
-      console.log("Botão de pagamento com cartão clicado");
+      console.log("Card payment button clicked - submitting form");
       setWasClicked(true);
     }
   };
