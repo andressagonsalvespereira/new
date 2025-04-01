@@ -78,15 +78,13 @@ const CardForm: React.FC<CardFormProps> = ({
     isValid 
   });
 
-  const handleFormSubmit = handleSubmit(enhancedSubmit);
-
   return (
     <FormProvider {...methods}>
       <form 
-        onSubmit={(e) => {
-          console.log("Form onSubmit triggered");
-          handleFormSubmit(e);
-        }}
+        onSubmit={handleSubmit((data) => {
+          console.log("Form onSubmit triggered with valid data");
+          enhancedSubmit(data);
+        })}
         className="space-y-4"
       >
         <CardNameField 

@@ -1,4 +1,3 @@
-
 import { CardFormData } from '../../../payment-methods/CardForm';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -69,10 +68,7 @@ export const processCardPayment = async ({
         },
         settings: props.settings,
         isSandbox: props.isSandbox,
-        onSubmit: async (data) => {
-          // Ensure this returns a Promise
-          return await Promise.resolve(props.onSubmit(data));
-        },
+        onSubmit: props.onSubmit,
         setError,
         setPaymentStatus,
         setIsSubmitting,
