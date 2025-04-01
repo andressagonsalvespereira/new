@@ -5,7 +5,7 @@ import { useOrders } from '@/contexts/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { validateCustomerData } from '../utils/customerValidation';
-import { createOrderService } from './orderCreationService';
+import { createOrderService } from './services/orderCreationService';
 import { UseCheckoutContainerOrderProps } from '../types/checkoutOrderTypes';
 import { Order, CardDetails, PixDetails } from '@/types/order';
 import { logger } from '@/utils/logger';

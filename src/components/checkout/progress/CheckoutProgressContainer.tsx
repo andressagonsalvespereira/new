@@ -7,7 +7,7 @@ import PersonalInfoWrapper from './personal/PersonalInfoWrapper';
 import AddressSectionWrapper from './address/AddressSectionWrapper';
 import PaymentMethodWrapper from './payment/PaymentMethodWrapper';
 import OrderSummaryWrapper from './order/OrderSummaryWrapper';
-import { useCheckoutContainerOrder } from './hooks/useCheckoutContainerOrder';
+import { useCheckoutContainerOrder } from './hooks/services/useCheckoutContainerOrder';
 
 interface CheckoutProgressContainerProps {
   paymentMethod: 'card' | 'pix';
