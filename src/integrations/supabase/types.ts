@@ -81,6 +81,7 @@ export type Database = {
         Row: {
           banner_image_url: string | null
           button_color: string | null
+          button_text: string | null
           button_text_color: string | null
           created_at: string | null
           header_message: string | null
@@ -92,6 +93,7 @@ export type Database = {
         Insert: {
           banner_image_url?: string | null
           button_color?: string | null
+          button_text?: string | null
           button_text_color?: string | null
           created_at?: string | null
           header_message?: string | null
@@ -103,6 +105,7 @@ export type Database = {
         Update: {
           banner_image_url?: string | null
           button_color?: string | null
+          button_text?: string | null
           button_text_color?: string | null
           created_at?: string | null
           header_message?: string | null
