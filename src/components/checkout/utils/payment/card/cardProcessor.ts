@@ -86,7 +86,7 @@ export const processCardPayment = async ({
     // Return a valid PaymentResult object in case of error
     return {
       success: false,
-      method: 'card', // Make sure it's the literal 'card'
+      method: 'card' as const, // Make sure it's the literal 'card'
       error: error instanceof Error ? error.message : 'Unknown error',
       status: 'FAILED',
       timestamp: new Date().toISOString()

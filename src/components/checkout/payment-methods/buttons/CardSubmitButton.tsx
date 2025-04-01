@@ -23,6 +23,11 @@ const CardSubmitButton = ({
   // Combined state to determine if button should be disabled
   const isDisabled = isLoading || isSubmitting || wasClicked;
 
+  // Debug logs to trace button states
+  useEffect(() => {
+    console.log("CardSubmitButton render state:", { isLoading, isSubmitting, wasClicked, isDisabled });
+  }, [isLoading, isSubmitting, wasClicked, isDisabled]);
+
   // Reset wasClicked when component unmounts or when isSubmitting changes to false
   useEffect(() => {
     console.log("Button state changed:", { isSubmitting, wasClicked });
@@ -40,7 +45,7 @@ const CardSubmitButton = ({
 
   // Function to handle button click and prevent multiple submissions
   const handleButtonClick = (e: React.MouseEvent) => {
-    console.log("Card payment button clicked", { isDisabled });
+    console.log("Card payment button clicked", { isDisabled, wasClicked, isSubmitting, isLoading });
     
     if (!isDisabled) {
       console.log("Card payment button click being processed - submitting form");
@@ -60,6 +65,7 @@ const CardSubmitButton = ({
       onClick={handleButtonClick}
       data-submitting={isSubmitting ? "true" : "false"}
       data-wasclicked={wasClicked ? "true" : "false"}
+      data-loading={isLoading ? "true" : "false"}
     >
       {isLoading || isSubmitting ? (
         <div className="w-full">

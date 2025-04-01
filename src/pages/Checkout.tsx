@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useAsaas } from '@/contexts/AsaasContext';
 import { useOrders } from '@/contexts/OrderContext';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
-import CheckoutProgress from '@/components/checkout/CheckoutProgress';
+import CheckoutProgressContainer from '@/components/checkout/progress/CheckoutProgressContainer';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
 import { PaymentMethod, PaymentStatus } from '@/types/order';
 
@@ -181,7 +182,7 @@ const Checkout: React.FC = () => {
           <CardTitle>Finalizar Compra</CardTitle>
         </CardHeader>
         <CardContent>
-          <CheckoutProgress 
+          <CheckoutProgressContainer 
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             productDetails={productDetails}
