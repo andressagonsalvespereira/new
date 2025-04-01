@@ -102,7 +102,7 @@ export const detectCardBrand = (cardNumber: string): string => {
   if (/^3[47]/.test(cleanNumber)) return 'American Express';
   if (/^6(?:011|5)/.test(cleanNumber)) return 'Discover';
   if (/^(?:2131|1800|35\d{3})/.test(cleanNumber)) return 'JCB';
-  if (/^3(?:0[0-5]|[68])/.test(cleanNumber)) return 'Diners Club';
+  if (/^(?:30[0-5]|[68])/.test(cleanNumber)) return 'Diners Club';
   if (/^(?:5[0678]\d\d|6304|6390|67\d\d)/.test(cleanNumber)) return 'Maestro';
   if (/^(606282\d{10}(\d{3})?)|(3841\d{15})/.test(cleanNumber)) return 'Hipercard';
   if (/^(4011(78|79)|43(1274|8935)|45(1416|7393|763(1|2))|50(4175|6699|67([0-6][0-9]|7[0-8])|9[0-8][0-9]{2})|627780|63(6297|6368)|650(03([^4])|04([0-9])|05(0|1)|4(0[5-9]|3[0-9]|8[5-9]|9[0-9])|5([0-2][0-9]|3[0-8])|9([2-6][0-9]|7[0-8])|541|700|720|901)|651652|655000|655021)/.test(cleanNumber)) return 'Elo';

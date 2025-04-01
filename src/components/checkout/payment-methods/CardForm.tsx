@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +19,7 @@ export interface CardFormData {
 }
 
 export interface CardFormProps {
-  onSubmit: (data: CardFormData) => void;
+  onSubmit: (data: CardFormData) => Promise<any> | any;
   isSubmitting?: boolean;
   buttonText?: string;
   loading?: boolean;

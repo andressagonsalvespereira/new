@@ -5,7 +5,7 @@ export interface PaymentProcessorProps {
   formState: any;
   settings: AsaasSettings;
   isSandbox: boolean;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => Promise<any> | any;
 }
 
 export interface CustomerData {
