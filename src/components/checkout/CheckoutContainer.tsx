@@ -51,10 +51,14 @@ const CheckoutContainer: React.FC<CheckoutContainerProps> = ({ children }) => {
 
         if (data) {
           console.log("Checkout customization loaded:", data);
-          setCustomization({
-            ...data,
+          // Ensure all required fields have values, falling back to defaults if needed
+          const safeData: CheckoutCustomization = {
+            button_color: data.button_color || '#3b82f6',
+            button_text_color: data.button_text_color || '#ffffff',
             button_text: data.button_text || 'Finalizar Pagamento'
-          });
+          };
+          
+          setCustomization(safeData);
         }
         
         setIsCustomizationLoaded(true);
