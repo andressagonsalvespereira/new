@@ -9,10 +9,11 @@ import { useAsaas } from '@/contexts/AsaasContext';
 import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
-import { processCardPayment } from './utils/payment/card/cardProcessor';
+import { processCardPayment } from './payment/card/cardProcessor';
 import { useCardPaymentStatus } from '@/hooks/payment/useCardPaymentStatus';
 import { PaymentResult } from './payment/shared/types';
 import { logger } from '@/utils/logger';
+import { AsaasSettings } from '@/types/asaas';
 
 interface CheckoutFormProps {
   onSubmit: (data: PaymentResult) => Promise<any>;
@@ -73,6 +74,21 @@ const CheckoutForm = ({
     try {
       setIsSubmitting(true);
       
+      const defaultSettings: AsaasSettings = {
+        isEnabled: false,
+        apiKey: '',
+        allowCreditCard: true,
+        allowPix: true,
+        manualCreditCard: false,
+        sandboxMode: true,
+        sandboxApiKey: '',
+        productionApiKey: '',
+        manualCardProcessing: false,
+        manualPixPage: false,
+        manualPaymentConfig: false,
+        manualCardStatus: 'ANALYSIS'
+      };
+      
       await processCardPayment({
         cardData,
         props: { 
@@ -82,13 +98,7 @@ const CheckoutForm = ({
             useCustomProcessing,
             manualCardStatus 
           }, 
-          settings: settings || {
-            manualCardProcessing: false,
-            manualCardStatus: 'ANALYSIS',
-            allowCreditCard: true,
-            allowPix: true,
-            sandboxMode: true
-          }, 
+          settings: settings || defaultSettings, 
           isSandbox, 
           onSubmit 
         },

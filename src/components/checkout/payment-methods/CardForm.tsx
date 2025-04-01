@@ -16,6 +16,7 @@ export interface CardFormData {
   expiryMonth: string;
   expiryYear: string;
   cvv: string;
+  holderName?: string; // Adicionado para compatibilidade
 }
 
 export interface CardFormProps {

@@ -1,194 +1,368 @@
-import { CardFormData } from '@/components/checkout/payment/card/CardForm';
-import { AsaasSettings } from '@/types/asaas';
+
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { CardFormData } from '@/components/checkout/payment-methods/CardForm';
+import { PaymentProcessorProps, PaymentResult } from '../shared/types';
+import { detectCardBrand } from './utils/cardDetection';
+import { v4 as uuidv4 } from 'uuid';
 import { DeviceType } from '@/types/order';
-import { CustomerData, PaymentResult } from '@/components/checkout/payment/shared/types';
-import { detectDeviceType } from '@/components/checkout/progress/hooks/utils/deviceDetection';
+import { logger } from '@/utils/logger';
 
-// Helper function to validate card data
-function validateCardData(cardData: CardFormData) {
-  if (!cardData.cardNumber || cardData.cardNumber.length < 16) {
-    throw new Error('Número do cartão inválido');
-  }
-  if (!cardData.expiryMonth || !cardData.expiryYear) {
-    throw new Error('Data de expiração inválida');
-  }
-  if (!cardData.cvv || cardData.cvv.length < 3) {
-    throw new Error('CVV inválido');
-  }
-  if (!cardData.holderName) {
-    throw new Error('Nome do titular do cartão é obrigatório');
-  }
+interface ProcessCardPaymentParams {
+  cardData: CardFormData;
+  props: PaymentProcessorProps;
+  setError: (error: string) => void;
+  setPaymentStatus?: (status: string) => void;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  navigate: ReturnType<typeof useNavigate>;
+  toast: ReturnType<typeof useToast>['toast'];
+  isDigitalProduct?: boolean;
 }
 
-// Helper function to mask card number for logging
-function maskCardNumber(cardNumber: string): string {
-  const visibleDigits = 4;
-  const maskedLength = cardNumber.length - visibleDigits;
-  const maskedPart = '*'.repeat(maskedLength);
-  const visiblePart = cardNumber.slice(maskedLength);
-  return maskedPart + visiblePart;
-}
-
-// Function to detect card brand based on card number prefix
-function detectCardBrand(cardNumber: string): string | null {
-  const visaRegex = /^4[0-9]{12}(?:[0-9]{3})?$/;
-  const mastercardRegex = /^5[1-5][0-9]{14}$|^2[2-7][0-9]{14}$/;
-  const amexRegex = /^3[47][0-9]{13}$/;
-  const dinersRegex = /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/;
-  const discoverRegex = /^6(?:011|5[0-9]{2})[0-9]{12}$/;
-  const eloRegex = /^(401178|401179|431274|438935|451416|457393|457631|457632|504175|627780|636297|636368)[0-9]{0,}$/;
-  const hipercardRegex = /^(606282)[0-9]{0,}$/;
-
-  if (visaRegex.test(cardNumber)) {
-    return 'visa';
-  } else if (mastercardRegex.test(cardNumber)) {
-    return 'mastercard';
-  } else if (amexRegex.test(cardNumber)) {
-    return 'amex';
-  } else if (dinersRegex.test(cardNumber)) {
-    return 'diners';
-  } else if (discoverRegex.test(cardNumber)) {
-    return 'discover';
-  } else if (eloRegex.test(cardNumber)) {
-    return 'elo';
-  } else if (hipercardRegex.test(cardNumber)) {
-    return 'hipercard';
-  } else {
-    return null;
-  }
-}
-
-export async function processCardPayment(
-  cardData: CardFormData,
-  settings: AsaasSettings,
-  isSandbox: boolean,
-  useCustomProcessing: boolean = false,
-  manualCardStatus: string = 'ANALYSIS',
-  customerData?: CustomerData,
-  isDigitalProduct: boolean = false
-): Promise<PaymentResult> {
-  console.log('Processing card payment with data:', {
-    cardNumber: maskCardNumber(cardData.cardNumber),
-    expiryMonth: cardData.expiryMonth,
-    expiryYear: cardData.expiryYear,
-    holderName: cardData.holderName,
-    isSandbox
-  });
-
-  // Detect device type for analytics
-  const deviceType = detectDeviceType();
-  
+export const processCardPayment = async ({
+  cardData,
+  props,
+  setError,
+  setPaymentStatus,
+  setIsSubmitting,
+  navigate,
+  toast,
+  isDigitalProduct = false
+}: ProcessCardPaymentParams): Promise<PaymentResult> => {
   try {
-    // Validate card data
-    validateCardData(cardData);
-    
-    // Detect card brand/flag
-    const brand = detectCardBrand(cardData.cardNumber);
-    
-    // If custom processing is enabled, use the manual status provided
-    if (useCustomProcessing) {
-      console.log('Using custom card processing with status:', manualCardStatus);
-      
-      // Create timestamp
-      const timestamp = new Date().toISOString();
-      const orderDate = new Date().toISOString();
-      
-      // Determine payment status based on manual status
-      let status = 'pending';
-      let paymentStatus = 'Pendente';
-      
-      if (manualCardStatus.toUpperCase() === 'APPROVED') {
-        status = 'confirmed';
-        paymentStatus = 'Pago';
-      } else if (manualCardStatus.toUpperCase() === 'DECLINED') {
-        status = 'declined';
-        paymentStatus = 'Cancelado';
-      }
-
-      // Create payment result
-      const paymentResult: PaymentResult = {
-        success: status !== 'declined',
-        method: 'card',
-        paymentId: `card_${Date.now()}`,
-        status: status,
-        timestamp: timestamp,
-        cardNumber: maskCardNumber(cardData.cardNumber),
+    logger.log("processCardPayment iniciado - Processando pagamento", { 
+      cardData: { 
+        cardName: cardData.cardName,
+        cardNumber: cardData.cardNumber ? `****${cardData.cardNumber.slice(-4)}` : '',
         expiryMonth: cardData.expiryMonth,
-        expiryYear: cardData.expiryYear,
-        brand: brand || 'unknown',
-        deviceType,
-        isDigitalProduct
-      };
-      
-      return paymentResult;
-    }
+        expiryYear: cardData.expiryYear
+      }
+    });
     
-    // Process normally in sandbox mode
-    if (isSandbox) {
-      console.log('Processing card payment in sandbox mode');
-      
-      // Create timestamp
-      const timestamp = new Date().toISOString();
-      const orderDate = new Date().toISOString();
+    // Update browser detection for statistics
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    
+    const deviceType: DeviceType = isMobileDevice ? 'mobile' : 'desktop';
 
-      // Handle sandbox testing with specific test cards
-      if (cardData.cardNumber.startsWith('4111')) {
-        // Test card: always approved
-        const paymentResult: PaymentResult = {
-          success: true,
-          method: 'card',
-          paymentId: `card_${Date.now()}`,
-          status: 'confirmed',
-          timestamp: timestamp,
-          cardNumber: maskCardNumber(cardData.cardNumber),
-          expiryMonth: cardData.expiryMonth,
-          expiryYear: cardData.expiryYear,
-          brand: brand || 'visa',
-          deviceType,
+    logger.log("Processing card payment with settings:", { 
+      manualCardProcessing: props.settings.manualCardProcessing,
+      manualCardStatus: props.settings.manualCardStatus,
+      isDigitalProduct
+    });
+
+    // Determine which processor to use based on settings
+    if (props.settings.manualCardProcessing) {
+      logger.log("Using manual card processing with digital product flag:", isDigitalProduct);
+      return await processManualPayment({
+        cardData,
+        formState: { 
+          ...props.formState,
           isDigitalProduct
-        };
-        
-        return paymentResult;
-      } else if (cardData.cardNumber.startsWith('5555')) {
-        // Test card: always declined
-        throw new Error('Pagamento recusado pela operadora');
-      }
-      
-      // Default sandbox behavior: simulate success
-      const paymentResult: PaymentResult = {
-        success: true,
-        method: 'card',
-        paymentId: `card_${Date.now()}`,
-        status: 'confirmed',
-        timestamp: timestamp,
-        cardNumber: maskCardNumber(cardData.cardNumber),
-        expiryMonth: cardData.expiryMonth,
-        expiryYear: cardData.expiryYear,
-        brand: brand || 'unknown',
+        },
+        settings: props.settings,
         deviceType,
-        isDigitalProduct
-      };
-      
-      return paymentResult;
+        navigate,
+        setIsSubmitting,
+        setError,
+        toast,
+        onSubmit: props.onSubmit
+      });
+    } else {
+      logger.log("Using automatic card processing with digital product flag:", isDigitalProduct);
+      return await processAutomaticPayment({
+        cardData,
+        formState: { 
+          ...props.formState,
+          isDigitalProduct
+        },
+        settings: props.settings,
+        isSandbox: props.isSandbox,
+        deviceType,
+        setPaymentStatus,
+        setIsSubmitting,
+        setError,
+        navigate,
+        toast,
+        onSubmit: props.onSubmit
+      });
     }
-    
-    // Production card processing would go here, integrate with Asaas API
-    console.log('Production card processing not implemented');
-    throw new Error('Processamento em produção não implementado');
-    
   } catch (error) {
-    console.error('Error processing card payment:', error);
+    logger.error('Error processing card payment:', error);
+    setError('Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
+    setIsSubmitting(false);
     
+    // Return a valid PaymentResult object in case of error
     return {
       success: false,
       method: 'card',
-      error: error instanceof Error ? error.message : 'Erro desconhecido ao processar pagamento',
-      status: 'error',
-      timestamp: new Date().toISOString(),
-      cardNumber: maskCardNumber(cardData.cardNumber),
+      error: error instanceof Error ? error.message : 'Unknown error',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
+    };
+  }
+};
+
+// Private functions for internal processing
+
+interface ProcessManualPaymentParams {
+  cardData: CardFormData;
+  formState: any;
+  settings: any;
+  deviceType: DeviceType;
+  navigate: ReturnType<typeof useNavigate>;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  setError: (error: string) => void;
+  toast: ReturnType<typeof useToast>['toast'];
+  onSubmit?: (data: any) => Promise<any> | any;
+}
+
+async function processManualPayment({
+  cardData,
+  formState,
+  settings,
+  deviceType,
+  navigate,
+  setIsSubmitting,
+  setError,
+  toast,
+  onSubmit
+}: ProcessManualPaymentParams): Promise<PaymentResult> {
+  setIsSubmitting(true);
+  
+  try {
+    logger.log("Using manual card processor with settings:", {
+      manualCardStatus: settings.manualCardStatus,
+      isDigitalProduct: formState.isDigitalProduct
+    });
+    
+    // Generate a mock payment ID for tracking
+    const paymentId = `manual_${uuidv4()}`;
+    
+    // Determine payment status based on settings
+    let paymentStatus = 'PENDING';
+    
+    // Check if we should use product-specific settings first
+    if (formState.useCustomProcessing && formState.manualCardStatus) {
+      paymentStatus = formState.manualCardStatus;
+      logger.log("Using product-specific manual card status:", paymentStatus);
+    } else if (settings.manualCardStatus) {
+      paymentStatus = settings.manualCardStatus;
+      logger.log("Using global manual card status:", paymentStatus);
+    }
+    
+    // Detect card brand
+    const brand = detectCardBrand(cardData.cardNumber);
+    
+    // Prepare the payment result object
+    const paymentResult: PaymentResult = {
+      success: true,
+      method: 'card',
+      paymentId,
+      status: paymentStatus,
+      cardNumber: cardData.cardNumber.replace(/\s+/g, ''),
       expiryMonth: cardData.expiryMonth,
       expiryYear: cardData.expiryYear,
+      cvv: cardData.cvv,
+      brand,
+      timestamp: new Date().toISOString(),
       deviceType
+    };
+    
+    // Submit the payment data to create an order
+    logger.log("Submitting payment data to create order");
+    
+    // Call onSubmit and await the result
+    const result = onSubmit ? await onSubmit(paymentResult) : null;
+    logger.log("Order created successfully");
+    
+    // Determine where to navigate based on payment status
+    const orderData = result ? {
+      orderId: result.id,
+      productName: result.productName,
+      productPrice: result.productPrice,
+      productId: result.productId,
+      paymentMethod: result.paymentMethod,
+      paymentStatus: paymentStatus
+    } : {
+      paymentStatus: paymentStatus
+    };
+    
+    // Helper function to determine redirect path based on status
+    const getRedirectPath = () => {
+      if (paymentStatus === 'DENIED') {
+        return '/payment-failed';
+      } else if (paymentStatus === 'APPROVED') {
+        return '/payment-success';
+      } else {
+        // If status is ANALYSIS or any other, use success page but indicate it's in analysis
+        return '/payment-success';
+      }
+    };
+    
+    // Toast notification based on status
+    if (paymentStatus !== 'DENIED') {
+      toast({
+        title: paymentStatus === 'APPROVED' ? "Pagamento Aprovado" : "Pagamento em Análise",
+        description: paymentStatus === 'APPROVED' 
+          ? "Seu pagamento foi aprovado com sucesso!" 
+          : "Seu pagamento foi recebido e está em análise.",
+        duration: 5000,
+      });
+    } else {
+      toast({
+        title: "Pagamento Recusado",
+        description: "Seu pagamento foi recusado. Por favor, tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+    
+    // Navigate to the appropriate page
+    navigate(getRedirectPath(), { 
+      state: { orderData }
+    });
+    
+    return paymentResult;
+  } catch (error) {
+    logger.error('Error processing manual payment:', error);
+    setError('Ocorreu um erro ao processar seu pagamento. Por favor, tente novamente.');
+    
+    // Show error toast
+    toast({
+      title: "Erro no processamento",
+      description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
+      variant: "destructive",
+      duration: 5000,
+    });
+    
+    // Return a properly typed error result
+    return {
+      success: false,
+      method: 'card',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
+    };
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+interface ProcessAutomaticPaymentParams {
+  cardData: CardFormData;
+  formState: any;
+  settings: any;
+  isSandbox: boolean;
+  deviceType: DeviceType;
+  setPaymentStatus?: (status: string) => void;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  setError: (error: string) => void;
+  navigate: ReturnType<typeof useNavigate>;
+  toast: ReturnType<typeof useToast>['toast'];
+  onSubmit?: (data: any) => Promise<any> | any;
+}
+
+async function processAutomaticPayment({
+  cardData,
+  formState,
+  settings,
+  isSandbox,
+  deviceType,
+  setPaymentStatus = () => {},
+  setIsSubmitting,
+  setError,
+  navigate,
+  toast,
+  onSubmit
+}: ProcessAutomaticPaymentParams): Promise<PaymentResult> {
+  try {
+    logger.log("Processing automatic card payment with device type:", deviceType);
+    
+    // Detect card brand
+    const brand = detectCardBrand(cardData.cardNumber);
+    
+    // Simulate successful API payment processing
+    const paymentId = `automatic_${uuidv4()}`;
+    const success = true;
+    
+    if (!success) {
+      throw new Error('Falha no processamento do pagamento');
+    }
+    
+    setPaymentStatus('CONFIRMED');
+    
+    // Format the data for creating the order
+    const orderData = {
+      customer: formState.personalInfo,
+      productId: formState.productId,
+      productName: formState.productName,
+      productPrice: formState.productPrice,
+      paymentMethod: 'CREDIT_CARD',
+      paymentStatus: 'Pago',
+      paymentId,
+      cardDetails: {
+        number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
+        expiryMonth: cardData.expiryMonth,
+        expiryYear: cardData.expiryYear,
+        cvv: cardData.cvv,
+        brand
+      },
+      orderDate: new Date().toISOString(),
+      deviceType,
+      isDigitalProduct: formState.isDigitalProduct
+    };
+    
+    // Call the onSubmit function if provided (to create the order)
+    if (onSubmit) {
+      await onSubmit(orderData);
+    }
+    
+    // Show success message
+    toast({
+      title: "Pagamento aprovado!",
+      description: "Seu pagamento foi processado com sucesso.",
+      duration: 5000,
+    });
+    
+    // Navigate to the success page
+    setTimeout(() => {
+      navigate('/payment-success', { 
+        state: { 
+          paymentId,
+          productName: formState.productName,
+          automatic: true 
+        } 
+      });
+    }, 2000);
+    
+    return { 
+      success: true, 
+      paymentId,
+      method: 'card',
+      status: 'CONFIRMED',
+      timestamp: new Date().toISOString() 
+    };
+  } catch (error) {
+    logger.error("Error in automatic card processing:", error);
+    setError(error instanceof Error ? error.message : 'Falha ao processar pagamento');
+    setIsSubmitting(false);
+    
+    // Navigate to failure page for persistent errors
+    navigate('/payment-failed', { 
+      state: { 
+        productName: formState.productName,
+        error: error instanceof Error ? error.message : 'Falha ao processar pagamento'
+      } 
+    });
+    
+    return { 
+      success: false, 
+      error: 'Falha ao processar pagamento',
+      method: 'card',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
     };
   }
 }

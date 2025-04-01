@@ -8,7 +8,7 @@ export interface UseCardPaymentStatusProps {
   isSandbox: boolean;
   useCustomProcessing?: boolean;
   manualCardStatus?: string;
-  settings: AsaasSettings;
+  settings?: AsaasSettings;
 }
 
 export function useCardPaymentStatus({ 
