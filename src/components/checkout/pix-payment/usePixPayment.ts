@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { processPixPayment } from '../utils/payment/pixProcessor';
@@ -32,20 +33,24 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, c
     }
     
     if (!customerData.name || customerData.name.trim().length < 3) {
+      console.error("Validação PIX falhou: Nome inválido", customerData.name);
       return "Nome completo é obrigatório (mínimo 3 caracteres)";
     }
     
     if (!customerData.email || !customerData.email.includes('@')) {
+      console.error("Validação PIX falhou: Email inválido", customerData.email);
       return "E-mail inválido";
     }
     
     const cpf = customerData.cpf ? customerData.cpf.replace(/\D/g, '') : '';
     if (!cpf || cpf.length !== 11) {
+      console.error("Validação PIX falhou: CPF inválido", customerData.cpf);
       return "CPF inválido";
     }
     
     const phone = customerData.phone ? customerData.phone.replace(/\D/g, '') : '';
     if (!phone || phone.length < 10) {
+      console.error("Validação PIX falhou: Telefone inválido", customerData.phone);
       return "Telefone inválido";
     }
     
@@ -58,71 +63,91 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, c
       if (!pixData && !error) {
         setIsLoading(true);
         
-        // Validate customer data first
-        const validationError = validateCustomerData();
-        if (validationError) {
-          setError(validationError);
-          setIsLoading(false);
-          toast({
-            title: "Erro de validação",
-            description: validationError,
-            variant: "destructive",
-            duration: 5000,
-          });
-          return;
-        }
-        
-        // Create complete settings object for the processor
-        const completeSettings: AsaasSettings = {
-          isEnabled: true,
-          apiKey: '',
-          allowPix: true,
-          allowCreditCard: true,
-          manualCreditCard: false,
-          sandboxMode: isSandbox,
-          sandboxApiKey: '',
-          productionApiKey: '',
-          manualCardProcessing: false,
-          manualPixPage: false,
-          manualPaymentConfig: false,
-          manualCardStatus: 'ANALYSIS'
-        };
-        
-        // Process PIX payment
-        await processPixPayment(
-          {
-            formState: { 
-              isDigitalProduct,
-              customerInfo: customerData 
-            },
-            settings: completeSettings,
-            isSandbox,
-            onSubmit: (data) => {
-              // Store data temporarily but don't submit yet
-              console.log("PIX data generated:", data);
-            }
-          },
-          (paymentData: PaymentResult) => {
-            // Extract PIX data from result
-            setPixData({
-              qrCode: paymentData.qrCode as string,
-              qrCodeImage: paymentData.qrCodeImage as string,
-              expirationDate: paymentData.expirationDate as string,
-              paymentId: paymentData.paymentId as string
-            });
-          },
-          (errorMessage: string) => {
-            setError(errorMessage);
+        try {
+          // Validate customer data first
+          const validationError = validateCustomerData();
+          if (validationError) {
+            setError(validationError);
+            setIsLoading(false);
             toast({
-              title: "Erro no processamento",
-              description: errorMessage,
+              title: "Erro de validação",
+              description: validationError,
               variant: "destructive",
               duration: 5000,
             });
+            return;
           }
-        );
-        
-        setIsLoading(false);
+          
+          console.log("Dados do cliente validados com sucesso para PIX:", {
+            name: customerData.name,
+            email: customerData.email,
+            cpf: customerData.cpf ? customerData.cpf.substring(0, 3) + '...' : null,
+            phone: customerData.phone ? customerData.phone.substring(0, 5) + '...' : null
+          });
+          
+          // Create complete settings object for the processor
+          const completeSettings: AsaasSettings = {
+            isEnabled: true,
+            apiKey: '',
+            allowPix: true,
+            allowCreditCard: true,
+            manualCreditCard: false,
+            sandboxMode: isSandbox,
+            sandboxApiKey: '',
+            productionApiKey: '',
+            manualCardProcessing: false,
+            manualPixPage: false,
+            manualPaymentConfig: false,
+            manualCardStatus: 'ANALYSIS'
+          };
+          
+          // Process PIX payment
+          await processPixPayment(
+            {
+              formState: { 
+                isDigitalProduct,
+                customerInfo: customerData 
+              },
+              settings: completeSettings,
+              isSandbox,
+              onSubmit: (data) => {
+                // Store data temporarily but don't submit yet
+                console.log("PIX data generated:", data);
+              }
+            },
+            (paymentData: PaymentResult) => {
+              // Extract PIX data from result
+              setPixData({
+                qrCode: paymentData.qrCode as string,
+                qrCodeImage: paymentData.qrCodeImage as string,
+                expirationDate: paymentData.expirationDate as string,
+                paymentId: paymentData.paymentId as string
+              });
+            },
+            (errorMessage: string) => {
+              console.error("Erro ao processar PIX:", errorMessage);
+              setError(errorMessage);
+              toast({
+                title: "Erro no processamento",
+                description: errorMessage,
+                variant: "destructive",
+                duration: 5000,
+              });
+            }
+          );
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Erro desconhecido ao gerar PIX";
+          console.error("Exceção ao processar PIX:", err);
+          setError(errorMessage);
+          toast({
+            title: "Erro no processamento",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          });
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
     
@@ -148,15 +173,28 @@ export const usePixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false, c
           
           setPixPaymentSent(true);
           console.log("PIX payment successfully submitted");
+          
+          toast({
+            title: "QR Code PIX gerado",
+            description: "Utilize o QR code para finalizar o pagamento",
+            duration: 5000,
+          });
         } catch (error) {
           console.error("Error submitting PIX payment:", error);
           setError("Erro ao finalizar pagamento PIX. O QR Code foi gerado, mas houve um problema ao registrar o pedido.");
+          
+          toast({
+            title: "Erro no registro do pedido",
+            description: "O QR Code foi gerado, mas houve um problema ao registrar o pedido. Por favor, entre em contato com o suporte.",
+            variant: "destructive",
+            duration: 5000,
+          });
         }
       };
       
       submitPixPayment();
     }
-  }, [pixData, onSubmit, pixPaymentSent, isDigitalProduct]);
+  }, [pixData, onSubmit, pixPaymentSent, isDigitalProduct, toast]);
 
   return {
     isLoading,

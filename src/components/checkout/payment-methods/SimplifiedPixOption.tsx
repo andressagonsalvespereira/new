@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 interface SimplifiedPixOptionProps {
   onSubmit: () => void;
@@ -24,8 +25,10 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
   customerData
 }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { customization } = useCheckoutCustomization();
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [wasClicked, setWasClicked] = useState(false);
   
   const validateCustomerData = () => {
     if (!customerData) {
@@ -54,34 +57,61 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
   };
   
   const handlePixSubmit = () => {
+    // Evitar cliques múltiplos
+    if (isProcessing || wasClicked) {
+      return;
+    }
+    
+    setWasClicked(true);
+    
     console.log("Validando dados do cliente para PIX:", customerData);
     
     const error = validateCustomerData();
     if (error) {
       setValidationError(error);
+      toast({
+        title: "Erro de validação",
+        description: error,
+        variant: "destructive",
+      });
+      
+      // Permitir novo clique após erro
+      setTimeout(() => setWasClicked(false), 2000);
       return;
     }
     
     setValidationError(null);
     console.log("Dados validados, iniciando processamento PIX");
     
-    // Primeiro registra o pedido
-    onSubmit();
-    
-    // Em seguida, redireciona para a tela de pagamento PIX
-    setTimeout(() => {
-      navigate('/pix-payment-manual', { 
-        state: { 
-          orderData: {
-            productId: productData?.productId,
-            productName: productData?.productName,
-            productPrice: productData?.productPrice,
-            paymentMethod: 'PIX'
-          },
-          customerData
-        } 
+    try {
+      // Primeiro registra o pedido
+      onSubmit();
+      
+      // Em seguida, redireciona para a tela de pagamento PIX
+      setTimeout(() => {
+        navigate('/pix-payment-manual', { 
+          state: { 
+            orderData: {
+              productId: productData?.productId,
+              productName: productData?.productName,
+              productPrice: productData?.productPrice,
+              paymentMethod: 'PIX'
+            },
+            customerData
+          } 
+        });
+      }, 500);
+    } catch (error) {
+      console.error("Erro ao processar pagamento PIX:", error);
+      toast({
+        title: "Erro no processamento",
+        description: "Ocorreu um erro ao processar o pagamento PIX. Tente novamente.",
+        variant: "destructive",
       });
-    }, 500);
+      
+      // Permitir novo clique após erro
+      setTimeout(() => setWasClicked(false), 2000);
+    }
   };
 
   // Get button styles from customization
@@ -108,7 +138,7 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
       
       <Button
         onClick={handlePixSubmit}
-        disabled={isProcessing}
+        disabled={isProcessing || wasClicked}
         className="w-full"
         style={buttonStyle}
       >

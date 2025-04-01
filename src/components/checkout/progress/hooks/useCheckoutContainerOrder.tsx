@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/contexts/OrderContext';
 import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus, Order } from '@/types/order';
@@ -37,6 +37,45 @@ export const useCheckoutContainerOrder = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
   
+  // Reset processing state after a timeout (safety mechanism)
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    
+    if (isProcessing) {
+      timeout = setTimeout(() => {
+        setIsProcessing(false);
+        processingRef.current = false;
+        console.log("Resetando estado de processamento após timeout de segurança");
+      }, 30000); // 30 segundos
+    }
+    
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [isProcessing]);
+  
+  const validateCustomerData = (customerData: CustomerData): string | null => {
+    if (!customerData.name || customerData.name.trim().length < 3) {
+      return "Nome completo é obrigatório (mínimo 3 caracteres)";
+    }
+    
+    if (!customerData.email || !customerData.email.includes('@')) {
+      return "E-mail inválido";
+    }
+    
+    const cpf = customerData.cpf ? customerData.cpf.replace(/\D/g, '') : '';
+    if (!cpf || cpf.length !== 11) {
+      return "CPF inválido";
+    }
+    
+    const phone = customerData.phone ? customerData.phone.replace(/\D/g, '') : '';
+    if (!phone || phone.length < 10) {
+      return "Telefone inválido";
+    }
+    
+    return null;
+  };
+  
   const createOrder = async (
     paymentId: string, 
     status: 'pending' | 'confirmed',
@@ -53,6 +92,35 @@ export const useCheckoutContainerOrder = ({
       // Configurar ambos os estados para tracking
       setIsProcessing(true);
       processingRef.current = true;
+      
+      // Preparar os dados do cliente
+      const customerData: CustomerData = {
+        name: formState.fullName,
+        email: formState.email,
+        cpf: formState.cpf,
+        phone: formState.phone,
+        address: formState.street ? {
+          street: formState.street,
+          number: formState.number,
+          complement: formState.complement,
+          neighborhood: formState.neighborhood,
+          city: formState.city,
+          state: formState.state,
+          postalCode: formState.cep.replace(/\D/g, '')
+        } : undefined
+      };
+      
+      // Validar dados do cliente
+      const validationError = validateCustomerData(customerData);
+      if (validationError) {
+        console.error("Erro de validação ao criar pedido:", validationError);
+        toast({
+          title: "Erro de validação",
+          description: validationError,
+          variant: "destructive",
+        });
+        throw new Error(validationError);
+      }
       
       console.log("Criando pedido com detalhes do produto:", {
         id: productDetails.id,
@@ -75,21 +143,7 @@ export const useCheckoutContainerOrder = ({
       }
       
       const orderData: CreateOrderInput = {
-        customer: {
-          name: formState.fullName,
-          email: formState.email,
-          cpf: formState.cpf,
-          phone: formState.phone,
-          address: formState.street ? {
-            street: formState.street,
-            number: formState.number,
-            complement: formState.complement,
-            neighborhood: formState.neighborhood,
-            city: formState.city,
-            state: formState.state,
-            postalCode: formState.cep.replace(/\D/g, '')
-          } : undefined
-        },
+        customer: customerData,
         productId: productDetails.id,
         productName: productDetails.name,
         productPrice: productDetails.price,
@@ -125,6 +179,11 @@ export const useCheckoutContainerOrder = ({
         // Chama a função handlePayment para completar o processo de checkout
         handlePayment();
         
+        toast({
+          title: "Pedido criado",
+          description: "Seu pedido foi registrado com sucesso!",
+        });
+        
         return newOrder;
       } catch (error) {
         console.error('Erro ao criar pedido:', error);
@@ -137,8 +196,8 @@ export const useCheckoutContainerOrder = ({
       }
     } finally {
       // Garantir que os estados de processamento sejam resetados
-      setIsProcessing(false);
       setTimeout(() => {
+        setIsProcessing(false);
         processingRef.current = false;
       }, 2000);
     }

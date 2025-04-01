@@ -15,6 +15,22 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       } : undefined
     });
     
+    // Validação básica dos dados do cliente
+    if (!orderData.customer || !orderData.customer.name || orderData.customer.name.trim() === '') {
+      console.error("Erro de validação: Nome do cliente é obrigatório");
+      throw new Error("Nome do cliente é obrigatório");
+    }
+    
+    if (!orderData.customer.email || orderData.customer.email.trim() === '') {
+      console.error("Erro de validação: Email do cliente é obrigatório");
+      throw new Error("Email do cliente é obrigatório");
+    }
+    
+    if (!orderData.customer.cpf || orderData.customer.cpf.trim() === '') {
+      console.error("Erro de validação: CPF do cliente é obrigatório");
+      throw new Error("CPF do cliente é obrigatório");
+    }
+    
     // Verificar se existe um pedido idêntico criado nos últimos 5 minutos
     // para evitar duplicações por cliques múltiplos
     if (orderData.customer && orderData.customer.email && orderData.productId) {
