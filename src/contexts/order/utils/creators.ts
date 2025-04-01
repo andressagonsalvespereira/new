@@ -1,4 +1,3 @@
-
 import { Order, CreateOrderInput } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 import { convertDBOrderToOrder } from './converters';
@@ -93,6 +92,12 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     const deviceType = orderData.deviceType || 'desktop';
     const isDigitalProduct = orderData.isDigitalProduct || false;
 
+    // Corrigir ou garantir status válido
+    const allowedStatuses = ['Pending', 'Pago', 'Aguardando', 'Cancelado'];
+    let safeStatus = allowedStatuses.includes(orderData.paymentStatus)
+      ? orderData.paymentStatus
+      : 'Pending';
+
     const orderToInsert = {
       customer_name: orderData.customer.name,
       customer_email: orderData.customer.email,
@@ -102,7 +107,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       product_name: orderData.productName,
       price: orderData.productPrice,
       payment_method: orderData.paymentMethod,
-      status: orderData.paymentStatus,
+      status: safeStatus,
       payment_id: orderData.paymentId || null,
       qr_code: orderData.pixDetails?.qrCode || null,
       qr_code_image: orderData.pixDetails?.qrCodeImage || null,
