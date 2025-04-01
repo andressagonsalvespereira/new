@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { QrCode, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -29,42 +29,64 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
   const { customization } = useCheckoutCustomization();
   const [validationError, setValidationError] = useState<string | null>(null);
   const [wasClicked, setWasClicked] = useState(false);
+  // Use a ref to prevent parallel processing
+  const isSubmittingRef = useRef(false);
   
   const validateCustomerData = () => {
     if (!customerData) {
+      console.error("PIX: customerData is null or undefined");
       return "Informações do cliente não fornecidas";
     }
     
     if (!customerData.name || customerData.name.trim().length < 3) {
+      console.error("PIX validation failed: Invalid name", customerData.name);
       return "Nome completo é obrigatório (mínimo 3 caracteres)";
     }
     
     if (!customerData.email || !customerData.email.includes('@')) {
+      console.error("PIX validation failed: Invalid email", customerData.email);
       return "E-mail inválido";
     }
     
     const cpf = customerData.cpf ? customerData.cpf.replace(/\D/g, '') : '';
     if (!cpf || cpf.length !== 11) {
+      console.error("PIX validation failed: Invalid CPF", customerData.cpf);
       return "CPF inválido";
     }
     
     const phone = customerData.phone ? customerData.phone.replace(/\D/g, '') : '';
     if (!phone || phone.length < 10) {
+      console.error("PIX validation failed: Invalid phone", customerData.phone);
       return "Telefone inválido";
     }
+    
+    console.log("PIX: Customer data validation passed", {
+      name: customerData.name,
+      email: customerData.email,
+      cpf: cpf.substring(0, 3) + '...',
+      phone: phone.substring(0, 3) + '...'
+    });
     
     return null;
   };
   
   const handlePixSubmit = () => {
-    // Evitar cliques múltiplos
-    if (isProcessing || wasClicked) {
+    // Prevent parallel processing and multiple clicks
+    if (isProcessing || wasClicked || isSubmittingRef.current) {
+      console.log("PIX button already clicked or processing in progress, ignoring click");
       return;
     }
     
+    // Set both state and ref to track submission
     setWasClicked(true);
+    isSubmittingRef.current = true;
     
-    console.log("Validando dados do cliente para PIX:", customerData);
+    console.log("PIX button clicked, validating customer data:", {
+      customerName: customerData?.name,
+      customerEmail: customerData?.email,
+      productName: productData?.productName,
+      productPrice: productData?.productPrice
+    });
     
     const error = validateCustomerData();
     if (error) {
@@ -75,20 +97,30 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
         variant: "destructive",
       });
       
-      // Permitir novo clique após erro
-      setTimeout(() => setWasClicked(false), 2000);
+      // Reset submission flags after error
+      setTimeout(() => {
+        setWasClicked(false);
+        isSubmittingRef.current = false;
+      }, 2000);
       return;
     }
     
     setValidationError(null);
-    console.log("Dados validados, iniciando processamento PIX");
+    console.log("PIX: Data validated, initiating order processing");
     
     try {
-      // Primeiro registra o pedido
+      // First register the order
+      console.log("PIX: Calling onSubmit to register order");
       onSubmit();
       
-      // Em seguida, redireciona para a tela de pagamento PIX
+      // Then redirect to the PIX payment screen
       setTimeout(() => {
+        console.log("PIX: Redirecting to PIX payment page with:", {
+          productId: productData?.productId,
+          productName: productData?.productName,
+          customerName: customerData?.name
+        });
+        
         navigate('/pix-payment-manual', { 
           state: { 
             orderData: {
@@ -102,15 +134,18 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
         });
       }, 500);
     } catch (error) {
-      console.error("Erro ao processar pagamento PIX:", error);
+      console.error("PIX: Error processing payment:", error);
       toast({
         title: "Erro no processamento",
         description: "Ocorreu um erro ao processar o pagamento PIX. Tente novamente.",
         variant: "destructive",
       });
       
-      // Permitir novo clique após erro
-      setTimeout(() => setWasClicked(false), 2000);
+      // Reset submission flags after error
+      setTimeout(() => {
+        setWasClicked(false);
+        isSubmittingRef.current = false;
+      }, 2000);
     }
   };
 
@@ -141,6 +176,7 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
         disabled={isProcessing || wasClicked}
         className="w-full"
         style={buttonStyle}
+        data-testid="pix-button"
       >
         {isProcessing ? (
           <>
