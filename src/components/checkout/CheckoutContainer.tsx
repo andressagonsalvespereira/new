@@ -13,6 +13,10 @@ interface CheckoutCustomization {
   button_color?: string;
   button_text_color?: string;
   button_text?: string;
+  header_message?: string;
+  banner_image_url?: string;
+  show_banner?: boolean;
+  heading_color?: string;
 }
 
 const CheckoutContainer: React.FC<CheckoutContainerProps> = ({ children }) => {
@@ -20,7 +24,11 @@ const CheckoutContainer: React.FC<CheckoutContainerProps> = ({ children }) => {
   const [customization, setCustomization] = useState<CheckoutCustomization>({
     button_color: '#3b82f6',
     button_text_color: '#ffffff',
-    button_text: 'Finalizar Pagamento'
+    button_text: 'Finalizar Pagamento',
+    header_message: 'Oferta por tempo limitado!',
+    banner_image_url: '',
+    show_banner: true,
+    heading_color: '#000000'
   });
   const [isCustomizationLoaded, setIsCustomizationLoaded] = useState(false);
 
@@ -31,7 +39,7 @@ const CheckoutContainer: React.FC<CheckoutContainerProps> = ({ children }) => {
         
         const { data, error } = await supabase
           .from('checkout_customization')
-          .select('button_color, button_text_color, button_text')
+          .select('*')
           .order('id', { ascending: false })
           .limit(1)
           .single();
@@ -55,7 +63,11 @@ const CheckoutContainer: React.FC<CheckoutContainerProps> = ({ children }) => {
           const safeData: CheckoutCustomization = {
             button_color: data.button_color || '#3b82f6',
             button_text_color: data.button_text_color || '#ffffff',
-            button_text: data.button_text || 'Finalizar Pagamento'
+            button_text: data.button_text || 'Finalizar Pagamento',
+            header_message: data.header_message || 'Oferta por tempo limitado!',
+            banner_image_url: data.banner_image_url || '',
+            show_banner: data.show_banner ?? true,
+            heading_color: data.heading_color || '#000000'
           };
           
           setCustomization(safeData);
@@ -77,6 +89,7 @@ const CheckoutContainer: React.FC<CheckoutContainerProps> = ({ children }) => {
     '--button-color': customization.button_color || '#3b82f6',
     '--button-text-color': customization.button_text_color || '#ffffff',
     '--button-text': `'${customization.button_text || 'Finalizar Pagamento'}'`,
+    '--heading-color': customization.heading_color || '#000000',
   } as React.CSSProperties;
 
   // Show a simple loading state while customization is loading
