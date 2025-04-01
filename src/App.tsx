@@ -22,6 +22,7 @@ import PaymentSettings from './pages/admin/PaymentSettings';
 import PixelSettings from './pages/admin/PixelSettings';
 import CheckoutCustomization from './pages/admin/CheckoutCustomization';
 import Checkout from './pages/Checkout';
+import QuickCheckout from './pages/QuickCheckout';
 import PaymentFailed from './pages/PaymentFailed';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PixPaymentManual from './pages/PixPaymentManual';
@@ -63,12 +64,10 @@ function App() {
                     {/* Checkout Routes */}
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/checkout/:productSlug" element={<Checkout />} />
+                    <Route path="/quick-checkout/:productId" element={<QuickCheckout />} />
                     <Route path="/payment-failed" element={<PaymentFailed />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/pix-payment-manual" element={<PixPaymentManual />} />
-
-                    {/* Redirecionamento de rota antiga */}
-                    <Route path="/quick-checkout/:productId" element={<Navigate to="/checkout" replace />} />
 
                     {/* Rota de fallback */}
                     <Route path="*" element={<NotFound />} />

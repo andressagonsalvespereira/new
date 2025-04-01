@@ -26,7 +26,21 @@ export interface AsaasApiResponse<T> {
   status?: number;
 }
 
+export interface AsaasCustomer {
+  id?: string;
+  name: string;
+  email: string;
+  cpfCnpj: string;
+  mobilePhone?: string;
+  address?: string;
+  addressNumber?: string;
+  complement?: string;
+  province?: string;
+  postalCode?: string;
+}
+
 export interface AsaasPayment {
+  id?: string;
   value: number;
   customer: string;
   billingType: 'CREDIT_CARD' | 'PIX';
@@ -52,7 +66,9 @@ export interface AsaasPayment {
 
 export interface AsaasPaymentResponse {
   id: string;
+  customer?: string;
   status: string;
+  dueDate?: string;
   invoiceUrl?: string;
   value: number;
   netValue: number;

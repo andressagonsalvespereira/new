@@ -41,7 +41,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
         .from('orders')
         .select('*')
         .eq('customer_email', orderData.customer.email)
-        .eq('product_id', parseInt(orderData.productId, 10))
+        .eq('product_id', String(orderData.productId))
         .eq('product_name', orderData.productName)
         .eq('payment_method', orderData.paymentMethod)
         .gte('created_at', fiveMinutesAgo.toISOString());

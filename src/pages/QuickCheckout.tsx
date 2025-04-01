@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +14,10 @@ import OrderSuccessMessage from '@/components/checkout/quick-checkout/OrderSucce
 import ProductSummary from '@/components/checkout/quick-checkout/ProductSummary';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
 import { useProductCheckout } from '@/hooks/useProductCheckout';
-import { useProducts } from '@/contexts/ProductContext';
+import { useProducts } from '@/contexts/product/useProducts';
 import { useToast } from '@/hooks/use-toast';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import { ManualCardStatus } from '@/types/asaas';
-import { PaymentMethod } from '@/types/order';
 
 const QuickCheckout = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -90,8 +90,7 @@ const QuickCheckout = () => {
   }
   
   // Make sure we're using the correct limited set of payment methods
-  const safePaymentMethod: 'CREDIT_CARD' | 'PIX' = 
-    paymentMethod === 'PIX' ? 'PIX' : 'CREDIT_CARD';
+  const safePaymentMethod = paymentMethod === 'PIX' ? 'PIX' : 'CREDIT_CARD';
   
   return (
     <CheckoutContainer>
@@ -119,7 +118,7 @@ const QuickCheckout = () => {
                   settings={settings}
                 />
                 
-                {paymentMethod === 'CREDIT_CARD' && (
+                {safePaymentMethod === 'CREDIT_CARD' && (
                   <CheckoutForm 
                     onSubmit={handlePaymentSubmit} 
                     isSandbox={settings.sandboxMode}
@@ -129,7 +128,7 @@ const QuickCheckout = () => {
                   />
                 )}
                 
-                {paymentMethod === 'PIX' && (
+                {safePaymentMethod === 'PIX' && (
                   <PixPayment 
                     onSubmit={handlePaymentSubmit}
                     isSandbox={settings.sandboxMode}

@@ -1,88 +1,97 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { AsaasPayment, AsaasPaymentResponse } from '@/types/asaas';
+import { 
+  AsaasPayment, 
+  AsaasPaymentResponse, 
+  AsaasPixQrCodeResponse 
+} from '@/types/asaas';
+import { createAsaasPayment, getPixQrCode } from './asaasApiService';
+import { logger } from '@/utils/logger';
 
-export const saveAsaasPayment = async (
-  orderId: number, 
-  paymentData: AsaasPaymentResponse
-): Promise<number> => {
+export interface CreatePaymentResult {
+  success: boolean;
+  paymentId?: string;
+  invoiceUrl?: string;
+  status?: string;
+  error?: string;
+}
+
+export interface GetPixQrCodeResult {
+  success: boolean;
+  qrCodeImage?: string;
+  qrCode?: string;
+  expirationDate?: string;
+  error?: string;
+}
+
+export const createPayment = async (
+  payment: AsaasPayment, 
+  apiKey: string, 
+  sandboxMode: boolean
+): Promise<CreatePaymentResult> => {
   try {
-    const { data, error } = await supabase
-      .from('asaas_payments')
-      .insert({
-        order_id: orderId,
-        payment_id: paymentData.id,
-        method: paymentData.billingType,
-        status: paymentData.status,
-        value: paymentData.value,
-        customer: paymentData.customer,
-        billingType: paymentData.billingType,
-        dueDate: paymentData.dueDate,
-        created_at: new Date().toISOString()
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    logger.log('Creating Asaas payment', {
+      value: payment.value,
+      billingType: payment.billingType,
+      customerId: payment.customer,
+      hasCreditCardInfo: !!payment.creditCard
+    });
     
-    return data.id;
+    const { data, error } = await createAsaasPayment(payment, apiKey, sandboxMode);
+    
+    if (error || !data) {
+      logger.error('Failed to create Asaas payment', error);
+      return { 
+        success: false, 
+        error: error?.message || 'Failed to create payment' 
+      };
+    }
+    
+    return {
+      success: true,
+      paymentId: data.id,
+      invoiceUrl: data.invoiceUrl,
+      status: data.status
+    };
+    
   } catch (error) {
-    console.error('Error saving Asaas payment:', error);
-    throw error;
+    logger.error('Error in createPayment:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error creating payment' 
+    };
   }
 };
 
-/**
- * Updates Asaas payment status in the database
- * @param paymentId Asaas payment ID
- * @param status New payment status
- * @returns Promise that resolves when payment status is updated
- */
-export const updateAsaasPaymentStatus = async (
-  paymentId: string,
-  status: string
-): Promise<void> => {
+export const retrievePixQrCode = async (
+  paymentId: string, 
+  apiKey: string, 
+  sandboxMode: boolean
+): Promise<GetPixQrCodeResult> => {
   try {
-    const { error } = await supabase
-      .from('asaas_payments')
-      .update({
-        status: status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('payment_id', paymentId);
-
-    if (error) throw error;
+    logger.log('Retrieving PIX QR code for payment', paymentId);
+    
+    const { data, error } = await getPixQrCode(paymentId, apiKey, sandboxMode);
+    
+    if (error || !data) {
+      logger.error('Failed to retrieve PIX QR code', error);
+      return { 
+        success: false, 
+        error: error?.message || 'Failed to retrieve PIX QR code' 
+      };
+    }
+    
+    return {
+      success: true,
+      qrCodeImage: data.encodedImage,
+      qrCode: data.payload,
+      expirationDate: data.expirationDate
+    };
+    
   } catch (error) {
-    console.error('Error updating Asaas payment status:', error);
-    throw error;
-  }
-};
-
-/**
- * Stores PIX QR code data in the database
- * @param paymentId Asaas payment ID
- * @param qrCodeImage QR code image as base64 string
- * @param qrCode PIX payload
- * @returns Promise that resolves when QR code is saved
- */
-export const saveAsaasPixQrCode = async (
-  paymentId: string,
-  qrCodeImage: string,
-  qrCode: string
-): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('asaas_payments')
-      .update({
-        qr_code_image: qrCodeImage,
-        qr_code: qrCode,
-        updated_at: new Date().toISOString()
-      })
-      .eq('payment_id', paymentId);
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error saving PIX QR code:', error);
-    throw error;
+    logger.error('Error in retrievePixQrCode:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error retrieving PIX QR code' 
+    };
   }
 };

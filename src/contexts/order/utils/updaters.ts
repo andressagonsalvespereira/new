@@ -6,7 +6,7 @@ import { convertDBOrderToOrder } from './converters';
 // Update order status
 export const updateOrderStatusData = async (
   orders: Order[], 
-  id: string, 
+  id: string | number, 
   status: PaymentStatus
 ): Promise<{ updatedOrder: Order; updatedOrders: Order[] }> => {
   try {
