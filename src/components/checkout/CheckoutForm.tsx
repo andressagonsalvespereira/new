@@ -103,7 +103,7 @@ const CheckoutForm = ({
         setPaymentStatus,
         setIsSubmitting,
         navigate,
-        toast: (config: any) => toast({
+        toast: (config) => toast({
           variant: config.variant as "default" | "destructive",
           title: config.title,
           description: config.description,

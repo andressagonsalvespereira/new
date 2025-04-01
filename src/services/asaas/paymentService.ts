@@ -1,31 +1,31 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { AsaasPaymentResponse } from '@/types/asaas';
+import type { AsaasPayment, AsaasPaymentResponse } from '@/types/asaas';
 
-/**
- * Saves Asaas payment details to the database
- * @param payment Payment details to save
- * @param orderId Associated order ID
- * @returns Promise that resolves when payment is saved
- */
 export const saveAsaasPayment = async (
-  payment: AsaasPaymentResponse, 
-  orderId: number,
-  method: 'pix' | 'credit_card'
-): Promise<void> => {
+  orderId: number, 
+  paymentData: AsaasPaymentResponse
+): Promise<number> => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('asaas_payments')
       .insert({
-        payment_id: payment.id,
         order_id: orderId,
-        status: payment.status,
-        method: method,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
+        payment_id: paymentData.id,
+        method: paymentData.billingType,
+        status: paymentData.status,
+        value: paymentData.value,
+        customer: paymentData.customer,
+        billingType: paymentData.billingType,
+        dueDate: paymentData.dueDate,
+        created_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
 
     if (error) throw error;
+    
+    return data.id;
   } catch (error) {
     console.error('Error saving Asaas payment:', error);
     throw error;

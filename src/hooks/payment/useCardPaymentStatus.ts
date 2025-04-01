@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { PaymentStatus } from '@/types/order';
-import { AsaasSettings } from '@/types/asaas';
+import { AsaasSettings, ManualCardStatus } from '@/types/asaas';
 import { logger } from '@/utils/logger';
 
 export interface UseCardPaymentStatusProps {
@@ -38,6 +38,7 @@ export function useCardPaymentStatus({
           setConfirmed(true);
           break;
         case 'DECLINED':
+        case 'DENIED':
           setStatus('Cancelado');
           setStatusMessage('Pagamento recusado pela operadora.');
           setConfirmed(false);

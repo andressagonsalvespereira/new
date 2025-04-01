@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { AsaasSettings } from '@/types/asaas';
+import { AsaasSettings, ManualCardStatus } from '@/types/asaas';
 
 // Define form validation schema
 export const PaymentSettingsSchema = z.object({
@@ -43,7 +43,7 @@ export const asaasSettingsToFormValues = (settings: AsaasSettings): PaymentSetti
   return {
     isEnabled: settings.isEnabled,
     manualCardProcessing: settings.manualCardProcessing,
-    manualCardStatus: settings.manualCardStatus as 'APPROVED' | 'DENIED' | 'ANALYSIS',
+    manualCardStatus: settings.manualCardStatus as ManualCardStatus,
     manualCreditCard: settings.manualCreditCard,
     allowPix: settings.allowPix,
     allowCreditCard: settings.allowCreditCard,

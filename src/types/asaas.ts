@@ -11,8 +11,11 @@ export interface AsaasSettings {
   manualCardProcessing: boolean;
   manualPixPage: boolean;
   manualPaymentConfig: boolean;
-  manualCardStatus: 'APPROVED' | 'DENIED' | 'ANALYSIS';
+  manualCardStatus: ManualCardStatus;
 }
+
+// Criando um tipo específico para o status do cartão manual
+export type ManualCardStatus = 'APPROVED' | 'DENIED' | 'ANALYSIS';
 
 export interface AsaasContextType {
   settings: AsaasSettings;

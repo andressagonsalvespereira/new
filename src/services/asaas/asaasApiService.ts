@@ -50,11 +50,11 @@ const asaasApiService = {
         return {
           id: `pay_${uuidv4().substring(0, 8)}`,
           status: 'CONFIRMED',
-          value: paymentData.value,
-          netValue: paymentData.value,
-          customer: paymentData.customer,
-          billingType: paymentData.billingType,
-          dueDate: paymentData.dueDate
+          value: paymentData.value || 0,
+          netValue: paymentData.value || 0,
+          customer: paymentData.customer || '',
+          billingType: paymentData.billingType || 'CREDIT_CARD',
+          dueDate: paymentData.dueDate || new Date().toISOString()
         } as AsaasPaymentResponse;
       }
       
