@@ -93,7 +93,7 @@ const QuickCheckout = () => {
     id: product.id,
     name: product.nome,
     price: product.preco,
-    imageUrl: product.urlImagem,
+    image: product.urlImagem, // Corrigindo de imageUrl para image
     description: product.descricao,
     isDigital: product.digital
   };
@@ -113,7 +113,7 @@ const QuickCheckout = () => {
               paymentMethod={paymentMethod === 'CREDIT_CARD' ? 'card' : 'pix'} 
               setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX')} 
               productDetails={productDetails}
-              handlePayment={() => {}} 
+              handlePayment={handlePaymentSubmit} 
               isProcessing={false} 
             />
           </CardContent>

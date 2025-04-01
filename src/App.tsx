@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Contexts
@@ -60,8 +61,9 @@ function App() {
                     
                     {/* Checkout Routes */}
                     <Route path="/checkout/:productSlug" element={<Checkout />} />
-                    {/* Keep the old ID-based route for backward compatibility */}
+                    {/* Both ID-based and slug-based routes for QuickCheckout */}
                     <Route path="/quick-checkout/:productId" element={<QuickCheckout />} />
+                    <Route path="/checkout/:productId" element={<QuickCheckout />} />
                     <Route path="/payment-failed" element={<PaymentFailed />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/pix-payment-manual" element={<PixPaymentManual />} />

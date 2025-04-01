@@ -1,11 +1,11 @@
 
 export interface ProductDetailsType {
+  id: string;
   name: string;
   price: number;
   description: string;
   image: string;
   isDigital: boolean;
-  id: string;
 }
 
 export const getProductDetails = (slug?: string): ProductDetailsType => {
