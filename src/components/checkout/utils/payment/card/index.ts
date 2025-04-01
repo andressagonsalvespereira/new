@@ -1,7 +1,9 @@
 
 export * from './cardProcessor';
+export * from './types';
+export * from './cardProcessorLogs';
+export * from './cardDetection';
+export * from './processors/automaticProcessor';
+export * from './processors/manualProcessor';
 
-// Removidos os exports não utilizados mais
-// export * from './automaticProcessor';
-// export * from './manualProcessor';
-// export * from './manualCardProcessor';
+// Removed unused exports
