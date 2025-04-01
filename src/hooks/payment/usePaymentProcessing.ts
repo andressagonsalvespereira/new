@@ -76,7 +76,8 @@ export const usePaymentProcessing = (
         manualCardStatus: product.statusCartaoManual
       });
       
-      const paymentStatus: PaymentStatus = paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando';
+      // Fixed: Using standardized PaymentStatus values
+      const paymentStatus: PaymentStatus = paymentData.status === 'CONFIRMED' ? 'PAID' : 'PENDING';
       
       const newOrder = await addOrder({
         customer: customerDetails,
