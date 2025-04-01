@@ -57,6 +57,13 @@ export async function processAutomaticPayment({
     const productManualStatus = formState.manualCardStatus;
     const globalManualStatus = settings.manualCardStatus;
     
+    logger.log("Decision factors:", {
+      productHasCustomProcessing: useCustomProcessing,
+      productManualStatus: productManualStatus || "None",
+      globalManualProcessing: settings.manualCardProcessing,
+      globalManualStatus: globalManualStatus || "None"
+    });
+    
     // If product has custom processing enabled, respect its status
     if (useCustomProcessing && productManualStatus) {
       resolvedStatus = productManualStatus;
@@ -98,7 +105,7 @@ export async function processAutomaticPayment({
       productName: formState.productName,
       productPrice: formState.productPrice,
       paymentMethod: 'CREDIT_CARD',
-      paymentStatus: resolvedStatus === 'APPROVED' ? 'PAID' : resolvedStatus,
+      paymentStatus: resolvedStatus,
       paymentId,
       cardDetails: {
         number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
@@ -120,13 +127,13 @@ export async function processAutomaticPayment({
     }
     
     // Show success message based on status
-    if (resolvedStatus === 'APPROVED') {
+    if (resolvedStatus === 'APPROVED' || resolvedStatus === 'CONFIRMED') {
       toast({
         title: "Pagamento aprovado!",
         description: "Seu pagamento foi processado com sucesso.",
         duration: 5000,
       });
-    } else if (resolvedStatus === 'ANALYSIS') {
+    } else if (resolvedStatus === 'ANALYSIS' || resolvedStatus === 'PENDING') {
       toast({
         title: "Pagamento em análise",
         description: "Seu pagamento está em análise pela operadora.",

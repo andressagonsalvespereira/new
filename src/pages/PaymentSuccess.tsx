@@ -71,6 +71,7 @@ const PaymentSuccess = () => {
   const isAnalysis = 
     paymentStatus === 'PENDING' || 
     paymentStatus === 'ANALYSIS' || 
+    paymentStatus === 'AGUARDANDO' ||
     paymentStatus === 'Aguardando';
   
   console.log("Payment status:", paymentStatus, "isAnalysis:", isAnalysis);

@@ -94,7 +94,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     const isDigitalProduct = orderData.isDigitalProduct || false;
 
     // Normalize payment status using a mapping
-    const allowedStatuses = ['PENDING', 'PAID', 'APPROVED', 'DENIED', 'ANALYSIS', 'CANCELLED'];
+    const allowedStatuses = ['PENDING', 'PAID', 'APPROVED', 'DENIED', 'ANALYSIS', 'CANCELLED', 'CONFIRMED'];
     
     // Map for converting localized status values to standard ones
     const statusMap: Record<string, string> = {
@@ -104,7 +104,8 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       'Pendente': 'PENDING',
       'Análise': 'ANALYSIS',
       'Aprovado': 'APPROVED',
-      'Recusado': 'DENIED'
+      'Recusado': 'DENIED',
+      'CONFIRMED': 'PAID'
     };
 
     // First try to map from localized status, then use as-is if not in map
