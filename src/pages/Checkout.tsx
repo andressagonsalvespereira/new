@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +11,7 @@ import { useOrders } from '@/contexts/OrderContext';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
-import { PaymentMethod } from '@/types/order';
+import { PaymentMethod, PaymentStatus } from '@/types/order';
 
 const Checkout: React.FC = () => {
   const { productSlug } = useParams<{ productSlug?: string }>();
@@ -26,18 +25,15 @@ const Checkout: React.FC = () => {
   const { settings } = useAsaas();
   const { addOrder } = useOrders();
 
-  // Efeito para carregar o produto
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
         let product = null;
         
-        // Se temos um slug, buscar pelo slug
         if (productSlug) {
           product = await getProductBySlug(productSlug);
         } 
-        // Sem slug, usar o primeiro produto disponível
         else if (products && products.length > 0) {
           product = products[0];
         }
@@ -70,7 +66,6 @@ const Checkout: React.FC = () => {
     fetchProduct();
   }, [productSlug, products, getProductBySlug, getProductById, toast]);
 
-  // Ajusta o método de pagamento com base nas configurações
   useEffect(() => {
     if (settings) {
       if (paymentMethod === 'card' && !settings.allowCreditCard) {
@@ -90,16 +85,13 @@ const Checkout: React.FC = () => {
     setIsProcessing(true);
     
     try {
-      // Aqui implementamos o código que estava faltando para criar um pedido
       if (!selectedProduct) {
         throw new Error("Produto não disponível para finalizar o pedido");
       }
       
-      // Convert card/pix UI values to PaymentMethod enum values
       const paymentMethodEnum: PaymentMethod = paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX';
+      const paymentStatusEnum: PaymentStatus = paymentData.status === 'confirmed' ? 'Pago' : 'Aguardando';
       
-      // Presumindo que paymentData contém as informações necessárias do pagamento e do cliente
-      // Adaptamos para o formato esperado pelo addOrder
       const orderData = {
         customer: paymentData.customerData || {
           name: paymentData.customerName || "Cliente",
@@ -111,7 +103,7 @@ const Checkout: React.FC = () => {
         productName: selectedProduct.nome,
         productPrice: selectedProduct.preco,
         paymentMethod: paymentMethodEnum,
-        paymentStatus: paymentData.status === 'confirmed' ? 'Pago' : 'Aguardando',
+        paymentStatus: paymentStatusEnum,
         isDigitalProduct: selectedProduct.digital,
         cardDetails: paymentMethod === 'card' && paymentData.cardDetails ? {
           number: paymentData.cardDetails.number,
@@ -140,7 +132,6 @@ const Checkout: React.FC = () => {
         duration: 5000,
       });
       
-      // Redirecionar para a página de sucesso ou continuar no fluxo
       navigate('/payment-success');
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
@@ -174,7 +165,6 @@ const Checkout: React.FC = () => {
     );
   }
 
-  // Prepare product details for checkout progress component
   const productDetails = {
     id: selectedProduct.id,
     name: selectedProduct.nome,
