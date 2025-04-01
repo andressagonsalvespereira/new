@@ -1,4 +1,3 @@
-
 import { Order, CreateOrderInput } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 import { convertDBOrderToOrder } from './converters';
@@ -37,14 +36,16 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       const fiveMinutesAgo = new Date();
       fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
       
-      // Fix: Convert productId to string for the query comparison
-      const productIdStr = String(orderData.productId);
+      // Fix: Convert productId to a number (if string) or keep as number for query
+      const productIdNumber = typeof orderData.productId === 'string' 
+        ? parseInt(orderData.productId, 10) 
+        : orderData.productId;
       
       const { data: existingOrders, error: checkError } = await supabase
         .from('orders')
         .select('*')
         .eq('customer_email', orderData.customer.email)
-        .eq('product_id', productIdStr)
+        .eq('product_id', productIdNumber)
         .eq('product_name', orderData.productName)
         .eq('payment_method', orderData.paymentMethod)
         .gte('created_at', fiveMinutesAgo.toISOString());
