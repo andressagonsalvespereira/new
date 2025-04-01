@@ -98,10 +98,14 @@ const QuickCheckout = () => {
     isDigital: product.digital
   };
   
+  console.log('QuickCheckout - Produto preparado para checkout:', productDetails);
+  
   // Use CheckoutProgress component if requested in URL parameter
   const useFullCheckout = new URLSearchParams(location.search).get('fullCheckout') === 'true';
+  console.log('QuickCheckout - Usando checkout completo?', useFullCheckout);
   
   if (useFullCheckout) {
+    console.log('QuickCheckout - Renderizando CheckoutProgress');
     return (
       <CheckoutContainer>
         <Card className="mb-6 shadow-sm">
@@ -114,8 +118,7 @@ const QuickCheckout = () => {
               setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX')} 
               productDetails={productDetails}
               handlePayment={() => {
-                // This is a void function that triggers payment processing
-                // but doesn't return anything (not even a Promise)
+                console.log('CheckoutProgress - handlePayment acionado');
                 handlePaymentSubmit({});
               }} 
               isProcessing={false} 
@@ -126,6 +129,7 @@ const QuickCheckout = () => {
     );
   }
   
+  console.log('QuickCheckout - Renderizando checkout rápido');
   return (
     <CheckoutContainer>
       <Card className="mb-6 shadow-sm">

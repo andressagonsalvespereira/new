@@ -39,6 +39,13 @@ export const processManual = async ({
     });
     
     console.log("Manual card settings:", settings?.manualCardStatus);
+    console.log("Form state for manual processing:", {
+      productId: formState.productId,
+      productName: formState.productName,
+      productPrice: formState.productPrice,
+      useCustomProcessing: formState.useCustomProcessing,
+      manualCardStatus: formState.manualCardStatus
+    });
     
     // Determine payment status based on manual settings
     const manualCardStatus = settings?.manualCardStatus || 'ANALYSIS';
@@ -94,11 +101,15 @@ export const processManual = async ({
         status: paymentStatus
       });
       
-      await onSubmit({
+      const orderResult = await onSubmit({
         ...paymentData,
         paymentStatus: paymentStatus === 'CONFIRMED' ? 'Pago' : 
                       paymentStatus === 'DECLINED' ? 'Cancelado' : 'Aguardando',
       });
+      
+      console.log("Order submission result:", orderResult);
+    } else {
+      console.error("No onSubmit callback provided to processManual, payment data will not be saved!");
     }
     
     if (toast) {

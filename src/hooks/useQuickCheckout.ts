@@ -29,6 +29,7 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
   useEffect(() => {
     // If we already have a product from useProductCheckout, skip fetching
     if (preloadedProduct) {
+      console.log('useQuickCheckout - Usando produto pré-carregado:', preloadedProduct);
       setProduct(preloadedProduct);
       setLoading(false);
       return;
@@ -80,6 +81,7 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
   }, [preloadedProduct]);
   
   const handleSubmitCustomerInfo = (customerData: CustomerInfo) => {
+    console.log('useQuickCheckout - Customer info submitted:', customerData);
     setCustomerDetails(customerData);
   };
   
@@ -88,14 +90,19 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
       console.log("Starting handlePaymentSubmit with data:", {
         ...paymentData,
         customerDetails,
-        productDetails: {
-          id: product?.id,
-          name: product?.nome,
-          price: product?.preco,
-          isDigital: product?.digital
-        },
+        productDetails: product ? {
+          id: product.id,
+          name: product.nome,
+          price: product.preco,
+          isDigital: product.digital
+        } : 'No product available',
         paymentMethod
       });
+      
+      if (!product) {
+        console.error("Trying to submit payment without product data");
+        throw new Error("Dados do produto não disponíveis");
+      }
       
       const orderData = {
         product: product,
@@ -107,9 +114,16 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
       };
       
       console.log("Submitting order with payment data:", {
-        ...paymentData,
-        cvv: paymentData.cvv ? '***' : undefined, // Mask CVV in logs
-        method: paymentMethod,
+        customerId: customerDetails.name,
+        customerEmail: customerDetails.email,
+        productId: product.id,
+        productName: product.nome,
+        productPrice: product.preco,
+        paymentMethod,
+        cardDetails: paymentData.cardNumber ? {
+          brand: paymentData.brand || 'Desconhecida',
+          last4: paymentData.cardNumber.slice(-4),
+        } : undefined,
         isDigitalProduct: product.digital,
         useCustomProcessing: product.usarProcessamentoPersonalizado,
         manualCardStatus: product.statusCartaoManual
@@ -129,6 +143,11 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
           expiryYear: paymentData.expiryYear,
           cvv: paymentData.cvv,
           brand: paymentData.brand || 'Desconhecida'
+        } : undefined,
+        pixDetails: paymentMethod === 'PIX' ? {
+          qrCodeBase64: paymentData.qrCodeBase64,
+          pixKey: paymentData.pixKey,
+          pixCopyPaste: paymentData.pixCopyPaste
         } : undefined
       });
       
@@ -157,6 +176,8 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
           duration: 5000,
         });
       }
+      
+      return newOrder;
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       toast({
@@ -165,6 +186,7 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
         variant: "destructive",
         duration: 5000,
       });
+      throw error;
     }
   };
 
