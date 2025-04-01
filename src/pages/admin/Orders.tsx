@@ -2,7 +2,7 @@
 import React from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useOrdersManagement } from '@/hooks/useOrdersManagement';
+import { useOrdersAdminPage } from '@/hooks/useOrdersAdminPage';
 
 // Components
 import OrdersHeader from '@/components/admin/orders/OrdersHeader';
@@ -23,7 +23,6 @@ const Orders = () => {
     isRefreshing,
     isDeleteDialogOpen,
     isDeleteAllDialogOpen,
-    orderToDelete,
     paymentMethodToDelete,
     handleViewOrder,
     handleRefreshOrders,
@@ -34,7 +33,7 @@ const Orders = () => {
     setIsDetailsOpen,
     setIsDeleteDialogOpen,
     setIsDeleteAllDialogOpen
-  } = useOrdersManagement();
+  } = useOrdersAdminPage();
 
   // Early return for loading state
   if (loading) {
