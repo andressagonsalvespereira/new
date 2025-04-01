@@ -1,3 +1,4 @@
+
 import { Order, CreateOrderInput } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 import { convertDBOrderToOrder } from './converters';
@@ -5,7 +6,7 @@ import { convertDBOrderToOrder } from './converters';
 // Create a new order
 export const createOrder = async (orderData: CreateOrderInput): Promise<Order> => {
   try {
-    console.log("Iniciando criação de pedido com dados:", {
+    console.log("Starting order creation with data:", {
       ...orderData,
       cardDetails: orderData.cardDetails ? {
         ...orderData.cardDetails,
@@ -14,24 +15,24 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       } : undefined
     });
     
-    // Validação básica dos dados do cliente
+    // Basic validation of customer data
     if (!orderData.customer || !orderData.customer.name || orderData.customer.name.trim() === '') {
-      console.error("Erro de validação: Nome do cliente é obrigatório");
-      throw new Error("Nome do cliente é obrigatório");
+      console.error("Validation error: Customer name is required");
+      throw new Error("Customer name is required");
     }
     
     if (!orderData.customer.email || orderData.customer.email.trim() === '') {
-      console.error("Erro de validação: Email do cliente é obrigatório");
-      throw new Error("Email do cliente é obrigatório");
+      console.error("Validation error: Customer email is required");
+      throw new Error("Customer email is required");
     }
     
     if (!orderData.customer.cpf || orderData.customer.cpf.trim() === '') {
-      console.error("Erro de validação: CPF do cliente é obrigatório");
-      throw new Error("CPF do cliente é obrigatório");
+      console.error("Validation error: Customer CPF is required");
+      throw new Error("Customer CPF is required");
     }
     
-    // Verificar se existe um pedido idêntico criado nos últimos 5 minutos
-    // para evitar duplicações por cliques múltiplos
+    // Check if there is an identical order created in the last 5 minutes
+    // to prevent duplications from multiple clicks
     if (orderData.customer && orderData.customer.email && orderData.productId) {
       const fiveMinutesAgo = new Date();
       fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
@@ -51,13 +52,13 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
         .gte('created_at', fiveMinutesAgo.toISOString());
       
       if (checkError) {
-        console.warn("Erro ao verificar pedidos existentes:", checkError);
+        console.warn("Error checking existing orders:", checkError);
       } else if (existingOrders && existingOrders.length > 0) {
-        console.warn("Pedido similar encontrado nos últimos 5 minutos, possível duplicação:", 
-          existingOrders.map(o => ({ id: o.id, cliente: o.customer_name, produto: o.product_name })));
+        console.warn("Similar order found in the last 5 minutes, possible duplication:", 
+          existingOrders.map(o => ({ id: o.id, customer: o.customer_name, product: o.product_name })));
         
-        // Se for um pedido exatamente igual (mesmo preço), retornamos o existente
-        // para evitar criar um duplicado
+        // If it's an exact match (same price), return the existing one
+        // to avoid creating a duplicate
         const exactMatch = existingOrders.find(order => 
           order.price === orderData.productPrice &&
           order.customer_name === orderData.customer.name &&
@@ -65,13 +66,13 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
         );
         
         if (exactMatch) {
-          console.log("Pedido idêntico encontrado, retornando existente para evitar duplicação:", exactMatch.id);
+          console.log("Identical order found, returning existing to prevent duplication:", exactMatch.id);
           return convertDBOrderToOrder(exactMatch);
         }
       }
     }
     
-    // Converter o productId para número se necessário
+    // Convert productId to number if needed
     let productIdNumber: number | null = null;
     if (orderData.productId) {
       try {
@@ -82,10 +83,10 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
           
         if (isNaN(productIdNumber)) {
           productIdNumber = null;
-          console.warn("ID do produto não é um número válido:", orderData.productId);
+          console.warn("Product ID is not a valid number:", orderData.productId);
         }
       } catch (e) {
-        console.warn("Erro ao converter product_id para número:", e);
+        console.warn("Error converting product_id to number:", e);
       }
     }
 
@@ -108,12 +109,12 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       credit_card_number: orderData.cardDetails?.number || null,
       credit_card_expiry: orderData.cardDetails ? `${orderData.cardDetails.expiryMonth}/${orderData.cardDetails.expiryYear}` : null,
       credit_card_cvv: orderData.cardDetails?.cvv || null,
-      credit_card_brand: orderData.cardDetails?.brand || 'Desconhecida',
+      credit_card_brand: orderData.cardDetails?.brand || 'Unknown',
       device_type: deviceType,
       is_digital_product: isDigitalProduct
     };
 
-    console.log("Inserindo pedido no banco de dados:", {
+    console.log("Inserting order into database:", {
       ...orderToInsert,
       credit_card_number: orderToInsert.credit_card_number ? '****' + orderToInsert.credit_card_number.slice(-4) : null,
       credit_card_cvv: orderToInsert.credit_card_cvv ? '***' : null // Mask CVV in logs
@@ -126,14 +127,14 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       .single();
 
     if (error) {
-      console.error("Erro ao inserir pedido:", error);
+      console.error("Error inserting order:", error);
       throw new Error(`Error creating order: ${error.message}`);
     }
 
-    console.log("Pedido criado com sucesso! ID:", data.id);
+    console.log("Order successfully created! ID:", data.id);
     return convertDBOrderToOrder(data);
   } catch (error) {
-    console.error('Falha ao criar pedido:', error);
+    console.error('Failed to create order:', error);
     throw error;
   }
 };

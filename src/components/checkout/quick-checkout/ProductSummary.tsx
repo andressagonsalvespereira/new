@@ -11,7 +11,7 @@ const ProductSummary: React.FC<ProductSummaryProps> = ({ product }) => {
   // Format price as currency
   const formattedPrice = typeof product.preco === 'number' 
     ? formatCurrency(product.preco) 
-    : 'Preço indisponível';
+    : 'Price unavailable';
 
   return (
     <div className="flex items-start space-x-4 mb-6 p-4 bg-gray-50 rounded-lg">
@@ -33,7 +33,7 @@ const ProductSummary: React.FC<ProductSummaryProps> = ({ product }) => {
           
           {product.digital && (
             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-              Produto Digital
+              Digital Product
             </span>
           )}
         </div>

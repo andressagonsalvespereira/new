@@ -13,19 +13,19 @@ const OrderSuccessMessage: React.FC<OrderSuccessMessageProps> = ({ paymentMethod
   return (
     <div className="text-center py-4">
       <h3 className="font-semibold text-green-600 mb-2">
-        Pedido Realizado com Sucesso!
+        Order Successfully Placed!
       </h3>
       <p className="text-gray-600 mb-4">
         {paymentMethod === 'PIX' 
-          ? 'Utilize o QR code PIX abaixo para finalizar seu pagamento.' 
-          : 'Seu pagamento foi processado com sucesso. Você receberá um e-mail com os detalhes do pedido.'}
+          ? 'Use the PIX QR code below to complete your payment.' 
+          : 'Your payment has been processed successfully. You will receive an email with the order details.'}
       </p>
       {paymentMethod === 'CREDIT_CARD' && (
         <Button
           onClick={() => navigate('/')}
           className="bg-green-600 hover:bg-green-700"
         >
-          Voltar para a página inicial
+          Return to home page
         </Button>
       )}
     </div>

@@ -27,7 +27,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           }`}
           onClick={() => setPaymentMethod('CREDIT_CARD')}
         >
-          Cartão de Crédito
+          Credit Card
         </button>
       )}
       
