@@ -45,24 +45,46 @@ export async function processAutomaticPayment({
     // Detect card brand
     const brand = detectCardBrand(cardData.cardNumber);
     
-    // Simulate successful API payment processing
+    // Check if we should respect manual settings despite being in automatic mode
+    // This allows product-specific or global manual settings to override automatic processing
+    let resolvedStatus = 'CONFIRMED';
+    const useCustomProcessing = formState.useCustomProcessing || false;
+    const productManualStatus = formState.manualCardStatus;
+    const globalManualStatus = settings.manualCardStatus;
+    
+    // If product has custom processing enabled, respect its status
+    if (useCustomProcessing && productManualStatus) {
+      resolvedStatus = productManualStatus;
+      logger.log("Using product-specific manual status:", resolvedStatus);
+    } 
+    // If global manual processing is enabled, respect global status
+    else if (settings.manualCardProcessing && globalManualStatus) {
+      resolvedStatus = globalManualStatus;
+      logger.log("Using global manual status:", resolvedStatus);
+    }
+    
+    // Log processing decisions
+    logCardProcessingDecisions(
+      useCustomProcessing,
+      productManualStatus,
+      globalManualStatus,
+      resolvedStatus
+    );
+    
+    // For declined payments, we should fail the transaction
+    if (resolvedStatus === 'DENIED') {
+      logger.log("Payment automatically declined based on manual settings");
+      throw new Error('Pagamento recusado pela operadora');
+    }
+    
+    // Simulate successful API payment processing only if not denied
     const { success, paymentId, error } = await simulatePayment();
     
     if (!success) {
       throw new Error(error || 'Falha no processamento do pagamento');
     }
     
-    // For automatic processing, we always confirm immediately
-    const resolvedStatus = 'CONFIRMED';
     setPaymentStatus(resolvedStatus);
-    
-    // Log processing decisions
-    logCardProcessingDecisions(
-      false, // automatic processing is not custom
-      undefined, // no product manual status
-      settings.manualCardStatus,
-      resolvedStatus
-    );
     
     // Format the data for creating the order
     const orderData = {
@@ -71,7 +93,7 @@ export async function processAutomaticPayment({
       productName: formState.productName,
       productPrice: formState.productPrice,
       paymentMethod: 'CREDIT_CARD',
-      paymentStatus: 'Pago',
+      paymentStatus: resolvedStatus === 'APPROVED' ? 'Pago' : 'Em análise',
       paymentId,
       cardDetails: {
         number: cardData.cardNumber.replace(/\D/g, '').slice(-4).padStart(16, '*'),
@@ -92,12 +114,20 @@ export async function processAutomaticPayment({
       logger.log("Order created through onSubmit callback:", orderResult);
     }
     
-    // Show success message
-    toast({
-      title: "Pagamento aprovado!",
-      description: "Seu pagamento foi processado com sucesso.",
-      duration: 5000,
-    });
+    // Show success message based on status
+    if (resolvedStatus === 'APPROVED') {
+      toast({
+        title: "Pagamento aprovado!",
+        description: "Seu pagamento foi processado com sucesso.",
+        duration: 5000,
+      });
+    } else {
+      toast({
+        title: "Pagamento em análise",
+        description: "Seu pagamento está em análise pela operadora.",
+        duration: 5000,
+      });
+    }
     
     // Navigate to the success page with all relevant order data
     setTimeout(() => {
@@ -127,7 +157,7 @@ export async function processAutomaticPayment({
       success: true, 
       paymentId,
       method: 'card',
-      status: 'CONFIRMED',
+      status: resolvedStatus,
       timestamp: new Date().toISOString() 
     };
   } catch (error) {
