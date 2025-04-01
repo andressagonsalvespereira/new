@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAsaas } from '@/contexts/AsaasContext';
 import { processPixPayment } from '@/components/checkout/payment/pix/pixProcessor';

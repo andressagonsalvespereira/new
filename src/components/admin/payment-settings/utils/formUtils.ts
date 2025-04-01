@@ -43,7 +43,7 @@ export const asaasSettingsToFormValues = (settings: AsaasSettings): PaymentSetti
   return {
     isEnabled: settings.isEnabled,
     manualCardProcessing: settings.manualCardProcessing,
-    manualCardStatus: settings.manualCardStatus || 'ANALYSIS',
+    manualCardStatus: settings.manualCardStatus as 'APPROVED' | 'DENIED' | 'ANALYSIS',
     manualCreditCard: settings.manualCreditCard,
     allowPix: settings.allowPix,
     allowCreditCard: settings.allowCreditCard,

@@ -43,7 +43,7 @@ const asaasApiService = {
     }
   },
 
-  createPayment: async (settings: AsaasSettings, paymentData: AsaasPayment) => {
+  createPayment: async (settings: AsaasSettings, paymentData: any) => {
     try {
       if (!settings.isEnabled || !settings.apiKey) {
         console.log("Asaas is disabled or API key not set, returning mock payment");

@@ -11,7 +11,14 @@ export interface AsaasSettings {
   manualCardProcessing: boolean;
   manualPixPage: boolean;
   manualPaymentConfig: boolean;
-  manualCardStatus: string;
+  manualCardStatus: 'APPROVED' | 'DENIED' | 'ANALYSIS';
+}
+
+export interface AsaasContextType {
+  settings: AsaasSettings;
+  loading: boolean;
+  saveSettings: (settings: AsaasSettings) => Promise<void>;
+  updateSettings: (settings: AsaasSettings) => Promise<void>;
 }
 
 export interface AsaasApiResponse {
@@ -51,6 +58,22 @@ export interface AsaasApiResponse {
   paymentMethods?: string[];
   error?: string;
   errors?: AsaasError[];
+}
+
+export interface AsaasPaymentResponse extends AsaasApiResponse {
+  id: string;
+  status: string;
+  value: number;
+  netValue: number;
+  customer: string;
+  billingType: string;
+  dueDate: string;
+}
+
+export interface AsaasPixQrCodeResponse {
+  encodedImage: string;
+  payload: string;
+  expirationDate: string;
 }
 
 export interface AsaasError {
@@ -116,4 +139,8 @@ export interface AsaasPayment {
   qr_code_image?: string;
   created_at?: string;
   updated_at?: string;
+  value?: number;
+  customer?: string;
+  billingType?: string;
+  dueDate?: string;
 }
