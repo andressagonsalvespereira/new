@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useOrders } from '@/contexts/OrderContext';
 import { CreateOrderInput, CardDetails, PixDetails, PaymentMethod, PaymentStatus, Order } from '@/types/order';
@@ -35,6 +35,7 @@ export const useCheckoutContainerOrder = ({
   const { addOrder } = useOrders();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const processingRef = useRef(false);
   
   const createOrder = async (
     paymentId: string, 
@@ -43,20 +44,32 @@ export const useCheckoutContainerOrder = ({
     pixDetails?: PixDetails
   ): Promise<Order> => {
     try {
-      // Prevent duplicate order creation when the function is called multiple times
-      if (isProcessing) {
-        console.log("Order creation already in progress, preventing duplicate");
+      // Verificação dupla para prevenir criação de pedidos duplicados
+      if (isProcessing || processingRef.current) {
+        console.log("Criação de pedido já em andamento, prevenindo duplicação");
         throw new Error("Processamento em andamento. Por favor, aguarde.");
       }
       
+      // Configurar ambos os estados para tracking
       setIsProcessing(true);
+      processingRef.current = true;
       
-      console.log("Creating order with product details:", productDetails);
-      console.log("Order status:", status);
-      console.log("Card details:", cardDetails ? {...cardDetails, cvv: '***'} : 'None');
-      console.log("PIX details:", pixDetails || 'None');
+      console.log("Criando pedido com detalhes do produto:", {
+        id: productDetails.id,
+        name: productDetails.name,
+        price: productDetails.price,
+        isDigital: productDetails.isDigital
+      });
+      console.log("Estado do pedido:", status);
+      console.log("Detalhes do cliente:", {
+        name: formState.fullName,
+        email: formState.email,
+        cpf: formState.cpf,
+        phone: formState.phone,
+        hasAddress: !!formState.street
+      });
       
-      // Ensure that credit card brand is set to a default value if not provided
+      // Garantir que a marca do cartão seja definida para um valor padrão se não fornecida
       if (cardDetails && !cardDetails.brand) {
         cardDetails.brand = 'Desconhecida';
       }
@@ -90,34 +103,44 @@ export const useCheckoutContainerOrder = ({
         isDigitalProduct: productDetails.isDigital
       };
 
-      console.log("Sending order data:", {
-        ...orderData,
-        cardDetails: orderData.cardDetails ? {...orderData.cardDetails, cvv: '***'} : undefined
+      console.log("Enviando dados do pedido:", {
+        productId: orderData.productId,
+        productName: orderData.productName,
+        productPrice: orderData.productPrice,
+        paymentMethod: orderData.paymentMethod,
+        customerName: orderData.customer.name,
+        customerEmail: orderData.customer.email
       });
       
-      const newOrder = await addOrder(orderData);
-      console.log("Order created successfully:", {
-        id: newOrder.id,
-        productName: newOrder.productName,
-        productPrice: newOrder.productPrice,
-        paymentMethod: newOrder.paymentMethod,
-        paymentStatus: newOrder.paymentStatus
-      });
-      
-      // Call the handlePayment function to complete the checkout process
-      handlePayment();
-      
-      return newOrder;
-    } catch (error) {
-      console.error('Error creating order:', error);
-      toast({
-        title: "Erro no pedido",
-        description: "Não foi possível finalizar o pedido. Tente novamente.",
-        variant: "destructive",
-      });
-      throw error;
+      try {
+        const newOrder = await addOrder(orderData);
+        console.log("Pedido criado com sucesso:", {
+          id: newOrder.id,
+          productName: newOrder.productName,
+          productPrice: newOrder.productPrice,
+          paymentMethod: newOrder.paymentMethod,
+          paymentStatus: newOrder.paymentStatus
+        });
+        
+        // Chama a função handlePayment para completar o processo de checkout
+        handlePayment();
+        
+        return newOrder;
+      } catch (error) {
+        console.error('Erro ao criar pedido:', error);
+        toast({
+          title: "Erro no pedido",
+          description: "Não foi possível finalizar o pedido. Tente novamente.",
+          variant: "destructive",
+        });
+        throw error;
+      }
     } finally {
+      // Garantir que os estados de processamento sejam resetados
       setIsProcessing(false);
+      setTimeout(() => {
+        processingRef.current = false;
+      }, 2000);
     }
   };
 

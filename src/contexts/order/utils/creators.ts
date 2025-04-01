@@ -6,10 +6,11 @@ import { convertDBOrderToOrder } from './converters';
 // Create a new order
 export const createOrder = async (orderData: CreateOrderInput): Promise<Order> => {
   try {
-    console.log("Criando novo pedido com dados:", {
+    console.log("Iniciando criação de pedido com dados:", {
       ...orderData,
       cardDetails: orderData.cardDetails ? {
         ...orderData.cardDetails,
+        number: orderData.cardDetails.number ? '****' + orderData.cardDetails.number.slice(-4) : '',
         cvv: '***' // Mask CVV in logs
       } : undefined
     });
@@ -32,7 +33,9 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       if (checkError) {
         console.warn("Erro ao verificar pedidos existentes:", checkError);
       } else if (existingOrders && existingOrders.length > 0) {
-        console.warn("Pedido similar encontrado nos últimos 5 minutos, possível duplicação:", existingOrders[0].id);
+        console.warn("Pedido similar encontrado nos últimos 5 minutos, possível duplicação:", 
+          existingOrders.map(o => ({ id: o.id, cliente: o.customer_name, produto: o.product_name })));
+        
         // Se for um pedido exatamente igual (mesmo preço), retornamos o existente
         // para evitar criar um duplicado
         const exactMatch = existingOrders.find(order => 
@@ -42,7 +45,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
         );
         
         if (exactMatch) {
-          console.log("Pedido idêntico encontrado, retornando existente:", exactMatch.id);
+          console.log("Pedido idêntico encontrado, retornando existente para evitar duplicação:", exactMatch.id);
           return convertDBOrderToOrder(exactMatch);
         }
       }
@@ -88,6 +91,7 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
 
     console.log("Inserindo pedido no banco de dados:", {
       ...orderToInsert,
+      credit_card_number: orderToInsert.credit_card_number ? '****' + orderToInsert.credit_card_number.slice(-4) : null,
       credit_card_cvv: orderToInsert.credit_card_cvv ? '***' : null // Mask CVV in logs
     });
 
@@ -102,10 +106,10 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
       throw new Error(`Error creating order: ${error.message}`);
     }
 
-    console.log("Pedido criado com sucesso:", data);
+    console.log("Pedido criado com sucesso! ID:", data.id);
     return convertDBOrderToOrder(data);
   } catch (error) {
-    console.error('Failed to create order:', error);
+    console.error('Falha ao criar pedido:', error);
     throw error;
   }
 };

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -23,14 +23,23 @@ const CardSubmitButton = ({
   // Combina os estados para determinar se o botão deve estar desabilitado
   const isDisabled = isLoading || isSubmitting || wasClicked;
 
+  // Reset wasClicked quando o componente é desmontado ou quando isSubmitting muda para false
+  useEffect(() => {
+    if (!isSubmitting && wasClicked) {
+      // Atraso para evitar que o usuário clique novamente imediatamente
+      const timeout = setTimeout(() => {
+        setWasClicked(false);
+      }, 2000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [isSubmitting, wasClicked]);
+
   // Função para lidar com o clique e prevenir múltiplos cliques
   const handleButtonClick = () => {
     if (!isDisabled) {
+      console.log("Botão de pagamento com cartão clicado");
       setWasClicked(true);
-      // Resetar após 5 segundos para permitir nova tentativa se necessário
-      setTimeout(() => {
-        setWasClicked(false);
-      }, 5000);
     }
   };
 

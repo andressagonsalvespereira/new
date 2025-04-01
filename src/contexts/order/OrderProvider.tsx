@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Order, CreateOrderInput, PaymentMethod } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
 import { OrderContext } from './OrderContext';
@@ -18,9 +17,10 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pendingOrderRef = useRef(false);
 
   useEffect(() => {
-    console.log("OrderProvider initialized, loading orders...");
+    console.log("OrderProvider inicializado, carregando pedidos...");
     fetchOrders();
   }, []);
 
@@ -28,12 +28,12 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const loadedOrders = await loadOrders();
-      console.log("Orders loaded:", loadedOrders);
+      console.log("Pedidos carregados:", loadedOrders.length);
       setOrders(loadedOrders);
       setLoading(false);
     } catch (err) {
-      console.error('Error loading orders:', err);
-      setError('Failed to load orders');
+      console.error('Erro ao carregar pedidos:', err);
+      setError('Falha ao carregar pedidos');
       toast({
         title: "Erro",
         description: "Falha ao carregar pedidos",
@@ -45,11 +45,26 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const addOrder = async (orderData: CreateOrderInput): Promise<Order> => {
     try {
-      console.log("Adding new order with data:", orderData);
-      const newOrder = await createOrder(orderData);
-      console.log("Order created successfully:", newOrder);
+      if (pendingOrderRef.current) {
+        console.warn("Solicitação de criação de pedido duplicada detectada");
+        throw new Error("Já existe um pedido em processamento");
+      }
       
-      // Update the local state with the new order at the beginning of the array
+      pendingOrderRef.current = true;
+      console.log("Adicionando novo pedido com dados:", {
+        customer: {
+          name: orderData.customer.name,
+          email: orderData.customer.email
+        },
+        productId: orderData.productId,
+        productName: orderData.productName,
+        productPrice: orderData.productPrice,
+        paymentMethod: orderData.paymentMethod
+      });
+      
+      const newOrder = await createOrder(orderData);
+      console.log("Pedido criado com sucesso:", newOrder.id);
+      
       setOrders(prev => [newOrder, ...prev]);
       
       toast({
@@ -59,13 +74,17 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       
       return newOrder;
     } catch (err) {
-      console.error('Error adding order:', err);
+      console.error('Erro ao adicionar pedido:', err);
       toast({
         title: "Erro",
         description: "Falha ao adicionar pedido",
         variant: "destructive",
       });
       throw err;
+    } finally {
+      setTimeout(() => {
+        pendingOrderRef.current = false;
+      }, 1000);
     }
   };
 
@@ -89,7 +108,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       
       return updatedOrder;
     } catch (err) {
-      console.error('Error updating order status:', err);
+      console.error('Erro ao atualizar status do pedido:', err);
       toast({
         title: "Erro",
         description: "Falha ao atualizar status do pedido",
@@ -103,7 +122,6 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     try {
       await deleteOrderData(id);
       
-      // Update local state to remove the deleted order
       setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
       
       toast({
@@ -111,7 +129,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
         description: "Pedido removido com sucesso",
       });
     } catch (err) {
-      console.error('Error deleting order:', err);
+      console.error('Erro ao excluir pedido:', err);
       toast({
         title: "Erro",
         description: "Falha ao excluir o pedido",
@@ -125,7 +143,6 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     try {
       await deleteAllOrdersByPaymentMethodData(method);
       
-      // Update local state to remove all orders with the specified payment method
       setOrders(prevOrders => prevOrders.filter(order => order.paymentMethod !== method));
       
       toast({
@@ -133,7 +150,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
         description: `Todos os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'} foram removidos`,
       });
     } catch (err) {
-      console.error('Error deleting orders by payment method:', err);
+      console.error('Erro ao excluir pedidos por método de pagamento:', err);
       toast({
         title: "Erro",
         description: `Falha ao excluir os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'}`,
@@ -144,7 +161,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   };
 
   const refreshOrders = () => {
-    console.log("Refreshing orders list...");
+    console.log("Atualizando lista de pedidos...");
     fetchOrders();
   };
 
@@ -154,11 +171,63 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
       loading, 
       error, 
       addOrder, 
-      getOrdersByPaymentMethod, 
-      updateOrderStatus,
+      getOrdersByPaymentMethod: filterOrdersByPaymentMethod.bind(null, orders), 
+      updateOrderStatus: async (id, status) => {
+        try {
+          const { updatedOrder, updatedOrders } = await updateOrderStatusData(orders, id, status);
+          setOrders(updatedOrders);
+          toast({
+            title: "Sucesso",
+            description: "Status do pedido atualizado com sucesso",
+          });
+          return updatedOrder;
+        } catch (err) {
+          console.error('Erro ao atualizar status do pedido:', err);
+          toast({
+            title: "Erro",
+            description: "Falha ao atualizar status do pedido",
+            variant: "destructive",
+          });
+          throw err;
+        }
+      },
       refreshOrders,
-      deleteOrder,
-      deleteAllOrdersByPaymentMethod
+      deleteOrder: async (id) => {
+        try {
+          await deleteOrderData(id);
+          setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
+          toast({
+            title: "Sucesso",
+            description: "Pedido removido com sucesso",
+          });
+        } catch (err) {
+          console.error('Erro ao excluir pedido:', err);
+          toast({
+            title: "Erro",
+            description: "Falha ao excluir o pedido",
+            variant: "destructive",
+          });
+          throw err;
+        }
+      },
+      deleteAllOrdersByPaymentMethod: async (method) => {
+        try {
+          await deleteAllOrdersByPaymentMethodData(method);
+          setOrders(prevOrders => prevOrders.filter(order => order.paymentMethod !== method));
+          toast({
+            title: "Sucesso",
+            description: `Todos os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'} foram removidos`,
+          });
+        } catch (err) {
+          console.error('Erro ao excluir pedidos por método de pagamento:', err);
+          toast({
+            title: "Erro",
+            description: `Falha ao excluir os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'}`,
+            variant: "destructive",
+          });
+          throw err;
+        }
+      }
     }}>
       {children}
     </OrderContext.Provider>
