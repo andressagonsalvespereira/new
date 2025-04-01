@@ -18,7 +18,7 @@ export const useProductOperations = () => {
 
   const handleAdicionarProduto = async (dadosFormulario: CriarProdutoInput) => {
     try {
-      await adicionarProduto(dadosFormulario);
+      const novoProduto = await adicionarProduto(dadosFormulario);
       exibirNotificacao({
         title: "Sucesso",
         description: "Produto adicionado com sucesso",
