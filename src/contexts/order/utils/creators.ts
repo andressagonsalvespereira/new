@@ -1,3 +1,4 @@
+
 import { Order, CreateOrderInput } from '@/types/order';
 import { supabase } from '@/integrations/supabase/client';
 import { convertDBOrderToOrder } from './converters';
@@ -92,11 +93,27 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     const deviceType = orderData.deviceType || 'desktop';
     const isDigitalProduct = orderData.isDigitalProduct || false;
 
-    // Corrigir ou garantir status válido
-    const allowedStatuses = ['Pending', 'Pago', 'Aguardando', 'Cancelado'];
-    let safeStatus = allowedStatuses.includes(orderData.paymentStatus)
-      ? orderData.paymentStatus
-      : 'Pending';
+    // Normalize payment status using a mapping
+    const allowedStatuses = ['PENDING', 'PAID', 'APPROVED', 'DENIED', 'ANALYSIS', 'CANCELLED'];
+    
+    // Map for converting localized status values to standard ones
+    const statusMap: Record<string, string> = {
+      'Pago': 'PAID',
+      'Aguardando': 'PENDING',
+      'Cancelado': 'CANCELLED',
+      'Pendente': 'PENDING',
+      'Análise': 'ANALYSIS',
+      'Aprovado': 'APPROVED',
+      'Recusado': 'DENIED'
+    };
+
+    // First try to map from localized status, then use as-is if not in map
+    let normalizedStatus = statusMap[orderData.paymentStatus] || orderData.paymentStatus;
+    
+    // Ensure the status is one of the allowed values, default to PENDING if not
+    let safeStatus = allowedStatuses.includes(normalizedStatus) ? normalizedStatus : 'PENDING';
+    
+    console.log(`Payment status normalized: ${orderData.paymentStatus} → ${safeStatus}`);
 
     const orderToInsert = {
       customer_name: orderData.customer.name,

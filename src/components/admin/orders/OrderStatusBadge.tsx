@@ -9,12 +9,14 @@ interface OrderStatusBadgeProps {
 const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({ status }) => {
   // Define status color mapping with defaults for all possible statuses
   const statusConfig = {
-    'Aguardando': { color: 'bg-yellow-100 text-yellow-800', label: 'Aguardando' },
-    'Pago': { color: 'bg-green-100 text-green-800', label: 'Pago' },
-    'Cancelado': { color: 'bg-red-100 text-red-800', label: 'Cancelado' },
-    'Pendente': { color: 'bg-blue-100 text-blue-800', label: 'Pendente' },
+    'PENDING': { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
+    'PAID': { color: 'bg-green-100 text-green-800', label: 'Paid' },
+    'APPROVED': { color: 'bg-green-100 text-green-800', label: 'Approved' },
+    'DENIED': { color: 'bg-red-100 text-red-800', label: 'Denied' },
+    'ANALYSIS': { color: 'bg-blue-100 text-blue-800', label: 'Analysis' },
+    'CANCELLED': { color: 'bg-red-100 text-red-800', label: 'Cancelled' },
     // Fallback for any other values
-    'default': { color: 'bg-gray-100 text-gray-800', label: 'Status Desconhecido' }
+    'default': { color: 'bg-gray-100 text-gray-800', label: 'Unknown Status' }
   };
 
   // Use the fallback if the status is undefined or not in the config
@@ -22,7 +24,7 @@ const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({ status }) => {
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
-      {status || config.label}
+      {config.label}
     </span>
   );
 };

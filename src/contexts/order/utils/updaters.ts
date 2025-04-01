@@ -12,6 +12,12 @@ export const updateOrderStatusData = async (
   try {
     const orderId = typeof id === 'string' ? parseInt(id, 10) : id;
     
+    // Validate the status
+    const allowedStatuses = ['PENDING', 'PAID', 'APPROVED', 'DENIED', 'ANALYSIS', 'CANCELLED'];
+    if (!allowedStatuses.includes(status)) {
+      throw new Error(`Invalid payment status: ${status}. Must be one of: ${allowedStatuses.join(', ')}`);
+    }
+    
     const { data, error } = await supabase
       .from('orders')
       .update({ status, updated_at: new Date().toISOString() })

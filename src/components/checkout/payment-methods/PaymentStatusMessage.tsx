@@ -7,15 +7,15 @@ interface PaymentStatusMessageProps {
 }
 
 const PaymentStatusMessage: React.FC<PaymentStatusMessageProps> = ({ status }) => {
-  if (status === 'CONFIRMED' || status === 'APPROVED') {
+  if (status === 'CONFIRMED' || status === 'APPROVED' || status === 'PAID') {
     return (
       <div className="p-6 text-center">
         <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
           <Check className="h-6 w-6 text-green-600" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">Pagamento Aprovado</h3>
+        <h3 className="text-lg font-semibold mb-2">Payment Approved</h3>
         <p className="text-gray-600 mb-4">
-          Seu pagamento foi processado com sucesso. Obrigado pela sua compra!
+          Your payment has been processed successfully. Thank you for your purchase!
         </p>
       </div>
     );
@@ -28,26 +28,26 @@ const PaymentStatusMessage: React.FC<PaymentStatusMessageProps> = ({ status }) =
           <Clock className="h-6 w-6 text-blue-600" />
         </div>
         <h3 className="text-lg font-semibold mb-2">
-          {status === 'ANALYSIS' ? 'Pagamento em Análise' : 'Pagamento em Processamento'}
+          {status === 'ANALYSIS' ? 'Payment Under Analysis' : 'Payment Processing'}
         </h3>
         <p className="text-gray-600 mb-4">
           {status === 'ANALYSIS' 
-            ? 'Seu pagamento foi enviado para análise. Em breve você receberá a confirmação.' 
-            : 'Seu pagamento está sendo processado. Em breve você receberá a confirmação.'}
+            ? 'Your payment has been sent for analysis. You will receive confirmation soon.' 
+            : 'Your payment is being processed. You will receive confirmation soon.'}
         </p>
       </div>
     );
   }
   
-  if (status === 'DECLINED' || status === 'FAILED' || status === 'DENIED') {
+  if (status === 'DECLINED' || status === 'FAILED' || status === 'DENIED' || status === 'CANCELLED') {
     return (
       <div className="p-6 text-center">
         <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
           <AlertCircle className="h-6 w-6 text-red-600" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">Pagamento Recusado</h3>
+        <h3 className="text-lg font-semibold mb-2">Payment Declined</h3>
         <p className="text-gray-600 mb-4">
-          Infelizmente seu pagamento foi recusado. Por favor, verifique os dados do cartão ou tente outro método de pagamento.
+          Unfortunately your payment was declined. Please verify your card details or try another payment method.
         </p>
       </div>
     );
