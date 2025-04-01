@@ -45,7 +45,7 @@ const CardForm: React.FC<CardFormProps> = ({
     mode: 'onBlur'
   });
 
-  const { handleSubmit, formState: { errors } } = methods;
+  const { handleSubmit, formState: { errors, isValid } } = methods;
 
   // Enhanced submit handler with logging
   const enhancedSubmit = (data: CardFormData) => {
@@ -54,7 +54,8 @@ const CardForm: React.FC<CardFormProps> = ({
       cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : '',
       expiryMonth: data.expiryMonth,
       expiryYear: data.expiryYear,
-      cvv: '***'
+      cvv: '***',
+      isFormValid: isValid
     });
     
     // Call the onSubmit function passed from parent
@@ -70,9 +71,24 @@ const CardForm: React.FC<CardFormProps> = ({
   // Use custom button text from customization if available
   const displayButtonText = customization?.button_text || buttonText;
 
+  // Log component render
+  console.log("CardForm rendering with state:", { 
+    loading, isSubmitting, 
+    hasErrors: Object.keys(errors).length > 0,
+    isValid 
+  });
+
+  const handleFormSubmit = handleSubmit(enhancedSubmit);
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(enhancedSubmit)} className="space-y-4">
+      <form 
+        onSubmit={(e) => {
+          console.log("Form onSubmit triggered");
+          handleFormSubmit(e);
+        }}
+        className="space-y-4"
+      >
         <CardNameField 
           disabled={loading || isSubmitting}
           error={errors.cardName?.message}

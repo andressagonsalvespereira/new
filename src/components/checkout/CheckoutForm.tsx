@@ -62,6 +62,11 @@ const CheckoutForm = ({
     manualCardStatus: 'ANALYSIS'
   };
 
+  // Log the submitting state changes for debugging
+  useEffect(() => {
+    console.log("IsSubmitting state changed:", isSubmitting);
+  }, [isSubmitting]);
+
   const handleCardFormSubmit = async (cardData: CardFormData) => {
     console.log("Card form submitted, processing payment with settings:", 
       { 
@@ -81,8 +86,9 @@ const CheckoutForm = ({
     });
     
     try {
-      // Explicitly set isSubmitting to true
+      // Explicitly set isSubmitting to true before processing payment
       setIsSubmitting(true);
+      console.log("Setting isSubmitting to true");
       
       // Process payment with card using the utility with object parameter
       await processCardPayment({
@@ -122,18 +128,18 @@ const CheckoutForm = ({
     }
   };
 
-  // Se o pagamento foi confirmado ou está em análise, mostrar mensagem apropriada
+  // If payment was confirmed or is under analysis, show appropriate message
   if (paymentStatus) {
     return <PaymentStatusMessage status={paymentStatus} />;
   }
 
-  // Determinar o texto do botão com base nas configurações
+  // Determine button text based on settings
   const getButtonText = () => {
     if (!settings?.manualCardProcessing) {
       return 'Finalizar Pagamento';
     }
     
-    // Verificar se deve usar configurações específicas do produto
+    // Check if should use product-specific settings
     const cardStatus = useCustomProcessing && manualCardStatus
       ? manualCardStatus
       : settings?.manualCardStatus;
@@ -149,9 +155,9 @@ const CheckoutForm = ({
     }
   };
 
-  // Mensagem de alerta baseada na configuração de processamento
+  // Alert message based on processing configuration
   const getAlertMessage = () => {
-    // Verificar se deve usar configurações específicas do produto
+    // Check if should use product-specific settings
     const cardStatus = useCustomProcessing && manualCardStatus
       ? manualCardStatus
       : settings?.manualCardStatus;
@@ -167,9 +173,9 @@ const CheckoutForm = ({
     }
   };
 
-  // Estilo do alerta baseado na configuração de processamento
+  // Alert style based on processing configuration
   const getAlertStyles = () => {
-    // Verificar se deve usar configurações específicas do produto
+    // Check if should use product-specific settings
     const cardStatus = useCustomProcessing && manualCardStatus
       ? manualCardStatus
       : settings?.manualCardStatus;

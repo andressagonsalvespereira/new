@@ -82,7 +82,15 @@ export const processCardPayment = async ({
     console.error('Error processing card payment:', error);
     setError('Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
     setIsSubmitting(false);
-    throw error;
+    
+    // Return a valid PaymentResult object in case of error
+    return {
+      success: false,
+      method: 'card', // Make sure it's the literal 'card'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
+    };
   }
 };
 

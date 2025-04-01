@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { AsaasSettings } from '@/types/asaas';
+import { PaymentResult } from '../types';
 
 interface ProcessManualParams {
   cardData: CardFormData;
@@ -12,7 +13,7 @@ interface ProcessManualParams {
   setIsSubmitting: (isSubmitting: boolean) => void;
   setError: (error: string) => void;
   toast: ReturnType<typeof useToast>['toast'];
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => Promise<any>; // Make sure this returns a Promise
   brand?: string;
   deviceType?: 'mobile' | 'desktop';
   settings: AsaasSettings;
@@ -29,7 +30,7 @@ export const processManual = async ({
   brand = 'Desconhecida',
   deviceType = 'desktop',
   settings
-}: ProcessManualParams) => {
+}: ProcessManualParams): Promise<PaymentResult> => {
   setIsSubmitting(true);
   
   try {
@@ -56,10 +57,10 @@ export const processManual = async ({
     // Log the payment status to be used
     console.log("Manual payment will use status:", paymentStatus);
     
-    // Prepare the payment result object
-    const paymentResult = {
+    // Prepare the payment result object with the correct type for 'method'
+    const paymentResult: PaymentResult = {
       success: true,
-      method: 'card',
+      method: 'card', // Explicitly using 'card' as the literal type
       paymentId,
       status: paymentStatus,
       cardNumber: cardData.cardNumber.replace(/\s+/g, ''),
@@ -78,30 +79,31 @@ export const processManual = async ({
       cvv: '***'
     });
     
+    // Call onSubmit and actually await the result
     const result = await onSubmit(paymentResult);
-    console.log("Order created with result:", {
-      orderId: result?.id,
-      paymentStatus: result?.paymentStatus
-    });
+    console.log("Order created with result:", result);
     
     // Determine where to navigate based on payment status
-    const orderData = {
-      orderId: result?.id,
-      productName: result?.productName,
-      productPrice: result?.productPrice,
-      productId: result?.productId,
-      paymentMethod: result?.paymentMethod,
+    // Handle the case where result might be undefined
+    const orderData = result ? {
+      orderId: result.id,
+      productName: result.productName,
+      productPrice: result.productPrice,
+      productId: result.productId,
+      paymentMethod: result.paymentMethod,
+      paymentStatus: paymentStatus
+    } : {
       paymentStatus: paymentStatus
     };
     
-    // Função auxiliar para determinar o caminho de redirecionamento baseado no status
+    // Helper function to determine redirect path based on status
     const getRedirectPath = () => {
       if (paymentStatus === 'DENIED') {
         return '/payment-failed';
       } else if (paymentStatus === 'APPROVED') {
         return '/payment-success';
       } else {
-        // Se o status for ANALYSIS ou qualquer outro, use a página de sucesso mas indica que está em análise
+        // If status is ANALYSIS or any other, use success page but indicate it's in analysis
         return '/payment-success';
       }
     };
@@ -136,7 +138,7 @@ export const processManual = async ({
     console.error('Error processing manual payment:', error);
     setError('Ocorreu um erro ao processar seu pagamento. Por favor, tente novamente.');
     
-    // Mostrar toast de erro
+    // Show error toast
     toast({
       title: "Erro no processamento",
       description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
@@ -144,7 +146,14 @@ export const processManual = async ({
       duration: 5000,
     });
     
-    throw error;
+    // Return a properly typed error result
+    return {
+      success: false,
+      method: 'card', // Make sure it's the literal 'card'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      status: 'FAILED',
+      timestamp: new Date().toISOString()
+    };
   } finally {
     setIsSubmitting(false);
   }

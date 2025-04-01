@@ -25,9 +25,12 @@ const CardSubmitButton = ({
 
   // Reset wasClicked when component unmounts or when isSubmitting changes to false
   useEffect(() => {
+    console.log("Button state changed:", { isSubmitting, wasClicked });
+    
     if (!isSubmitting && wasClicked) {
       // Delay to prevent immediate re-clicking
       const timeout = setTimeout(() => {
+        console.log("Resetting wasClicked state after timeout");
         setWasClicked(false);
       }, 2000);
       
@@ -36,10 +39,15 @@ const CardSubmitButton = ({
   }, [isSubmitting, wasClicked]);
 
   // Function to handle button click and prevent multiple submissions
-  const handleButtonClick = () => {
+  const handleButtonClick = (e: React.MouseEvent) => {
+    console.log("Card payment button clicked", { isDisabled });
+    
     if (!isDisabled) {
-      console.log("Card payment button clicked - submitting form");
+      console.log("Card payment button click being processed - submitting form");
       setWasClicked(true);
+      
+      // Don't prevent default or stop propagation - let the form submission happen
+      // This just prevents multiple clicks
     }
   };
 
@@ -51,6 +59,7 @@ const CardSubmitButton = ({
       style={buttonStyle}
       onClick={handleButtonClick}
       data-submitting={isSubmitting ? "true" : "false"}
+      data-wasclicked={wasClicked ? "true" : "false"}
     >
       {isLoading || isSubmitting ? (
         <div className="w-full">
