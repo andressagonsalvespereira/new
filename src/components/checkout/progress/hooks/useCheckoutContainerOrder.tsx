@@ -24,7 +24,7 @@ interface UseCheckoutContainerOrderProps {
     formErrors: Record<string, string>;
   };
   productDetails: ProductDetailsType;
-  handlePayment: () => void;
+  handlePayment: (paymentData: any) => void;
 }
 
 export const useCheckoutContainerOrder = ({
@@ -177,7 +177,15 @@ export const useCheckoutContainerOrder = ({
         });
         
         // Chama a função handlePayment para completar o processo de checkout
-        handlePayment();
+        const paymentResult = {
+          orderId: newOrder.id,
+          status: newOrder.paymentStatus === 'Pago' ? 'confirmed' : 'pending',
+          paymentMethod: newOrder.paymentMethod,
+          cardDetails: newOrder.cardDetails,
+          pixDetails: newOrder.pixDetails
+        };
+        
+        handlePayment(paymentResult);
         
         toast({
           title: "Pedido criado",

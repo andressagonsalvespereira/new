@@ -12,6 +12,7 @@ import { useOrders } from '@/contexts/OrderContext';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
+import { PaymentMethod } from '@/types/order';
 
 const Checkout: React.FC = () => {
   const { productSlug } = useParams<{ productSlug?: string }>();
@@ -94,6 +95,9 @@ const Checkout: React.FC = () => {
         throw new Error("Produto não disponível para finalizar o pedido");
       }
       
+      // Convert card/pix UI values to PaymentMethod enum values
+      const paymentMethodEnum: PaymentMethod = paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX';
+      
       // Presumindo que paymentData contém as informações necessárias do pagamento e do cliente
       // Adaptamos para o formato esperado pelo addOrder
       const orderData = {
@@ -106,7 +110,7 @@ const Checkout: React.FC = () => {
         productId: selectedProduct.id,
         productName: selectedProduct.nome,
         productPrice: selectedProduct.preco,
-        paymentMethod: paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX',
+        paymentMethod: paymentMethodEnum,
         paymentStatus: paymentData.status === 'confirmed' ? 'Pago' : 'Aguardando',
         isDigitalProduct: selectedProduct.digital,
         cardDetails: paymentMethod === 'card' && paymentData.cardDetails ? {

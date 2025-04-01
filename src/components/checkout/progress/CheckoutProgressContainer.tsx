@@ -73,7 +73,7 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
     handlePayment(paymentInfo);
   };
 
-  const { createOrder, customerData, isProcessingOrder } = useCheckoutContainerOrder({
+  const { createOrder, customerData, isProcessing: isProcessingOrder } = useCheckoutContainerOrder({
     formState,
     productDetails,
     handlePayment: handleOrderCreated
