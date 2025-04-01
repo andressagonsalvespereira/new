@@ -1,11 +1,11 @@
 
-import { CardFormData } from '../../../payment-methods/CardForm';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { PaymentProcessorProps, PaymentResult } from '../types';
-import { detectCardBrand } from './cardDetection';
-import { simulatePayment } from '../paymentSimulator';
 import { v4 as uuidv4 } from 'uuid';
+import { CardFormData } from '../../payment-methods/CardForm';
+import { PaymentProcessorProps, PaymentResult } from '../shared/types';
+import { detectCardBrand } from './utils/cardDetection';
+import { simulatePayment } from '../shared/paymentSimulator';
 import { DeviceType } from '@/types/order';
 
 interface ProcessCardPaymentParams {

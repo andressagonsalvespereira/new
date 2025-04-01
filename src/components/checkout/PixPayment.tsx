@@ -1,85 +1,119 @@
 
-import React from 'react';
-import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
-import { usePixPayment } from './pix-payment/usePixPayment';
+import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import LoadingState from './pix-payment/LoadingState';
+import ErrorState from './pix-payment/ErrorState';
 import PixQrCode from './pix-payment/PixQrCode';
 import PixCopyCode from './pix-payment/PixCopyCode';
 import PixInformation from './pix-payment/PixInformation';
-import LoadingState from './pix-payment/LoadingState';
-import ErrorState from './pix-payment/ErrorState';
-import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { processPixPayment } from './payment/pix/pixProcessor';
+import { useAsaas } from '@/contexts/AsaasContext';
+import { usePixPayment } from './pix-payment/usePixPayment';
+import { PaymentResult } from './payment/shared/types';
 
 interface PixPaymentProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
 }
 
-const PixPayment = ({ onSubmit, isSandbox, isDigitalProduct = false }: PixPaymentProps) => {
-  // Get customer data from checkout form
-  const { formState } = useCheckoutForm();
+const PixPayment: React.FC<PixPaymentProps> = ({ 
+  onSubmit, 
+  isSandbox,
+  isDigitalProduct = false
+}) => {
+  const { toast } = useToast();
+  const { settings } = useAsaas();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pixData, setPixData] = useState<PaymentResult | null>(null);
   
-  // Extract customer data
-  const customerData = {
-    name: formState.fullName,
-    email: formState.email,
-    cpf: formState.cpf,
-    phone: formState.phone
+  const { handleCopyToClipboard } = usePixPayment();
+  
+  const handleProcessPayment = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await processPixPayment(
+        {
+          formState: { isDigitalProduct },
+          settings,
+          isSandbox,
+          onSubmit
+        },
+        (data) => {
+          setPixData(data);
+          console.log("PIX payment processed successfully:", data);
+        },
+        (errorMsg) => {
+          setError(errorMsg);
+          toast({
+            title: "Erro ao processar PIX",
+            description: errorMsg,
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
+      );
+    } catch (err) {
+      console.error("Error in PixPayment component:", err);
+      setError("Ocorreu um erro ao processar o pagamento PIX. Por favor, tente novamente.");
+      toast({
+        title: "Erro inesperado",
+        description: "Ocorreu um erro ao processar o pagamento PIX. Por favor, tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
-  // Use our custom hook for PIX payment logic
-  const { isLoading, error, pixData } = usePixPayment({ 
-    onSubmit, 
-    isSandbox,
-    isDigitalProduct,
-    customerData
-  });
-  
-  // Get customization for button styling
-  const { customization } = useCheckoutCustomization();
-
-  // Get button styles from customization
-  const buttonStyle = {
-    backgroundColor: customization?.button_color || '#4caf50',
-    color: customization?.button_text_color || '#ffffff'
-  };
-
-  // Render loading state
-  if (isLoading) {
+  // If we're still loading
+  if (loading) {
     return <LoadingState />;
   }
-
-  // Render error state
+  
+  // If we encountered an error
   if (error) {
-    return <ErrorState errorMessage={error} />;
+    return <ErrorState message={error} retryAction={handleProcessPayment} />;
   }
-
-  // If no PIX data available yet, return nothing
+  
+  // If we haven't generated a PIX code yet
   if (!pixData) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col items-center p-4">
-      <div className="mb-4 text-center">
-        <h3 className="font-medium mb-2">Pague com PIX</h3>
-        <p className="text-sm text-gray-600">
-          Escaneie o QR Code abaixo com o app do seu banco ou copie o código PIX
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <p className="text-center mb-6">
+          Clique no botão abaixo para gerar um código PIX para pagamento.
         </p>
+        <button
+          onClick={handleProcessPayment}
+          className="px-6 py-3 bg-green-600 text-white rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin inline" />
+              Gerando PIX...
+            </>
+          ) : (
+            "Gerar Código PIX"
+          )}
+        </button>
       </div>
-
-      {/* QR Code Component */}
-      <PixQrCode qrCodeImage={pixData.qrCodeImage} />
-
-      {/* Copy Code Component */}
+    );
+  }
+  
+  // If we have generated a PIX code
+  return (
+    <div className="flex flex-col items-center space-y-6 py-4">
+      <PixQrCode imageUrl={pixData.qrCodeImage} />
       <PixCopyCode 
         pixCode={pixData.qrCode} 
-        buttonStyle={buttonStyle}
-        buttonText={customization?.button_text || "Copiar Código PIX"}
+        onCopy={() => handleCopyToClipboard(pixData.qrCode)} 
       />
-
-      {/* Information Component */}
-      <PixInformation />
+      <PixInformation expiration={pixData.expirationDate} isDigital={isDigitalProduct} />
     </div>
   );
 };
