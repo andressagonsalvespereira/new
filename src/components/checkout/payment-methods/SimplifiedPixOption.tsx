@@ -4,7 +4,7 @@ import { QrCode, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
-import { usePixSubmission } from '@/hooks/checkout/usePixSubmission';
+import { usePixSubmission } from '@/hooks/payment/usePixSubmission';
 
 interface SimplifiedPixOptionProps {
   onSubmit: () => void;

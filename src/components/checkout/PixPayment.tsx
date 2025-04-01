@@ -9,75 +9,75 @@ import PixCopyCode from './pix-payment/PixCopyCode';
 import PixInformation from './pix-payment/PixInformation';
 import { processPixPayment } from './payment/pix/pixProcessor';
 import { useAsaas } from '@/contexts/AsaasContext';
-import { usePixPayment } from './pix-payment/usePixPayment';
+import { usePixPayment } from '@/hooks/payment/usePixPayment';
 import { PaymentResult } from './payment/shared/types';
 
 interface PixPaymentProps {
   onSubmit: (data: any) => Promise<any>;
   isSandbox: boolean;
   isDigitalProduct?: boolean;
+  customerData?: any;
+}
+
+interface ErrorStateProps {
+  message: string;
+  retryAction: () => void;
+}
+
+interface PixQrCodeProps {
+  qrCodeUrl: string;
+}
+
+interface PixCopyCodeProps {
+  code: string;
+  onCopy: () => void;
+}
+
+interface PixInformationProps {
+  expirationDate: string;
+  isDigitalProduct: boolean;
 }
 
 const PixPayment: React.FC<PixPaymentProps> = ({ 
   onSubmit, 
   isSandbox,
-  isDigitalProduct = false
+  isDigitalProduct = false,
+  customerData
 }) => {
   const { toast } = useToast();
   const { settings } = useAsaas();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pixData, setPixData] = useState<PaymentResult | null>(null);
   
-  const { handleCopyToClipboard } = usePixPayment();
+  const { 
+    isLoading, 
+    error, 
+    pixData,
+    handleCopyToClipboard
+  } = usePixPayment({
+    onSubmit,
+    isSandbox,
+    isDigitalProduct,
+    customerData
+  });
   
   const handleProcessPayment = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await processPixPayment(
-        {
-          formState: { isDigitalProduct },
-          settings,
-          isSandbox,
-          onSubmit
-        },
-        (data) => {
-          setPixData(data);
-          console.log("PIX payment processed successfully:", data);
-        },
-        (errorMsg) => {
-          setError(errorMsg);
-          toast({
-            title: "Erro ao processar PIX",
-            description: errorMsg,
-            variant: "destructive",
-            duration: 5000,
-          });
-        }
-      );
-    } catch (err) {
-      console.error("Error in PixPayment component:", err);
-      setError("Ocorreu um erro ao processar o pagamento PIX. Por favor, tente novamente.");
-      toast({
-        title: "Erro inesperado",
-        description: "Ocorreu um erro ao processar o pagamento PIX. Por favor, tente novamente.",
-        variant: "destructive",
-        duration: 5000,
-      });
-    } finally {
-      setLoading(false);
-    }
+    console.log("Manual process payment triggered");
+    // Esta função é apenas um placeholder para compatibilidade
+    // A verdadeira lógica de processamento agora está no hook usePixPayment
   };
   
   // If we're still loading
-  if (loading) {
+  if (isLoading) {
     return <LoadingState />;
   }
   
   // If we encountered an error
   if (error) {
-    return <ErrorState message={error} retryAction={handleProcessPayment} />;
+    return (
+      <ErrorState 
+        message={error} 
+        retryAction={handleProcessPayment} 
+      />
+    );
   }
   
   // If we haven't generated a PIX code yet
@@ -90,9 +90,9 @@ const PixPayment: React.FC<PixPaymentProps> = ({
         <button
           onClick={handleProcessPayment}
           className="px-6 py-3 bg-green-600 text-white rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-          disabled={loading}
+          disabled={isLoading}
         >
-          {loading ? (
+          {isLoading ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin inline" />
               Gerando PIX...
@@ -108,12 +108,17 @@ const PixPayment: React.FC<PixPaymentProps> = ({
   // If we have generated a PIX code
   return (
     <div className="flex flex-col items-center space-y-6 py-4">
-      <PixQrCode imageUrl={pixData.qrCodeImage} />
+      <PixQrCode 
+        qrCodeUrl={pixData.qrCodeImage} 
+      />
       <PixCopyCode 
-        pixCode={pixData.qrCode} 
+        code={pixData.qrCode} 
         onCopy={() => handleCopyToClipboard(pixData.qrCode)} 
       />
-      <PixInformation expiration={pixData.expirationDate} isDigital={isDigitalProduct} />
+      <PixInformation 
+        expirationDate={pixData.expirationDate} 
+        isDigitalProduct={isDigitalProduct} 
+      />
     </div>
   );
 };

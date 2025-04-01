@@ -1,70 +1,36 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
-interface PixCopyCodeProps {
-  pixCode: string;
-  buttonStyle?: React.CSSProperties;
-  buttonText?: string;
+export interface PixCopyCodeProps {
+  code: string;
+  onCopy: () => void;
 }
 
-const PixCopyCode: React.FC<PixCopyCodeProps> = ({ 
-  pixCode, 
-  buttonStyle, 
-  buttonText = "Copiar Código PIX" 
-}) => {
-  const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = () => {
-    if (pixCode) {
-      navigator.clipboard.writeText(pixCode);
-      setCopied(true);
-      toast({
-        title: "Código copiado",
-        description: "O código PIX foi copiado para a área de transferência",
-        duration: 3000,
-      });
-      
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
+const PixCopyCode: React.FC<PixCopyCodeProps> = ({ code, onCopy }) => {
   return (
-    <>
-      <div className="w-full mb-4">
-        <p className="text-xs text-gray-500 mb-2">Código PIX (Copia e Cola):</p>
-        <div className="relative">
-          <div className="p-3 bg-gray-50 border rounded-md text-gray-800 text-xs font-mono break-all">
-            {pixCode}
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2"
-            onClick={copyToClipboard}
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-green-600" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
+    <div className="w-full max-w-md mb-4">
+      <h3 className="text-lg font-semibold text-center mb-2">
+        Código PIX
+      </h3>
+      <div className="flex items-center gap-2">
+        <div className="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-xs font-mono flex-1 overflow-x-auto whitespace-nowrap">
+          {code}
         </div>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={onCopy}
+          className="flex-shrink-0"
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
       </div>
-
-      <Button
-        onClick={copyToClipboard}
-        className="w-full text-white mb-4"
-        style={buttonStyle}
-      >
-        <Copy className="h-4 w-4 mr-2" />
-        {buttonText}
-      </Button>
-    </>
+      <p className="text-xs text-gray-500 mt-2 text-center">
+        Clique no botão ao lado para copiar o código PIX
+      </p>
+    </div>
   );
 };
 

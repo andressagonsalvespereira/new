@@ -1,7 +1,7 @@
 
 import { useProductLoader } from './checkout/useProductLoader';
 import { useCustomerInfo } from './checkout/useCustomerInfo';
-import { usePaymentProcessing } from './checkout/usePaymentProcessing';
+import { usePaymentProcessing } from './payment/usePaymentProcessing';
 import { Product } from '@/types/product';
 
 export const useQuickCheckout = (productId: string | undefined, preloadedProduct?: Product | null) => {

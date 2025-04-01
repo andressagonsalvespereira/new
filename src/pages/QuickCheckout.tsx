@@ -171,6 +171,7 @@ const QuickCheckout = () => {
                     onSubmit={handlePaymentSubmit}
                     isSandbox={settings.sandboxMode}
                     isDigitalProduct={product.digital}
+                    customerData={customerDetails}
                   />
                 )}
               </div>

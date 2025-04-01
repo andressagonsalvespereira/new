@@ -10,7 +10,7 @@ import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
 import { processCardPayment } from './payment/card/cardProcessor';
-import { useCardPaymentStatus } from '@/hooks/checkout/useCardPaymentStatus';
+import { useCardPaymentStatus } from '@/hooks/payment/useCardPaymentStatus';
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => Promise<any>;

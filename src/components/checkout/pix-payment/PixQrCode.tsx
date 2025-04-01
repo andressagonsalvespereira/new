@@ -1,23 +1,21 @@
 
 import React from 'react';
-import { QrCode } from 'lucide-react';
 
-interface PixQrCodeProps {
-  qrCodeImage: string | null;
+export interface PixQrCodeProps {
+  qrCodeUrl: string;
 }
 
-const PixQrCode: React.FC<PixQrCodeProps> = ({ qrCodeImage }) => {
+const PixQrCode: React.FC<PixQrCodeProps> = ({ qrCodeUrl }) => {
   return (
-    <div className="w-48 h-48 bg-white p-2 border rounded-lg mb-4 flex items-center justify-center">
-      {qrCodeImage ? (
+    <div className="mb-4">
+      <h3 className="text-lg font-semibold text-center mb-4">QR Code PIX</h3>
+      <div className="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
         <img 
-          src={qrCodeImage} 
+          src={qrCodeUrl} 
           alt="QR Code PIX" 
-          className="w-full h-full"
+          className="w-64 h-64 mx-auto"
         />
-      ) : (
-        <QrCode className="w-12 h-12 text-gray-400" />
-      )}
+      </div>
     </div>
   );
 };
