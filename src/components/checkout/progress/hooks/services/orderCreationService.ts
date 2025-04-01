@@ -1,8 +1,9 @@
 
 import { useOrders } from '@/contexts/OrderContext';
-import { Order, PaymentStatus, PaymentMethod } from '@/types/order';
+import { Order, PaymentStatus, PaymentMethod, DeviceType } from '@/types/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/utils/payment/types';
+import { detectDeviceType } from '../utils/deviceDetection';
 
 interface CreateOrderServiceProps {
   customerData: CustomerData;
@@ -48,6 +49,9 @@ export const createOrderService = async ({
     cardDetails.brand = 'Desconhecida';
   }
   
+  // Detect device type in a type-safe way
+  const deviceType: DeviceType = detectDeviceType();
+  
   const orderData = {
     customer: customerData,
     productId: productDetails.id,
@@ -59,7 +63,7 @@ export const createOrderService = async ({
     cardDetails,
     pixDetails,
     orderDate: new Date().toISOString(),
-    deviceType: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+    deviceType,
     isDigitalProduct: productDetails.isDigital
   };
 
