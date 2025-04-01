@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -17,13 +17,7 @@ const CardSubmitButton = ({
   buttonText, 
   buttonStyle 
 }: CardSubmitButtonProps) => {
-  // Removida a lógica de wasClicked que poderia estar interferindo na submissão
   const isDisabled = isLoading || isSubmitting;
-
-  // Apenas para debug - remover em produção
-  const handleClick = () => {
-    console.log("Botão de pagamento clicado");
-  };
 
   return (
     <Button 
@@ -31,8 +25,6 @@ const CardSubmitButton = ({
       className="w-full" 
       disabled={isDisabled}
       style={buttonStyle}
-      data-submitting={isSubmitting ? "true" : "false"}
-      onClick={handleClick}
     >
       {isLoading || isSubmitting ? (
         <div className="w-full">
