@@ -2,9 +2,7 @@
 import React from 'react';
 import { OrderContext } from './OrderContext';
 import { OrderProviderProps } from './orderContextTypes';
-import { filterOrdersByPaymentMethod } from './utils';
-import { useOrdersFetching } from './hooks/useOrdersFetching';
-import { useOrderOperations } from './hooks/useOrderOperations';
+import { useOrdersFetching, useOrderOperations, useOrderFiltering } from './hooks';
 
 export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   // Use our custom hooks to manage orders state and operations
@@ -23,13 +21,24 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     deleteAllOrdersByPaymentMethod 
   } = useOrderOperations(orders, setOrders);
 
+  // Use our new filtering hook
+  const {
+    filterOrdersByPaymentMethod,
+    filterOrdersByStatus,
+    filterOrdersByDevice,
+    getLatestOrders
+  } = useOrderFiltering(orders);
+
   return (
     <OrderContext.Provider value={{ 
       orders, 
       loading, 
       error, 
       addOrder, 
-      getOrdersByPaymentMethod: filterOrdersByPaymentMethod.bind(null, orders), 
+      getOrdersByPaymentMethod: filterOrdersByPaymentMethod, 
+      getOrdersByStatus: filterOrdersByStatus,
+      getOrdersByDevice: filterOrdersByDevice,
+      getLatestOrders,
       updateOrderStatus, 
       refreshOrders,
       deleteOrder,

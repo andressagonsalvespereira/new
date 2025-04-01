@@ -8,6 +8,9 @@ export interface OrderContextType {
   error: string | null;
   addOrder: (orderData: CreateOrderInput) => Promise<Order>;
   getOrdersByPaymentMethod: (method: PaymentMethod) => Order[];
+  getOrdersByStatus: (status: Order['paymentStatus']) => Order[];
+  getOrdersByDevice: (deviceType: Order['deviceType']) => Order[];
+  getLatestOrders: (count?: number) => Order[];
   updateOrderStatus: (id: string, status: Order['paymentStatus']) => Promise<Order>;
   refreshOrders: () => void;
   deleteOrder: (id: string) => Promise<void>;
