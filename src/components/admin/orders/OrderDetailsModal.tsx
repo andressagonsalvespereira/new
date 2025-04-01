@@ -25,7 +25,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Detalhes do Pedido #{order.id.substring(0, 8)}</DialogTitle>
+          <DialogTitle className="text-xl">Detalhes do Pedido #{String(order.id).substring(0, 8)}</DialogTitle>
           <DialogDescription>
             Pedido realizado em {formatFullDate(order.orderDate || new Date().toISOString())}
           </DialogDescription>

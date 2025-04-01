@@ -81,7 +81,7 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
     try {
       await deleteOrderData(id);
       
-      setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
+      setOrders(prevOrders => prevOrders.filter(order => String(order.id) !== String(id)));
       
       toast({
         title: "Sucesso",

@@ -51,7 +51,7 @@ export function useOrdersManagement() {
     if (!orderToDelete) return;
     
     try {
-      await deleteOrder(orderToDelete.id);
+      await deleteOrder(String(orderToDelete.id));
       toast({
         title: "Pedido removido",
         description: "O pedido foi removido com sucesso.",

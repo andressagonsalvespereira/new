@@ -10,10 +10,12 @@ export const updateOrderStatusData = async (
   status: PaymentStatus
 ): Promise<{ updatedOrder: Order; updatedOrders: Order[] }> => {
   try {
+    const orderId = typeof id === 'string' ? parseInt(id, 10) : id;
+    
     const { data, error } = await supabase
       .from('orders')
       .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', parseInt(id, 10))
+      .eq('id', orderId)
       .select()
       .single();
 
@@ -23,7 +25,7 @@ export const updateOrderStatusData = async (
 
     const updatedOrder = convertDBOrderToOrder(data);
     const updatedOrders = orders.map(order => 
-      order.id === id ? updatedOrder : order
+      String(order.id) === String(id) ? updatedOrder : order
     );
 
     return { updatedOrder, updatedOrders };

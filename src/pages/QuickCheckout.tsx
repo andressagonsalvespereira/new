@@ -17,6 +17,8 @@ import { useProductCheckout } from '@/hooks/useProductCheckout';
 import { useProducts } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
+import { ManualCardStatus } from '@/types/asaas';
+import { PaymentMethod } from '@/types/order';
 
 const QuickCheckout = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -115,7 +117,7 @@ const QuickCheckout = () => {
           <CardContent>
             <CheckoutProgress 
               paymentMethod={paymentMethod === 'CREDIT_CARD' ? 'card' : 'pix'} 
-              setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX')} 
+              setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX' as PaymentMethod)} 
               productDetails={productDetails}
               handlePayment={() => {
                 console.log('CheckoutProgress - handlePayment acionado');
@@ -162,7 +164,7 @@ const QuickCheckout = () => {
                     isSandbox={settings.sandboxMode}
                     isDigitalProduct={product.digital}
                     useCustomProcessing={product.usarProcessamentoPersonalizado}
-                    manualCardStatus={product.statusCartaoManual}
+                    manualCardStatus={product.statusCartaoManual as ManualCardStatus}
                   />
                 )}
                 

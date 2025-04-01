@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AsaasSettings } from '@/types/asaas';
+import { AsaasSettings, ManualCardStatus } from '@/types/asaas';
 
 // Define the context type
 export interface AsaasContextType {

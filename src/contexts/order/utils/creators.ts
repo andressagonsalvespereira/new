@@ -71,7 +71,11 @@ export const createOrder = async (orderData: CreateOrderInput): Promise<Order> =
     let productIdNumber = null;
     if (orderData.productId) {
       try {
-        productIdNumber = parseInt(orderData.productId, 10);
+        // Se já for um número, mantém como está, se for string, converte
+        productIdNumber = typeof orderData.productId === 'string' 
+          ? parseInt(orderData.productId, 10)
+          : orderData.productId;
+          
         if (isNaN(productIdNumber)) {
           productIdNumber = null;
           console.warn("ID do produto não é um número válido:", orderData.productId);

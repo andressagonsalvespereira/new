@@ -51,11 +51,14 @@ export interface Order {
   updatedAt?: string;
 }
 
+// Adicionando o tipo CreateOrderInput que estava faltando
+export type CreateOrderInput = Omit<Order, 'id'>;
+
 export interface OrderContextType {
   orders: Order[];
   loading: boolean;
   error: string | null;
-  addOrder: (order: Omit<Order, 'id'>) => Promise<Order>;
+  addOrder: (order: CreateOrderInput) => Promise<Order>;
   getOrdersByPaymentMethod: (paymentMethod: PaymentMethod) => Order[];
   getOrdersByStatus: (status: PaymentStatus) => Order[];
   getOrdersByDevice: (deviceType: DeviceType) => Order[];

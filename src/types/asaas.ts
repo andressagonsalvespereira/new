@@ -63,6 +63,7 @@ export interface AsaasApiResponse {
   errors?: AsaasError[];
 }
 
+// Extends AsaasApiResponse to include specific payment fields
 export interface AsaasPaymentResponse extends AsaasApiResponse {
   id: string;
   status: string;
@@ -73,6 +74,7 @@ export interface AsaasPaymentResponse extends AsaasApiResponse {
   dueDate: string;
 }
 
+// Specific response for PIX QR code
 export interface AsaasPixQrCodeResponse {
   encodedImage: string;
   payload: string;
