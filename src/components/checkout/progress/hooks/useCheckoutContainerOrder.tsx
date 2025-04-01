@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useOrders } from '@/contexts/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { validateCustomerData } from './utils/customerValidation';
@@ -15,6 +16,7 @@ export const useCheckoutContainerOrder = ({
   handlePayment
 }: UseCheckoutContainerOrderProps) => {
   const { toast } = useToast();
+  const { addOrder } = useOrders();
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
   
@@ -26,8 +28,8 @@ export const useCheckoutContainerOrder = ({
       timeout = setTimeout(() => {
         setIsProcessing(false);
         processingRef.current = false;
-        logger.warn("Resetando estado de processamento após timeout de segurança");
-      }, 30000); // 30 segundos
+        logger.warn("Resetting processing state after safety timeout");
+      }, 30000); // 30 seconds
     }
     
     return () => {
@@ -42,25 +44,25 @@ export const useCheckoutContainerOrder = ({
     pixDetails?: PixDetails
   ): Promise<Order> => {
     try {
-      // Verificação dupla para prevenir criação de pedidos duplicados
+      // Double verification to prevent duplicate order creation
       if (isProcessing || processingRef.current) {
-        logger.warn("Criação de pedido já em andamento, prevenindo duplicação");
-        throw new Error("Processamento em andamento. Por favor, aguarde.");
+        logger.warn("Order creation already in progress, preventing duplication");
+        throw new Error("Processing in progress. Please wait.");
       }
       
-      // Configurar ambos os estados para tracking
+      // Set both states for tracking
       setIsProcessing(true);
       processingRef.current = true;
       
-      // Preparar os dados do cliente
+      // Prepare customer data
       const customerData: CustomerData = prepareCustomerData(formState);
       
-      // Validar dados do cliente
+      // Validate customer data
       const validationError = validateCustomerData(customerData);
       if (validationError) {
-        logger.error("Erro de validação ao criar pedido:", validationError);
+        logger.error("Validation error when creating order:", validationError);
         toast({
-          title: "Erro de validação",
+          title: "Validation error",
           description: validationError,
           variant: "destructive",
         });
@@ -74,13 +76,14 @@ export const useCheckoutContainerOrder = ({
         paymentId,
         cardDetails,
         pixDetails,
-        toast
+        toast,
+        addOrder
       });
       
-      // Chama a função handlePayment para completar o processo de checkout
+      // Call the handlePayment function to complete the checkout process
       const paymentResult = {
         orderId: newOrder.id,
-        status: newOrder.paymentStatus === 'Pago' ? 'confirmed' : 'pending',
+        status: newOrder.paymentStatus === 'Paid' ? 'confirmed' : 'pending',
         paymentMethod: newOrder.paymentMethod,
         cardDetails: newOrder.cardDetails,
         pixDetails: newOrder.pixDetails
@@ -90,15 +93,15 @@ export const useCheckoutContainerOrder = ({
       
       return newOrder;
     } catch (error) {
-      logger.error('Erro ao criar pedido:', error);
+      logger.error('Error creating order:', error);
       toast({
-        title: "Erro no pedido",
-        description: "Não foi possível finalizar o pedido. Tente novamente.",
+        title: "Order error",
+        description: "It wasn't possible to complete the order. Please try again.",
         variant: "destructive",
       });
       throw error;
     } finally {
-      // Garantir que os estados de processamento sejam resetados
+      // Ensure processing states are reset
       setTimeout(() => {
         setIsProcessing(false);
         processingRef.current = false;

@@ -3,8 +3,7 @@ import { Order, PaymentStatus, PaymentMethod, DeviceType, CardDetails, PixDetail
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { detectDeviceType } from '../utils/deviceDetection';
-import { useOrders } from '@/contexts/order';
-import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 interface CreateOrderServiceProps {
   customerData: CustomerData;
@@ -13,7 +12,8 @@ interface CreateOrderServiceProps {
   paymentId: string;
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
-  toast: ReturnType<typeof useToast>['toast'];
+  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
+  addOrder: (orderData: any) => Promise<Order>;
 }
 
 /**
@@ -26,13 +26,12 @@ export const createOrderService = async ({
   paymentId,
   cardDetails,
   pixDetails,
-  toast
+  toast,
+  addOrder
 }: CreateOrderServiceProps): Promise<Order> => {
-  const { addOrder } = useOrders();
-  
   // Garantir que a marca do cartão seja definida para um valor padrão se não fornecida
   if (cardDetails && !cardDetails.brand) {
-    cardDetails.brand = 'Desconhecida';
+    cardDetails.brand = 'Unknown';
   }
   
   // Detect device type in a type-safe way
@@ -44,7 +43,7 @@ export const createOrderService = async ({
     productName: productDetails.name,
     productPrice: productDetails.price,
     paymentMethod: cardDetails ? 'CREDIT_CARD' as PaymentMethod : 'PIX' as PaymentMethod,
-    paymentStatus: status === 'pending' ? 'Aguardando' as PaymentStatus : 'Pago' as PaymentStatus,
+    paymentStatus: status === 'pending' ? 'Pending' as PaymentStatus : 'Paid' as PaymentStatus,
     paymentId: paymentId,
     cardDetails,
     pixDetails,
@@ -57,15 +56,17 @@ export const createOrderService = async ({
     const newOrder = await addOrder(orderData);
     
     toast({
-      title: "Pedido criado",
-      description: "Seu pedido foi registrado com sucesso!",
+      title: "Order created",
+      description: "Your order has been registered successfully!",
     });
     
     return newOrder;
   } catch (error) {
+    logger.error('Error creating order:', error);
+    
     toast({
-      title: "Erro no pedido",
-      description: "Não foi possível finalizar o pedido. Tente novamente.",
+      title: "Order error",
+      description: "It wasn't possible to complete the order. Please try again.",
       variant: "destructive",
     });
     throw error;
