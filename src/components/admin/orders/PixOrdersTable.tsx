@@ -45,7 +45,7 @@ const PixOrdersTable: React.FC<PixOrdersTableProps> = ({
               <TableCell>{formatCurrency(order.productPrice)}</TableCell>
               <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{formatDate(order.orderDate)}</TableCell>
               <TableCell className={isMobile ? "hidden md:table-cell" : ""}>
-                {order.paymentStatus === 'Aguardando' && (
+                {order.paymentStatus === 'PENDING' && (
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -56,7 +56,7 @@ const PixOrdersTable: React.FC<PixOrdersTableProps> = ({
                     Ver QR Code
                   </Button>
                 )}
-                {order.paymentStatus !== 'Aguardando' && (
+                {order.paymentStatus !== 'PENDING' && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Pago
                   </span>

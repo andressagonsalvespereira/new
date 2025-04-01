@@ -43,7 +43,7 @@ export const createOrderService = async ({
     productName: productDetails.name,
     productPrice: productDetails.price,
     paymentMethod: cardDetails ? 'CREDIT_CARD' as PaymentMethod : 'PIX' as PaymentMethod,
-    paymentStatus: status === 'pending' ? 'Pending' as PaymentStatus : 'Pago' as PaymentStatus,
+    paymentStatus: status === 'pending' ? 'PENDING' as PaymentStatus : 'PAID' as PaymentStatus,
     paymentId: paymentId,
     cardDetails,
     pixDetails,

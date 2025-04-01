@@ -12,7 +12,7 @@ const PixDetailsSection: React.FC<PixDetailsSectionProps> = ({ pixDetails, payme
   return (
     <div className="mt-4 border-t pt-4">
       <h4 className="font-medium mb-2">Dados do PIX</h4>
-      {paymentStatus === 'Aguardando' && pixDetails.qrCodeImage && (
+      {paymentStatus === 'PENDING' && pixDetails.qrCodeImage && (
         <div className="flex justify-center mb-4">
           <img 
             src={pixDetails.qrCodeImage} 

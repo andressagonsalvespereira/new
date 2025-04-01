@@ -91,7 +91,7 @@ const Checkout: React.FC = () => {
       }
       
       const paymentMethodEnum: PaymentMethod = paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX';
-      const paymentStatusEnum: PaymentStatus = paymentData.status === 'confirmed' ? 'Pago' : 'Aguardando';
+      const paymentStatusEnum: PaymentStatus = paymentData.status === 'confirmed' ? 'PAID' : 'PENDING';
       
       const orderData = {
         customer: paymentData.customerData || {

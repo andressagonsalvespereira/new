@@ -17,7 +17,7 @@ export function useCardPaymentStatus({
   manualCardStatus = 'ANALYSIS',
   settings
 }: UseCardPaymentStatusProps) {
-  const [status, setStatus] = useState<PaymentStatus>('Pendente');
+  const [status, setStatus] = useState<PaymentStatus>('PENDING');
   const [statusMessage, setStatusMessage] = useState('Processando pagamento...');
   const [confirmed, setConfirmed] = useState(false);
   
@@ -33,19 +33,19 @@ export function useCardPaymentStatus({
       
       switch (customStatus.toUpperCase()) {
         case 'APPROVED':
-          setStatus('Pago');
+          setStatus('PAID');
           setStatusMessage('Pagamento aprovado!');
           setConfirmed(true);
           break;
         case 'DECLINED':
         case 'DENIED':
-          setStatus('Cancelado');
+          setStatus('CANCELLED');
           setStatusMessage('Pagamento recusado pela operadora.');
           setConfirmed(false);
           break;
         case 'ANALYSIS':
         default:
-          setStatus('Pendente');
+          setStatus('PENDING');
           setStatusMessage('Pagamento em análise.');
           setConfirmed(false);
           break;
