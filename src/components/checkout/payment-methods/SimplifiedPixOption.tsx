@@ -1,90 +1,83 @@
 
 import React from 'react';
-import { QrCode, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
+import { CustomerData, PaymentResult } from '@/components/checkout/payment/shared/types';
 import { usePixSubmission } from '@/hooks/payment/usePixSubmission';
+import { useAsaas } from '@/contexts/AsaasContext';
+import PixQrCode from '../pix-payment/PixQrCode';
+import PixCopyCode from '../pix-payment/PixCopyCode';
+import { useToast } from '@/hooks/use-toast';
 
 interface SimplifiedPixOptionProps {
-  onSubmit: () => void;
-  isProcessing?: boolean;
-  productData?: {
-    productId: string;
-    productName: string;
-    productPrice: number;
-  };
-  customerData?: any;
+  onSubmit: (data: PaymentResult) => Promise<any>;
+  isDigitalProduct?: boolean;
+  customerData?: CustomerData;
+  isSandbox: boolean;
 }
 
-const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({ 
-  onSubmit, 
-  isProcessing: externalProcessing = false,
-  productData,
-  customerData
+const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
+  onSubmit,
+  isDigitalProduct = false,
+  customerData,
+  isSandbox
 }) => {
-  const { customization } = useCheckoutCustomization();
+  const { toast } = useToast();
+  const { settings } = useAsaas();
   
-  // Use the extracted Pix submission hook
   const {
-    validationError,
-    wasClicked,
-    isProcessing: internalProcessing,
-    handlePixSubmit
+    loading,
+    error,
+    pixData,
+    handleSubmit
   } = usePixSubmission({
+    onSubmit,
+    isSandbox,
+    isDigitalProduct,
     customerData,
-    productData,
-    onSubmit
+    settings
   });
-  
-  // Combine external and internal processing state
-  const isProcessing = externalProcessing || internalProcessing;
 
-  // Get button styles from customization
-  const buttonStyle = {
-    backgroundColor: customization?.button_color || '#4caf50',
-    color: customization?.button_text_color || '#ffffff'
+  const handleCopyToClipboard = (pixCode: string) => {
+    navigator.clipboard.writeText(pixCode);
+    toast({
+      title: "Código PIX copiado!",
+      description: "Cole o código no seu aplicativo do banco para pagar.",
+    });
   };
-
-  return (
-    <div className="p-4 text-center">
-      <h3 className="text-lg font-medium mb-2">Pague com PIX</h3>
-      <p className="text-sm text-gray-600 mb-6">
-        Escaneie o QR Code abaixo com o app do seu banco ou copie o código PIX
-      </p>
-      
-      {validationError && (
-        <Alert className="mb-4 bg-red-50 border-red-200">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            {validationError}
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <Button
-        onClick={handlePixSubmit}
-        disabled={isProcessing || wasClicked}
-        className="w-full"
-        style={buttonStyle}
-        data-testid="pix-button"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Processando...
-          </>
-        ) : (
-          <>
-            <QrCode className="h-5 w-5 mr-2" />
-            {customization?.button_text || "Finalizar com PIX"}
-          </>
+  
+  // Show PIX payment button if no PIX data exists yet
+  if (!pixData) {
+    return (
+      <div className="w-full">
+        <Button 
+          className="w-full my-4 bg-green-600 hover:bg-green-700" 
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Gerando PIX..." : "Gerar QR Code PIX"}
+        </Button>
+        
+        {error && (
+          <div className="text-red-500 text-sm mt-2">
+            Erro: {error}
+          </div>
         )}
-      </Button>
-      
-      <div className="mt-4 text-xs text-blue-600 p-3 bg-blue-50 rounded-md">
-        O pagamento via PIX é instantâneo. Após o pagamento, você receberá a confirmação em seu e-mail.
       </div>
+    );
+  }
+
+  // Show PIX QR code and details
+  return (
+    <div className="space-y-6 w-full">
+      <PixQrCode qrCodeUrl={pixData.qrCodeImage || ''} />
+      <PixCopyCode 
+        code={pixData.qrCode || ''} 
+        onCopy={() => handleCopyToClipboard(pixData.qrCode || '')} 
+      />
+      <p className="text-sm text-gray-500 mt-2">
+        Este código PIX expira em 30 minutos. 
+        {isDigitalProduct && ' Você receberá acesso imediato ao produto após o pagamento.'}
+      </p>
     </div>
   );
 };

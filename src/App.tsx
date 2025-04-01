@@ -1,9 +1,10 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
-import { ProductProvider } from './contexts/ProductContext';
-import { OrderProvider } from './contexts/OrderContext';
+import { ProductProvider } from './contexts/product';
+import { OrderProvider } from './contexts/order';
 import { AsaasProvider } from './contexts/AsaasContext';
 import { PixelProvider } from './contexts/PixelContext';
 import { CheckoutCustomizationProvider } from './contexts/CheckoutCustomizationContext';

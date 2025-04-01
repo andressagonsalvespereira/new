@@ -1,3 +1,4 @@
 
-export { ProductProvider } from './ProductProvider';
-export { useProducts } from './useProducts';
+export * from './ProductContext';
+export * from './ProductProvider';
+export * from './useProducts';
