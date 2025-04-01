@@ -4,6 +4,7 @@ import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { detectDeviceType } from '../utils/deviceDetection';
 import { useOrders } from '@/contexts/order';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreateOrderServiceProps {
   customerData: CustomerData;
@@ -12,7 +13,7 @@ interface CreateOrderServiceProps {
   paymentId: string;
   cardDetails?: CardDetails;
   pixDetails?: PixDetails;
-  toast: any;
+  toast: ReturnType<typeof useToast>['toast'];
 }
 
 /**
@@ -28,21 +29,6 @@ export const createOrderService = async ({
   toast
 }: CreateOrderServiceProps): Promise<Order> => {
   const { addOrder } = useOrders();
-  
-  console.log("Criando pedido com detalhes do produto:", {
-    id: productDetails.id,
-    name: productDetails.name,
-    price: productDetails.price,
-    isDigital: productDetails.isDigital
-  });
-  console.log("Estado do pedido:", status);
-  console.log("Detalhes do cliente:", {
-    name: customerData.name,
-    email: customerData.email,
-    cpf: customerData.cpf,
-    phone: customerData.phone,
-    hasAddress: !!customerData.address
-  });
   
   // Garantir que a marca do cartão seja definida para um valor padrão se não fornecida
   if (cardDetails && !cardDetails.brand) {
@@ -66,25 +52,9 @@ export const createOrderService = async ({
     deviceType,
     isDigitalProduct: productDetails.isDigital
   };
-
-  console.log("Enviando dados do pedido:", {
-    productId: orderData.productId,
-    productName: orderData.productName,
-    productPrice: orderData.productPrice,
-    paymentMethod: orderData.paymentMethod,
-    customerName: orderData.customer.name,
-    customerEmail: orderData.customer.email
-  });
   
   try {
     const newOrder = await addOrder(orderData);
-    console.log("Pedido criado com sucesso:", {
-      id: newOrder.id,
-      productName: newOrder.productName,
-      productPrice: newOrder.productPrice,
-      paymentMethod: newOrder.paymentMethod,
-      paymentStatus: newOrder.paymentStatus
-    });
     
     toast({
       title: "Pedido criado",
@@ -93,7 +63,6 @@ export const createOrderService = async ({
     
     return newOrder;
   } catch (error) {
-    console.error('Erro ao criar pedido:', error);
     toast({
       title: "Erro no pedido",
       description: "Não foi possível finalizar o pedido. Tente novamente.",

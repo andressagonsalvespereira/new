@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Order } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
 import { loadOrders } from '../utils';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook for handling order fetching operations
@@ -17,12 +18,11 @@ export const useOrdersFetching = () => {
     setLoading(true);
     try {
       const loadedOrders = await loadOrders();
-      console.log("Pedidos carregados:", loadedOrders.length);
       setOrders(loadedOrders);
       setError(null);
       setLoading(false);
     } catch (err) {
-      console.error('Erro ao carregar pedidos:', err);
+      logger.error('Erro ao carregar pedidos:', err);
       setError('Falha ao carregar pedidos');
       toast({
         title: "Erro",
@@ -35,7 +35,6 @@ export const useOrdersFetching = () => {
 
   // Initial fetch on mount
   useEffect(() => {
-    console.log("OrderProvider inicializado, carregando pedidos...");
     fetchOrders();
   }, []);
 

@@ -7,6 +7,7 @@ import SimplifiedPixOption from '@/components/checkout/payment-methods/Simplifie
 import PixPayment from '@/components/checkout/PixPayment';
 import { PaymentMethodType } from './usePaymentMethodLogic';
 import { PaymentResult } from '@/components/checkout/payment/shared/types';
+import { logger } from '@/utils/logger';
 
 interface PaymentMethodContentProps {
   pixEnabled: boolean;
@@ -46,10 +47,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
   const cardFormCallback = async (data: PaymentResult): Promise<any> => {
     if (!createOrder) return null;
     
-    console.log("Card form callback triggered with data:", {
-      ...data,
-      cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : undefined
-    });
+    logger.log("Card form callback triggered");
     
     return await createOrder(
       data.paymentId || `card_${Date.now()}`,
@@ -68,11 +66,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
   const pixFormCallback = async (data: PaymentResult): Promise<any> => {
     if (!createOrder) return null;
     
-    console.log("PIX form callback triggered with data:", {
-      method: data.method,
-      status: data.status,
-      qrCode: data.qrCode ? "QR Code present" : "No QR Code"
-    });
+    logger.log("PIX form callback triggered");
     
     return await createOrder(
       data.paymentId || `pix_${Date.now()}`,

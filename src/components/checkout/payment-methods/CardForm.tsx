@@ -29,7 +29,7 @@ const CardForm: React.FC<CardFormProps> = ({
   onSubmit, 
   loading = false, 
   isSubmitting = false,
-  buttonText = "Pagar com Cartão"
+  buttonText = "Pagar com cartão"
 }) => {
   const { customization } = useCheckoutCustomization();
   
@@ -48,20 +48,10 @@ const CardForm: React.FC<CardFormProps> = ({
   const { handleSubmit, formState: { errors, isValid } } = methods;
 
   const enhancedSubmit = async (data: CardFormData) => {
-    console.log("✅ Form onSubmit triggered");
-    console.log("Card form submitted with data:", {
-      cardName: data.cardName,
-      cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : '',
-      expiryMonth: data.expiryMonth,
-      expiryYear: data.expiryYear,
-      cvv: '***',
-      isFormValid: isValid
-    });
-    
     try {
       await onSubmit(data);
     } catch (error) {
-      console.error("❌ Error in enhancedSubmit:", error);
+      // Error is handled by the parent component
     }
   };
 
@@ -71,10 +61,6 @@ const CardForm: React.FC<CardFormProps> = ({
   };
 
   const displayButtonText = customization?.button_text || buttonText;
-
-  React.useEffect(() => {
-    console.log("CardForm renderizado, pronto para submissão");
-  }, []);
 
   return (
     <FormProvider {...methods}>

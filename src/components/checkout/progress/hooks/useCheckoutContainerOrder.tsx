@@ -7,6 +7,7 @@ import { validateCustomerData } from './utils/customerValidation';
 import { createOrderService } from './services/orderCreationService';
 import { UseCheckoutContainerOrderProps } from './types/checkoutOrderTypes';
 import { Order, CardDetails, PixDetails } from '@/types/order';
+import { logger } from '@/utils/logger';
 
 export const useCheckoutContainerOrder = ({
   formState,
@@ -25,7 +26,7 @@ export const useCheckoutContainerOrder = ({
       timeout = setTimeout(() => {
         setIsProcessing(false);
         processingRef.current = false;
-        console.log("Resetando estado de processamento após timeout de segurança");
+        logger.warn("Resetando estado de processamento após timeout de segurança");
       }, 30000); // 30 segundos
     }
     
@@ -43,7 +44,7 @@ export const useCheckoutContainerOrder = ({
     try {
       // Verificação dupla para prevenir criação de pedidos duplicados
       if (isProcessing || processingRef.current) {
-        console.log("Criação de pedido já em andamento, prevenindo duplicação");
+        logger.warn("Criação de pedido já em andamento, prevenindo duplicação");
         throw new Error("Processamento em andamento. Por favor, aguarde.");
       }
       
@@ -57,7 +58,7 @@ export const useCheckoutContainerOrder = ({
       // Validar dados do cliente
       const validationError = validateCustomerData(customerData);
       if (validationError) {
-        console.error("Erro de validação ao criar pedido:", validationError);
+        logger.error("Erro de validação ao criar pedido:", validationError);
         toast({
           title: "Erro de validação",
           description: validationError,
@@ -89,7 +90,7 @@ export const useCheckoutContainerOrder = ({
       
       return newOrder;
     } catch (error) {
-      console.error('Erro ao criar pedido:', error);
+      logger.error('Erro ao criar pedido:', error);
       toast({
         title: "Erro no pedido",
         description: "Não foi possível finalizar o pedido. Tente novamente.",

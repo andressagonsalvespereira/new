@@ -9,9 +9,10 @@ import { useAsaas } from '@/contexts/AsaasContext';
 import CardForm, { CardFormData } from './payment-methods/CardForm';
 import PaymentError from './payment-methods/PaymentError';
 import PaymentStatusMessage from './payment-methods/PaymentStatusMessage';
-import { processCardPayment } from './payment/card/cardProcessor';
+import { processCardPayment } from './utils/payment/card/cardProcessor';
 import { useCardPaymentStatus } from '@/hooks/payment/useCardPaymentStatus';
 import { PaymentResult } from './payment/shared/types';
+import { logger } from '@/utils/logger';
 
 interface CheckoutFormProps {
   onSubmit: (data: PaymentResult) => Promise<any>;
@@ -51,40 +52,26 @@ const CheckoutForm = ({
   });
   
   useEffect(() => {
-    console.log("CheckoutForm mounted with props:", {
+    logger.log("CheckoutForm mounted with props", {
       isSandbox,
       isDigitalProduct,
       useCustomProcessing,
-      manualCardStatus
+      manualCardStatus,
+      settings
     });
-    console.log("Asaas settings:", settings);
   }, [isSandbox, isDigitalProduct, useCustomProcessing, manualCardStatus, settings]);
 
-  useEffect(() => {
-    console.log("IsSubmitting state changed:", isSubmitting);
-  }, [isSubmitting]);
-
   const handleCardFormSubmit = async (cardData: CardFormData) => {
-    console.log("Card form submitted, processing payment with settings:", 
-      { 
-        isEnabled: settings?.isEnabled, 
-        manualCardProcessing: settings?.manualCardProcessing,
-        manualCardStatus: settings?.manualCardStatus,
-        useCustomProcessing: useCustomProcessing,
-        productManualCardStatus: manualCardStatus
-      });
-    console.log("Is digital product:", isDigitalProduct);
-    console.log("Card data received:", {
-      cardName: cardData.cardName,
-      cardNumber: cardData.cardNumber ? `****${cardData.cardNumber.slice(-4)}` : '',
-      expiryMonth: cardData.expiryMonth,
-      expiryYear: cardData.expiryYear,
-      cvv: '***'
+    logger.log("Processing card payment", { 
+      isEnabled: settings?.isEnabled, 
+      manualCardProcessing: settings?.manualCardProcessing,
+      manualCardStatus: settings?.manualCardStatus,
+      useCustomProcessing,
+      isDigitalProduct
     });
     
     try {
       setIsSubmitting(true);
-      console.log("Setting isSubmitting to true");
       
       await processCardPayment({
         cardData,
@@ -113,9 +100,8 @@ const CheckoutForm = ({
         isDigitalProduct
       });
       
-      console.log("Payment processing completed");
     } catch (error) {
-      console.error("Error in handleCardFormSubmit:", error);
+      logger.error("Error in handleCardFormSubmit:", error);
       setError('Falha ao processar o pagamento. Por favor, tente novamente.');
       setIsSubmitting(false);
       

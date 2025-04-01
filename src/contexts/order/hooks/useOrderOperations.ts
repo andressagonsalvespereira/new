@@ -8,6 +8,7 @@ import {
   deleteOrderData,
   deleteAllOrdersByPaymentMethodData
 } from '../utils';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook for handling order operations like creating, updating, and deleting orders
@@ -19,24 +20,13 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
   const addOrder = async (orderData: CreateOrderInput): Promise<Order> => {
     try {
       if (pendingOrder) {
-        console.warn("Solicitação de criação de pedido duplicada detectada");
+        logger.warn("Solicitação de criação de pedido duplicada detectada");
         throw new Error("Já existe um pedido em processamento");
       }
       
       setPendingOrder(true);
-      console.log("Adicionando novo pedido com dados:", {
-        customer: {
-          name: orderData.customer.name,
-          email: orderData.customer.email
-        },
-        productId: orderData.productId,
-        productName: orderData.productName,
-        productPrice: orderData.productPrice,
-        paymentMethod: orderData.paymentMethod
-      });
       
       const newOrder = await createOrder(orderData);
-      console.log("Pedido criado com sucesso:", newOrder.id);
       
       setOrders(prev => [newOrder, ...prev]);
       
@@ -47,7 +37,7 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
       
       return newOrder;
     } catch (err) {
-      console.error('Erro ao adicionar pedido:', err);
+      logger.error('Erro ao adicionar pedido:', err);
       toast({
         title: "Erro",
         description: "Falha ao adicionar pedido",
@@ -77,7 +67,7 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
       
       return updatedOrder;
     } catch (err) {
-      console.error('Erro ao atualizar status do pedido:', err);
+      logger.error('Erro ao atualizar status do pedido:', err);
       toast({
         title: "Erro",
         description: "Falha ao atualizar status do pedido",
@@ -98,7 +88,7 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
         description: "Pedido removido com sucesso",
       });
     } catch (err) {
-      console.error('Erro ao excluir pedido:', err);
+      logger.error('Erro ao excluir pedido:', err);
       toast({
         title: "Erro",
         description: "Falha ao excluir o pedido",
@@ -119,7 +109,7 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
         description: `Todos os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'} foram removidos`,
       });
     } catch (err) {
-      console.error('Erro ao excluir pedidos por método de pagamento:', err);
+      logger.error('Erro ao excluir pedidos por método de pagamento:', err);
       toast({
         title: "Erro",
         description: `Falha ao excluir os pedidos via ${method === 'PIX' ? 'PIX' : 'Cartão'}`,
