@@ -7,7 +7,7 @@ interface ProductSummaryProps {
 }
 
 const ProductSummary: React.FC<ProductSummaryProps> = ({ product }) => {
-  // Product type only has Portuguese property names (nome, descricao, preco)
+  // Garantindo que estamos usando as propriedades em português corretamente
   const name = product.nome || '';
   const description = product.descricao || '';
   const price = product.preco || 0;

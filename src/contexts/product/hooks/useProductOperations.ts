@@ -1,190 +1,150 @@
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { Product, CriarProdutoInput } from '@/types/product';
-import {
-  adicionarProdutoAPI,
-  editarProdutoAPI,
+import { 
+  adicionarProdutoAPI, 
+  editarProdutoAPI, 
   removerProdutoAPI,
   obterProdutoPorIdAPI,
   obterProdutoPorSlugAPI
 } from '../productApi';
+import { generateLocalSlug } from '../slugUtils';
 
-interface ProductOperationsProps {
+// Tipo para as propriedades que o hook recebe
+interface UseProductOperationsProps {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   isOffline: boolean;
 }
 
-export const useProductOperations = (props: ProductOperationsProps) => {
-  const { products, setProducts, isOffline } = props;
-
-  // Adicionar produto
-  const addProduct = useCallback(async (productData: CriarProdutoInput): Promise<void> => {
-    if (isOffline) {
-      throw new Error('Não é possível adicionar produtos no modo offline');
+export const useProductOperations = ({
+  products,
+  setProducts,
+  isOffline
+}: UseProductOperationsProps) => {
+  
+  // Adicionar um novo produto
+  const addProduct = useCallback(async (productData: CriarProdutoInput): Promise<Product> => {
+    try {
+      // Se estiver offline, não podemos adicionar um produto
+      if (isOffline) {
+        throw new Error('Não é possível adicionar um produto enquanto estiver offline.');
+      }
+      
+      // Adicionar o produto usando a API
+      const newProduct = await adicionarProdutoAPI(productData);
+      
+      // Atualizar a lista de produtos localmente
+      setProducts(prevProducts => [newProduct, ...prevProducts]);
+      
+      return newProduct;
+    } catch (error) {
+      console.error('Erro ao adicionar produto:', error);
+      throw error;
     }
-    
-    const newProduct = await adicionarProdutoAPI(productData);
-    
-    setProducts(prevProducts => [newProduct, ...prevProducts]);
-  }, [isOffline, setProducts]);
-
-  // Editar produto
-  const editProduct = useCallback(async (id: string, productData: Partial<Product>): Promise<void> => {
-    if (isOffline) {
-      // No modo offline, apenas atualiza o estado local
-      setProducts(prevProducts =>
-        prevProducts.map(product =>
-          product.id === id ? { ...product, ...productData } : product
-        )
+  }, [setProducts, isOffline]);
+  
+  // Editar um produto existente
+  const editProduct = useCallback(async (id: string, productData: Partial<Product>): Promise<Product> => {
+    try {
+      // Se estiver offline, não podemos editar um produto
+      if (isOffline) {
+        throw new Error('Não é possível editar um produto enquanto estiver offline.');
+      }
+      
+      // Editar o produto usando a API
+      const updatedProduct = await editarProdutoAPI(id, productData);
+      
+      // Atualizar a lista de produtos localmente
+      setProducts(prevProducts => 
+        prevProducts.map(p => p.id === id ? updatedProduct : p)
       );
-      return;
+      
+      return updatedProduct;
+    } catch (error) {
+      console.error('Erro ao editar produto:', error);
+      throw error;
     }
-    
-    const updatedProduct = await editarProdutoAPI(id, productData);
-    
-    setProducts(prevProducts =>
-      prevProducts.map(product =>
-        product.id === id ? updatedProduct : product
-      )
-    );
-  }, [isOffline, setProducts]);
-
-  // Remover produto
+  }, [setProducts, isOffline]);
+  
+  // Remover um produto existente
   const removeProduct = useCallback(async (id: string): Promise<void> => {
-    if (isOffline) {
-      throw new Error('Não é possível remover produtos no modo offline');
+    try {
+      // Se estiver offline, não podemos remover um produto
+      if (isOffline) {
+        throw new Error('Não é possível remover um produto enquanto estiver offline.');
+      }
+      
+      // Remover o produto usando a API
+      await removerProdutoAPI(id);
+      
+      // Atualizar a lista de produtos localmente
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== id));
+    } catch (error) {
+      console.error('Erro ao remover produto:', error);
+      throw error;
     }
-    
-    await removerProdutoAPI(id);
-    
-    setProducts(prevProducts =>
-      prevProducts.filter(product => product.id !== id)
-    );
-  }, [isOffline, setProducts]);
-
-  // Buscar produto por ID
+  }, [setProducts, isOffline]);
+  
+  // Obter um produto pelo ID
   const getProductById = useCallback(async (id: string): Promise<Product | undefined> => {
-    console.log('Buscando produto por ID:', id);
-    
-    // Primeiro, tentamos buscar nos produtos já carregados
-    const existingProduct = products.find(p => p.id === id);
-    if (existingProduct) {
-      console.log('Produto encontrado no estado local:', existingProduct);
-      return existingProduct;
-    }
-    
-    // Se não encontramos e estamos offline, retornamos undefined
-    if (isOffline) {
-      console.log('Modo offline - produto não encontrado no estado local');
-      return undefined;
-    }
-    
-    // Caso contrário, buscamos na API
     try {
-      console.log('Produto não encontrado no estado local, buscando na API');
+      // Primeiro, verificar se já temos o produto em cache
+      const cachedProduct = products.find(p => p.id === id);
+      if (cachedProduct) {
+        return cachedProduct;
+      }
+      
+      // Se não temos em cache e estamos offline, não podemos buscar do servidor
+      if (isOffline) {
+        console.warn('Offline: Não foi possível encontrar o produto com ID', id);
+        return undefined;
+      }
+      
+      // Buscar do servidor
       const product = await obterProdutoPorIdAPI(id);
-      
-      // Se encontramos o produto, adicionamos ao estado local para futuras referências
-      if (product) {
-        setProducts(prev => {
-          // Verificar se o produto já existe na lista
-          if (!prev.some(p => p.id === product.id)) {
-            return [...prev, product];
-          }
-          return prev;
-        });
-      }
-      
       return product;
     } catch (error) {
-      console.error('Erro ao buscar produto por ID:', error);
+      console.error('Erro ao obter produto por ID:', error);
       return undefined;
     }
-  }, [products, isOffline, setProducts]);
-
-  // Buscar produto por slug
+  }, [products, isOffline]);
+  
+  // Obter um produto pelo slug
   const getProductBySlug = useCallback(async (slug: string): Promise<Product | undefined> => {
-    console.log('Buscando produto por slug:', slug);
-    
-    // Normalize slug (slug can come with or without encoding)
-    const normalizedSlug = decodeURIComponent(slug);
-    console.log('Slug normalizado:', normalizedSlug);
-    
-    // Primeiro, tentamos buscar nos produtos já carregados com slug exato
-    const existingProduct = products.find(p => 
-      p.slug === normalizedSlug || p.slug === slug
-    );
-    
-    if (existingProduct) {
-      console.log('Produto encontrado no estado local com slug exato:', existingProduct);
-      return existingProduct;
-    }
-    
-    // Verificamos também correspondências parciais nos produtos em cache
-    if (products.length > 0) {
-      // Verificar se o slug é parte de um slug de produto (caso tenha havido um sufixo)
-      const baseSlug = normalizedSlug.split('-')[0];
-      const partialMatch = products.find(p => 
-        p.slug.startsWith(baseSlug) || baseSlug.startsWith(p.slug)
-      );
-      
-      if (partialMatch) {
-        console.log('Produto encontrado no estado local com correspondência parcial:', partialMatch);
-        return partialMatch;
-      }
-    }
-    
-    // Se não encontramos e estamos offline, retornamos undefined
-    if (isOffline) {
-      console.log('Modo offline - produto não encontrado no estado local');
-      return undefined;
-    }
-    
-    // Caso contrário, buscamos na API
     try {
-      console.log('Produto não encontrado no estado local, buscando na API');
-      // Tentar com o slug normalizado primeiro
-      let product = await obterProdutoPorSlugAPI(normalizedSlug);
+      console.log('Procurando produto pelo slug:', slug);
       
-      // Se não encontrar, tentar com o slug original
-      if (!product && normalizedSlug !== slug) {
-        product = await obterProdutoPorSlugAPI(slug);
+      // Primeiro, verificar se já temos o produto em cache
+      const cachedProduct = products.find(p => p.slug === slug);
+      if (cachedProduct) {
+        console.log('Produto encontrado no cache:', cachedProduct);
+        return cachedProduct;
       }
       
-      // Se ainda não encontrou, tentar com o slug base (sem sufixos)
-      if (!product && normalizedSlug.includes('-')) {
-        const baseSlug = normalizedSlug.split('-')[0];
-        product = await obterProdutoPorSlugAPI(baseSlug);
+      // Se não temos em cache e estamos offline, não podemos buscar do servidor
+      if (isOffline) {
+        console.warn('Offline: Não foi possível encontrar o produto com slug', slug);
+        return undefined;
       }
       
-      // Se encontramos o produto, adicionamos ao estado local para futuras referências
-      if (product) {
-        console.log('Produto encontrado na API:', product);
-        setProducts(prev => {
-          // Verificar se o produto já existe na lista
-          if (!prev.some(p => p.id === product.id)) {
-            return [...prev, product];
-          }
-          return prev;
-        });
-      } else {
-        console.log('Produto não encontrado nem na API');
-      }
+      // Buscar do servidor
+      console.log('Buscando produto do servidor pelo slug:', slug);
+      const product = await obterProdutoPorSlugAPI(slug);
+      console.log('Resposta do servidor para busca por slug:', product);
       
       return product;
     } catch (error) {
-      console.error('Erro ao buscar produto por slug:', error);
+      console.error('Erro ao obter produto por slug:', error);
       return undefined;
     }
-  }, [products, isOffline, setProducts]);
-
-  // Memoizar os valores retornados para evitar re-renderizações desnecessárias
-  return useMemo(() => ({
+  }, [products, isOffline]);
+  
+  return {
     addProduct,
     editProduct,
     removeProduct,
     getProductById,
     getProductBySlug
-  }), [addProduct, editProduct, removeProduct, getProductById, getProductBySlug]);
+  };
 };
