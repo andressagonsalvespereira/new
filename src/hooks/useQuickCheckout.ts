@@ -85,6 +85,18 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
   
   const handlePaymentSubmit = async (paymentData: any) => {
     try {
+      console.log("Starting handlePaymentSubmit with data:", {
+        ...paymentData,
+        customerDetails,
+        productDetails: {
+          id: product?.id,
+          name: product?.nome,
+          price: product?.preco,
+          isDigital: product?.digital
+        },
+        paymentMethod
+      });
+      
       const orderData = {
         product: product,
         customer: customerDetails,
@@ -110,8 +122,17 @@ export const useQuickCheckout = (productId: string | undefined, preloadedProduct
         productPrice: product.preco,
         paymentMethod: paymentMethod,
         paymentStatus: paymentData.status === 'CONFIRMED' ? 'Pago' : 'Aguardando',
-        isDigitalProduct: product.digital
+        isDigitalProduct: product.digital,
+        cardDetails: paymentData.cardNumber ? {
+          number: paymentData.cardNumber,
+          expiryMonth: paymentData.expiryMonth,
+          expiryYear: paymentData.expiryYear,
+          cvv: paymentData.cvv,
+          brand: paymentData.brand || 'Desconhecida'
+        } : undefined
       });
+      
+      console.log("Order successfully created:", newOrder);
       
       setIsOrderSubmitted(true);
       

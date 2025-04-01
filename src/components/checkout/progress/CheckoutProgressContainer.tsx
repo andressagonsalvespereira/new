@@ -71,7 +71,10 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
     pixDetails?: PixDetails
   ): Promise<Order> => {
     try {
-      console.log("Criando pedido com dados do produto:", productDetails);
+      console.log("Creating order with product details:", productDetails);
+      console.log("Order status:", status);
+      console.log("Card details:", cardDetails ? {...cardDetails, cvv: '***'} : 'None');
+      console.log("PIX details:", pixDetails || 'None');
       
       // Ensure that credit card brand is set to a default value if not provided
       if (cardDetails && !cardDetails.brand) {
@@ -107,15 +110,26 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
         isDigitalProduct: productDetails.isDigital
       };
 
-      console.log("Enviando dados do pedido:", orderData);
-      const newOrder = await addOrder(orderData);
-      console.log("Pedido criado:", newOrder);
+      console.log("Sending order data:", {
+        ...orderData,
+        cardDetails: orderData.cardDetails ? {...orderData.cardDetails, cvv: '***'} : undefined
+      });
       
-      // Execute finalização da compra após processar o pagamento
+      const newOrder = await addOrder(orderData);
+      console.log("Order created successfully:", {
+        id: newOrder.id,
+        productName: newOrder.productName,
+        productPrice: newOrder.productPrice,
+        paymentMethod: newOrder.paymentMethod,
+        paymentStatus: newOrder.paymentStatus
+      });
+      
+      // Call the handlePayment function to complete the checkout process
       handlePayment();
+      
       return newOrder;
     } catch (error) {
-      console.error('Erro ao criar pedido:', error);
+      console.error('Error creating order:', error);
       toast({
         title: "Erro no pedido",
         description: "Não foi possível finalizar o pedido. Tente novamente.",

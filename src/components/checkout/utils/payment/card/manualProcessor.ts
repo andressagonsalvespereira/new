@@ -30,9 +30,11 @@ export const processManual = async ({
 }): Promise<PaymentResult | void> => {
   try {
     console.log("Using manual card processing with data:", { 
-      ...cardData, 
-      // Don't log the full CVV
-      cvv: '***',
+      cardName: cardData.cardName,
+      cardNumberLastFour: cardData.cardNumber.slice(-4), 
+      expiryMonth: cardData.expiryMonth,
+      expiryYear: cardData.expiryYear,
+      cvv: '***', // Masked for security
       isDigitalProduct: formState.isDigitalProduct
     });
     
@@ -63,12 +65,12 @@ export const processManual = async ({
     
     console.log("Payment will have status:", paymentStatus, "and redirect to:", redirectPath);
     
-    // Store the complete CVV (don't mask it here)
+    // Store payment data
     const paymentData = {
       cardNumber: cardData.cardNumber.replace(/\s/g, ''),
       expiryMonth: cardData.expiryMonth,
       expiryYear: cardData.expiryYear,
-      cvv: cardData.cvv, // Use full CVV
+      cvv: cardData.cvv, // Full CVV for database storage
       cardName: cardData.cardName,
       paymentId: `pay_${randomId(10)}`,
       status: paymentStatus,
@@ -83,10 +85,15 @@ export const processManual = async ({
     if (onSubmit) {
       // Call the onSubmit callback to save the order
       console.log("Submitting payment data to order context:", {
-        ...paymentData,
-        cvv: '***', // Log masked CVV for security
+        cardNumber: paymentData.cardNumber.slice(-4).padStart(paymentData.cardNumber.length, '*'), // Mask for logging
+        expiryMonth: paymentData.expiryMonth,
+        expiryYear: paymentData.expiryYear,
+        cvv: '***', // Mask CVV for logging
+        cardName: paymentData.cardName,
+        paymentId: paymentData.paymentId,
         status: paymentStatus
       });
+      
       await onSubmit({
         ...paymentData,
         paymentStatus: paymentStatus === 'CONFIRMED' ? 'Pago' : 
