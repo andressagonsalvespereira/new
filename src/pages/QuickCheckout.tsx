@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,48 +89,10 @@ const QuickCheckout = () => {
     );
   }
   
-  // Prepare product details for checkout progress component
-  const productDetails = {
-    id: product.id,
-    name: product.nome,
-    price: product.preco,
-    image: product.urlImagem,
-    description: product.descricao,
-    isDigital: product.digital
-  };
+  // Make sure we're using the correct limited set of payment methods
+  const safePaymentMethod: 'CREDIT_CARD' | 'PIX' = 
+    paymentMethod === 'PIX' ? 'PIX' : 'CREDIT_CARD';
   
-  console.log('QuickCheckout - Produto preparado para checkout:', productDetails);
-  
-  // Use CheckoutProgress component if requested in URL parameter
-  const useFullCheckout = new URLSearchParams(location.search).get('fullCheckout') === 'true';
-  console.log('QuickCheckout - Usando checkout completo?', useFullCheckout);
-  
-  if (useFullCheckout) {
-    console.log('QuickCheckout - Renderizando CheckoutProgress');
-    return (
-      <CheckoutContainer>
-        <Card className="mb-6 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle>Checkout Completo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CheckoutProgress 
-              paymentMethod={paymentMethod === 'CREDIT_CARD' ? 'card' : 'pix'} 
-              setPaymentMethod={(method) => setPaymentMethod(method === 'card' ? 'CREDIT_CARD' : 'PIX' as PaymentMethod)} 
-              productDetails={productDetails}
-              handlePayment={() => {
-                console.log('CheckoutProgress - handlePayment acionado');
-                handlePaymentSubmit({});
-              }} 
-              isProcessing={false} 
-            />
-          </CardContent>
-        </Card>
-      </CheckoutContainer>
-    );
-  }
-  
-  console.log('QuickCheckout - Renderizando checkout rápido');
   return (
     <CheckoutContainer>
       <Card className="mb-6 shadow-sm">

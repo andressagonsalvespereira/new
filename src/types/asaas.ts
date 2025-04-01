@@ -1,151 +1,83 @@
 
+// Define the main types used in the Asaas integration
+export type ManualCardStatus = 'APPROVED' | 'DENIED' | 'ANALYSIS';
+
 export interface AsaasSettings {
   isEnabled: boolean;
-  apiKey?: string;
+  apiKey: string;
   allowCreditCard: boolean;
   allowPix: boolean;
   manualCreditCard: boolean;
   sandboxMode: boolean;
-  sandboxApiKey?: string;
-  productionApiKey?: string;
+  sandboxApiKey: string;
+  productionApiKey: string;
   manualCardProcessing: boolean;
   manualPixPage: boolean;
   manualPaymentConfig: boolean;
   manualCardStatus: ManualCardStatus;
 }
 
-// Strong typing for card status values
-export type ManualCardStatus = 'APPROVED' | 'DENIED' | 'ANALYSIS';
-
-export interface AsaasContextType {
-  settings: AsaasSettings;
-  loading: boolean;
-  saveSettings: (settings: AsaasSettings) => Promise<void>;
-  updateSettings: (settings: AsaasSettings) => Promise<void>;
+export interface AsaasApiResponse<T> {
+  data?: T;
+  error?: {
+    message: string;
+    code?: string;
+  };
+  status?: number;
 }
 
-export interface AsaasApiResponse {
-  id?: string;
-  status?: string;
-  invoiceUrl?: string;
-  bankSlipUrl?: string;
-  dueDate?: string;
-  value?: number;
-  netValue?: number;
-  billingType?: string;
-  canBePaidAfterDueDate?: boolean;
-  description?: string;
-  externalReference?: string;
-  paymentDate?: string;
-  clientId?: string;
-  subscription?: string;
-  installment?: string;
-  creditCard?: AsaasCreditCard;
-  fine?: AsaasFine;
-  interest?: AsaasInterest;
-  deleted?: boolean;
-  postalService?: boolean;
-  anticipated?: boolean;
-  dateCreated?: string;
-  lastInvoiceViewedDate?: string;
-  lastBankSlipViewedDate?: string;
-  pixQrCodeImage?: string;
-  pixKey?: string;
-  pixCopiaECola?: string;
-  confirmedDate?: string;
-  paymentLink?: string;
-  hidden?: boolean;
-  originalValue?: number;
-  interestValue?: number;
-  originalDueDate?: string;
-  paymentMethods?: string[];
-  error?: string;
-  errors?: AsaasError[];
+export interface AsaasPayment {
+  value: number;
+  customer: string;
+  billingType: 'CREDIT_CARD' | 'PIX';
+  dueDate: string;
+  creditCard?: {
+    holderName: string;
+    number: string;
+    expiryMonth: string;
+    expiryYear: string;
+    ccv: string;
+  };
+  creditCardHolderInfo?: {
+    name: string;
+    email: string;
+    cpfCnpj: string;
+    postalCode: string;
+    addressNumber: string;
+    addressComplement?: string;
+    phone: string;
+  };
+  remoteIp?: string;
 }
 
-// Extends AsaasApiResponse to include specific payment fields
-export interface AsaasPaymentResponse extends AsaasApiResponse {
+export interface AsaasPaymentResponse {
   id: string;
   status: string;
+  invoiceUrl?: string;
   value: number;
   netValue: number;
-  customer: string;
+  originalValue?: number;
+  interestValue?: number;
+  description?: string;
   billingType: string;
-  dueDate: string;
+  confirmedDate?: string;
+  pixTransaction?: any;
+  creditCard?: {
+    creditCardBrand?: string;
+    creditCardNumber?: string;
+    creditCardToken?: string;
+  };
 }
 
-// Specific response for PIX QR code
 export interface AsaasPixQrCodeResponse {
   encodedImage: string;
   payload: string;
   expirationDate: string;
 }
 
-export interface AsaasError {
-  code?: string;
-  description?: string;
-  field?: string;
-}
-
-export interface AsaasFine {
-  value?: number;
-  type?: string;
-}
-
-export interface AsaasInterest {
-  value?: number;
-  type?: string;
-}
-
-export interface AsaasCreditCard {
-  creditCardNumber?: string;
-  creditCardBrand?: string;
-  creditCardToken?: string;
-}
-
-export interface AsaasCustomer {
-  id?: string;
-  name: string;
-  email: string;
-  phone: string;
-  mobilePhone?: string;
-  cpfCnpj: string;
-  postalCode?: string;
-  address?: string;
-  addressNumber?: string;
-  complement?: string;
-  province?: string;
-  externalReference?: string;
-  notificationDisabled?: boolean;
-  additionalEmails?: string;
-  municipalInscription?: string;
-  stateInscription?: string;
-  observations?: string;
-  groupName?: string;
-  company?: string;
-  dateCreated?: string;
-}
-
-export interface AsaasConfig {
-  id?: number;
-  sandbox_api_key?: string;
-  production_api_key?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface AsaasPayment {
-  id?: number;
-  order_id?: number;
-  payment_id: string;
-  method?: string;
-  status?: string;
-  qr_code?: string;
-  qr_code_image?: string;
-  created_at?: string;
-  updated_at?: string;
-  value?: number;
-  customer?: string;
-  billingType?: string;
-  dueDate?: string;
+export interface AsaasContextType {
+  settings: AsaasSettings;
+  loading: boolean;
+  saveSettings: (settings: AsaasSettings) => Promise<void>;
+  updateSettings: (settings: AsaasSettings) => Promise<void>;
 }

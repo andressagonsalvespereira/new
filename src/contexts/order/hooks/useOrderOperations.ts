@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Order, CreateOrderInput, PaymentMethod } from '@/types/order';
+import { Order, CreateOrderInput, PaymentMethod, PaymentStatus } from '@/types/order';
 import { useToast } from '@/hooks/use-toast';
 import { 
   createOrder, 
@@ -53,7 +53,7 @@ export const useOrderOperations = (orders: Order[], setOrders: React.Dispatch<Re
 
   const updateOrderStatus = async (
     id: string, 
-    status: Order['paymentStatus']
+    status: PaymentStatus
   ): Promise<Order> => {
     try {
       const { updatedOrder, updatedOrders } = await updateOrderStatusData(orders, id, status);
