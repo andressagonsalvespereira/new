@@ -42,9 +42,9 @@ const CheckoutForm = ({
     setPaymentStatus,
     getButtonText,
     getAlertMessage,
-    getAlertStyles,
-    settings: defaultSettings
+    getAlertStyles
   } = useCardPaymentStatus({
+    isSandbox,
     settings,
     useCustomProcessing,
     manualCardStatus
@@ -95,7 +95,13 @@ const CheckoutForm = ({
             useCustomProcessing,
             manualCardStatus 
           }, 
-          settings: settings || defaultSettings, 
+          settings: settings || {
+            manualCardProcessing: false,
+            manualCardStatus: 'ANALYSIS',
+            allowCreditCard: true,
+            allowPix: true,
+            sandboxMode: true
+          }, 
           isSandbox, 
           onSubmit 
         },

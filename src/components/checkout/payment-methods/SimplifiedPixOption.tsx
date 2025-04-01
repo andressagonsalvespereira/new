@@ -13,13 +13,21 @@ interface SimplifiedPixOptionProps {
   isDigitalProduct?: boolean;
   customerData?: CustomerData;
   isSandbox: boolean;
+  isProcessing?: boolean;
+  productData?: {
+    productId: string;
+    productName: string;
+    productPrice: number;
+  };
 }
 
 const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
   onSubmit,
   isDigitalProduct = false,
   customerData,
-  isSandbox
+  isSandbox,
+  isProcessing = false,
+  productData
 }) => {
   const { toast } = useToast();
   const { settings } = useAsaas();
@@ -52,7 +60,7 @@ const SimplifiedPixOption: React.FC<SimplifiedPixOptionProps> = ({
         <Button 
           className="w-full my-4 bg-green-600 hover:bg-green-700" 
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || isProcessing}
         >
           {loading ? "Gerando PIX..." : "Gerar QR Code PIX"}
         </Button>

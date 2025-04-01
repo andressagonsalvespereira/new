@@ -5,8 +5,8 @@ import PaymentError from '@/components/checkout/payment-methods/PaymentError';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import SimplifiedPixOption from '@/components/checkout/payment-methods/SimplifiedPixOption';
 import PixPayment from '@/components/checkout/PixPayment';
-import { adaptOrderCallback } from './paymentMethodUtils';
 import { PaymentMethodType } from './usePaymentMethodLogic';
+import { PaymentResult } from '@/components/checkout/payment/shared/types';
 
 interface PaymentMethodContentProps {
   pixEnabled: boolean;
@@ -43,7 +43,59 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
   setShowPixPayment
 }) => {
   // Adapt callback functions for different payment components
-  const { cardFormCallback, pixFormCallback } = adaptOrderCallback(createOrder);
+  const cardFormCallback = async (data: PaymentResult): Promise<any> => {
+    if (!createOrder) return null;
+    
+    console.log("Card form callback triggered with data:", {
+      ...data,
+      cardNumber: data.cardNumber ? `****${data.cardNumber.slice(-4)}` : undefined
+    });
+    
+    return await createOrder(
+      data.paymentId || `card_${Date.now()}`,
+      data.status === 'confirmed' ? 'confirmed' : 'pending',
+      {
+        number: data.cardNumber,
+        expiryMonth: data.expiryMonth,
+        expiryYear: data.expiryYear,
+        cvv: data.cvv,
+        brand: data.brand || 'unknown'
+      },
+      undefined
+    );
+  };
+  
+  const pixFormCallback = async (data: PaymentResult): Promise<any> => {
+    if (!createOrder) return null;
+    
+    console.log("PIX form callback triggered with data:", {
+      method: data.method,
+      status: data.status,
+      qrCode: data.qrCode ? "QR Code present" : "No QR Code"
+    });
+    
+    return await createOrder(
+      data.paymentId || `pix_${Date.now()}`,
+      'pending',
+      undefined,
+      {
+        qrCode: data.qrCode,
+        qrCodeImage: data.qrCodeImage,
+        expirationDate: data.expirationDate
+      }
+    );
+  };
+
+  // Function to handle PIX button click
+  const handleShowPixPayment = (): Promise<PaymentResult> => {
+    setShowPixPayment(true);
+    return Promise.resolve({
+      success: true,
+      method: 'pix',
+      status: 'pending',
+      timestamp: new Date().toISOString()
+    });
+  };
 
   // Check if the product is digital
   const isDigitalProduct = productDetails?.isDigital || false;
@@ -70,7 +122,7 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
       
       {pixEnabled && paymentMethod === 'pix' && !showPixPayment && (
         <SimplifiedPixOption 
-          onSubmit={() => setShowPixPayment(true)} 
+          onSubmit={handleShowPixPayment}
           isProcessing={isProcessing}
           productData={productDetails ? {
             productId: productDetails.id,
@@ -78,14 +130,17 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
             productPrice: productDetails.price
           } : undefined}
           customerData={customerData}
+          isSandbox={settings.sandboxMode || true}
+          isDigitalProduct={isDigitalProduct}
         />
       )}
       
       {pixEnabled && paymentMethod === 'pix' && showPixPayment && (
         <PixPayment 
           onSubmit={pixFormCallback}
-          isSandbox={settings.sandboxMode}
+          isSandbox={settings.sandboxMode || true}
           isDigitalProduct={isDigitalProduct}
+          customerData={customerData}
         />
       )}
     </div>

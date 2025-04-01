@@ -1,9 +1,9 @@
 
-import { useOrders } from '@/contexts/OrderContext';
 import { Order, PaymentStatus, PaymentMethod, DeviceType, CardDetails, PixDetails } from '@/types/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/payment/shared/types';
 import { detectDeviceType } from '../utils/deviceDetection';
+import { useOrders } from '@/contexts/order';
 
 interface CreateOrderServiceProps {
   customerData: CustomerData;
