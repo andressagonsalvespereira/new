@@ -1,4 +1,4 @@
 
 export * from './types';
-export * from './cardProcessor';
+export * from './card';
 export * from './pixProcessor';

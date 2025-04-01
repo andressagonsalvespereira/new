@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
@@ -32,7 +31,6 @@ const CheckoutForm = ({
   const { formState } = useCheckoutForm();
   const { settings } = useAsaas();
   
-  // Use the extracted card payment status hook
   const {
     isSubmitting,
     setIsSubmitting,
@@ -50,7 +48,6 @@ const CheckoutForm = ({
     manualCardStatus
   });
   
-  // Log component mount and props for debugging
   useEffect(() => {
     console.log("CheckoutForm mounted with props:", {
       isSandbox,
@@ -61,7 +58,6 @@ const CheckoutForm = ({
     console.log("Asaas settings:", settings);
   }, [isSandbox, isDigitalProduct, useCustomProcessing, manualCardStatus, settings]);
 
-  // Log the submitting state changes for debugging
   useEffect(() => {
     console.log("IsSubmitting state changed:", isSubmitting);
   }, [isSubmitting]);
@@ -85,11 +81,9 @@ const CheckoutForm = ({
     });
     
     try {
-      // Explicitly set isSubmitting to true before processing payment
       setIsSubmitting(true);
       console.log("Setting isSubmitting to true");
       
-      // Process payment with card using the utility with object parameter
       await processCardPayment({
         cardData,
         props: { 
@@ -117,7 +111,6 @@ const CheckoutForm = ({
       setError('Falha ao processar o pagamento. Por favor, tente novamente.');
       setIsSubmitting(false);
       
-      // Show error toast
       toast({
         title: "Erro no processamento",
         description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
@@ -127,7 +120,6 @@ const CheckoutForm = ({
     }
   };
 
-  // If payment was confirmed or is under analysis, show appropriate message
   if (paymentStatus) {
     return <PaymentStatusMessage status={paymentStatus} />;
   }
