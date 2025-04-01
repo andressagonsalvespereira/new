@@ -1,5 +1,7 @@
 
 export * from './cardProcessor';
-export * from './automaticProcessor';
-export * from './manualProcessor';
-export * from './manualCardProcessor';
+
+// Removidos os exports não utilizados mais
+// export * from './automaticProcessor';
+// export * from './manualProcessor';
+// export * from './manualCardProcessor';
