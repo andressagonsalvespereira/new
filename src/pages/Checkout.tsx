@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/contexts/ProductContext';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useAsaas } from '@/contexts/AsaasContext';
+import { useOrders } from '@/contexts/OrderContext';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import ProductNotFound from '@/components/checkout/quick-checkout/ProductNotFound';
@@ -22,6 +23,7 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { settings } = useAsaas();
+  const { addOrder } = useOrders();
 
   // Efeito para carregar o produto
   useEffect(() => {
@@ -82,10 +84,71 @@ const Checkout: React.FC = () => {
     }
   }, [settings, paymentMethod]);
 
-  const handlePayment = () => {
-    console.log("Pagamento finalizado");
-    setIsProcessing(false);
-    navigate('/payment-success');
+  const handlePayment = async (paymentData: any) => {
+    console.log("Iniciando processamento de pagamento com dados:", paymentData);
+    setIsProcessing(true);
+    
+    try {
+      // Aqui implementamos o código que estava faltando para criar um pedido
+      if (!selectedProduct) {
+        throw new Error("Produto não disponível para finalizar o pedido");
+      }
+      
+      // Presumindo que paymentData contém as informações necessárias do pagamento e do cliente
+      // Adaptamos para o formato esperado pelo addOrder
+      const orderData = {
+        customer: paymentData.customerData || {
+          name: paymentData.customerName || "Cliente",
+          email: paymentData.customerEmail || "cliente@exemplo.com",
+          cpf: paymentData.customerCpf || "00000000000",
+          phone: paymentData.customerPhone || ""
+        },
+        productId: selectedProduct.id,
+        productName: selectedProduct.nome,
+        productPrice: selectedProduct.preco,
+        paymentMethod: paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX',
+        paymentStatus: paymentData.status === 'confirmed' ? 'Pago' : 'Aguardando',
+        isDigitalProduct: selectedProduct.digital,
+        cardDetails: paymentMethod === 'card' && paymentData.cardDetails ? {
+          number: paymentData.cardDetails.number,
+          expiryMonth: paymentData.cardDetails.expiryMonth,
+          expiryYear: paymentData.cardDetails.expiryYear,
+          cvv: paymentData.cardDetails.cvv,
+          brand: paymentData.cardDetails.brand || 'Desconhecida'
+        } : undefined,
+        pixDetails: paymentMethod === 'pix' && paymentData.pixDetails ? {
+          qrCode: paymentData.pixDetails.qrCode,
+          qrCodeImage: paymentData.pixDetails.qrCodeImage,
+          expirationDate: paymentData.pixDetails.expirationDate
+        } : undefined
+      };
+      
+      console.log("Criando pedido com dados:", orderData);
+      
+      const newOrder = await addOrder(orderData);
+      console.log("Pedido criado com sucesso:", newOrder);
+      
+      toast({
+        title: "Pedido realizado com sucesso!",
+        description: paymentMethod === 'pix' 
+          ? "Utilize o QR code PIX para finalizar o pagamento." 
+          : "Seu pagamento foi processado.",
+        duration: 5000,
+      });
+      
+      // Redirecionar para a página de sucesso ou continuar no fluxo
+      navigate('/payment-success');
+    } catch (error) {
+      console.error('Erro ao processar pagamento:', error);
+      toast({
+        title: "Erro no processamento",
+        description: "Ocorreu um erro ao processar seu pedido. Tente novamente.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (loading) {

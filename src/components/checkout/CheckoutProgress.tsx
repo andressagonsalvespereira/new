@@ -7,7 +7,7 @@ interface CheckoutProgressProps {
   paymentMethod: 'card' | 'pix';
   setPaymentMethod: React.Dispatch<React.SetStateAction<'card' | 'pix'>>;
   productDetails: ProductDetailsType;
-  handlePayment: () => void; // Function that handles payment without returning anything
+  handlePayment: (paymentData: any) => void; // Função que processa o pagamento com os dados necessários
   isProcessing: boolean;
 }
 

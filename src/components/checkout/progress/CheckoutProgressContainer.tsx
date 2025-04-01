@@ -13,7 +13,7 @@ interface CheckoutProgressContainerProps {
   paymentMethod: 'card' | 'pix';
   setPaymentMethod: React.Dispatch<React.SetStateAction<'card' | 'pix'>>;
   productDetails: ProductDetailsType;
-  handlePayment: () => void;
+  handlePayment: (paymentData: any) => void;
   isProcessing: boolean;
 }
 
@@ -44,10 +44,39 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
   
   const { settings } = useAsaas();
 
-  const { createOrder, customerData } = useCheckoutContainerOrder({
+  // Quando o pedido for criado com sucesso, vamos chamar handlePayment com os dados apropriados
+  const handleOrderCreated = (paymentData: any) => {
+    console.log("Ordem criada com sucesso, chamando handlePayment com dados:", paymentData);
+    
+    // Construir objeto com dados do cliente e do pagamento
+    const paymentInfo = {
+      customerData: {
+        name: formState.fullName,
+        email: formState.email,
+        cpf: formState.cpf,
+        phone: formState.phone,
+        address: formState.street ? {
+          street: formState.street,
+          number: formState.number,
+          complement: formState.complement,
+          neighborhood: formState.neighborhood,
+          city: formState.city,
+          state: formState.state,
+          postalCode: formState.cep.replace(/\D/g, '')
+        } : undefined
+      },
+      status: paymentData.status || 'pending',
+      ...paymentData
+    };
+    
+    // Chamar a função handlePayment com os dados do pagamento
+    handlePayment(paymentInfo);
+  };
+
+  const { createOrder, customerData, isProcessingOrder } = useCheckoutContainerOrder({
     formState,
     productDetails,
-    handlePayment
+    handlePayment: handleOrderCreated
   });
 
   // Validate if the selected payment method is allowed based on settings
@@ -65,6 +94,9 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
       }
     }
   }, [settings, paymentMethod, setPaymentMethod]);
+
+  // Verificar se está em processamento em qualquer nível
+  const combinedProcessing = isProcessing || isProcessingOrder;
 
   return (
     <>
@@ -109,7 +141,7 @@ const CheckoutProgressContainer: React.FC<CheckoutProgressContainerProps> = ({
         createOrder={createOrder}
         productDetails={productDetails}
         customerData={customerData}
-        isProcessing={isProcessing}
+        isProcessing={combinedProcessing}
       />
       
       <OrderSummaryWrapper 
