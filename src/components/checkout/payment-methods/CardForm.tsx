@@ -3,7 +3,7 @@ import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCheckoutCustomization } from '@/contexts/CheckoutCustomizationContext';
-import { CardSchema } from '@/components/checkout/utils/cardValidation';
+import { CardSchema } from '@/components/checkout/payment/card/utils/validators';
 import CardNameField from './form-fields/CardNameField';
 import CardNumberField from './form-fields/CardNumberField';
 import CardExpiryFields from './form-fields/CardExpiryFields';

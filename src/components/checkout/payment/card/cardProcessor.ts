@@ -1,12 +1,11 @@
 
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 import { CardFormData } from '@/components/checkout/payment-methods/CardForm';
 import { PaymentProcessorProps, PaymentResult } from '../shared/types';
 import { detectCardBrand } from './utils/cardDetection';
+import { simulateCardPayment } from '../shared/paymentSimulator';
 import { v4 as uuidv4 } from 'uuid';
-import { DeviceType } from '@/types/order';
 import { logger } from '@/utils/logger';
+import { DeviceType } from '@/types/order';
 
 interface ProcessCardPaymentParams {
   cardData: CardFormData;
@@ -14,11 +13,16 @@ interface ProcessCardPaymentParams {
   setError: (error: string) => void;
   setPaymentStatus?: (status: string) => void;
   setIsSubmitting: (isSubmitting: boolean) => void;
-  navigate: ReturnType<typeof useNavigate>;
-  toast: ReturnType<typeof useToast>['toast'];
+  navigate: (path: string, state?: any) => void;
+  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
   isDigitalProduct?: boolean;
 }
 
+/**
+ * Processa pagamento com cartão de crédito
+ * @param params Parâmetros para processamento do cartão
+ * @returns Resultado do processamento de pagamento
+ */
 export const processCardPayment = async ({
   cardData,
   props,
@@ -30,7 +34,7 @@ export const processCardPayment = async ({
   isDigitalProduct = false
 }: ProcessCardPaymentParams): Promise<PaymentResult> => {
   try {
-    logger.log("processCardPayment iniciado - Processando pagamento", { 
+    logger.log("Processando pagamento com cartão", { 
       cardData: { 
         cardName: cardData.cardName,
         cardNumber: cardData.cardNumber ? `****${cardData.cardNumber.slice(-4)}` : '',
@@ -39,22 +43,22 @@ export const processCardPayment = async ({
       }
     });
     
-    // Update browser detection for statistics
+    // Detecta tipo de dispositivo para estatísticas
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
     
     const deviceType: DeviceType = isMobileDevice ? 'mobile' : 'desktop';
 
-    logger.log("Processing card payment with settings:", { 
+    logger.log("Configurações de processamento:", { 
       manualCardProcessing: props.settings.manualCardProcessing,
       manualCardStatus: props.settings.manualCardStatus,
       isDigitalProduct
     });
 
-    // Determine which processor to use based on settings
+    // Determina qual processador usar com base nas configurações
     if (props.settings.manualCardProcessing) {
-      logger.log("Using manual card processing with digital product flag:", isDigitalProduct);
+      logger.log("Usando processamento manual de cartão");
       return await processManualPayment({
         cardData,
         formState: { 
@@ -70,7 +74,7 @@ export const processCardPayment = async ({
         onSubmit: props.onSubmit
       });
     } else {
-      logger.log("Using automatic card processing with digital product flag:", isDigitalProduct);
+      logger.log("Usando processamento automático de cartão");
       return await processAutomaticPayment({
         cardData,
         formState: { 
@@ -89,35 +93,38 @@ export const processCardPayment = async ({
       });
     }
   } catch (error) {
-    logger.error('Error processing card payment:', error);
+    logger.error('Erro no processamento do cartão:', error);
     setError('Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
     setIsSubmitting(false);
     
-    // Return a valid PaymentResult object in case of error
+    // Retorna um objeto PaymentResult válido em caso de erro
     return {
       success: false,
       method: 'card',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Erro desconhecido',
       status: 'FAILED',
       timestamp: new Date().toISOString()
     };
   }
 };
 
-// Private functions for internal processing
+// Funções internas de processamento
 
 interface ProcessManualPaymentParams {
   cardData: CardFormData;
   formState: any;
   settings: any;
   deviceType: DeviceType;
-  navigate: ReturnType<typeof useNavigate>;
+  navigate: (path: string, state?: any) => void;
   setIsSubmitting: (isSubmitting: boolean) => void;
   setError: (error: string) => void;
-  toast: ReturnType<typeof useToast>['toast'];
+  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
   onSubmit?: (data: any) => Promise<any> | any;
 }
 
+/**
+ * Processa pagamento manual de cartão (modo de testes/sandbox)
+ */
 async function processManualPayment({
   cardData,
   formState,
@@ -132,30 +139,28 @@ async function processManualPayment({
   setIsSubmitting(true);
   
   try {
-    logger.log("Using manual card processor with settings:", {
+    logger.log("Processamento manual com configurações:", {
       manualCardStatus: settings.manualCardStatus,
       isDigitalProduct: formState.isDigitalProduct
     });
     
-    // Generate a mock payment ID for tracking
+    // Gera ID de pagamento simulado para rastreamento
     const paymentId = `manual_${uuidv4()}`;
     
-    // Determine payment status based on settings
+    // Determina status do pagamento com base nas configurações
     let paymentStatus = 'PENDING';
     
-    // Check if we should use product-specific settings first
+    // Verifica se deve usar configurações específicas do produto primeiro
     if (formState.useCustomProcessing && formState.manualCardStatus) {
       paymentStatus = formState.manualCardStatus;
-      logger.log("Using product-specific manual card status:", paymentStatus);
     } else if (settings.manualCardStatus) {
       paymentStatus = settings.manualCardStatus;
-      logger.log("Using global manual card status:", paymentStatus);
     }
     
-    // Detect card brand
+    // Detecta bandeira do cartão
     const brand = detectCardBrand(cardData.cardNumber);
     
-    // Prepare the payment result object
+    // Prepara o objeto de resultado de pagamento
     const paymentResult: PaymentResult = {
       success: true,
       method: 'card',
@@ -170,14 +175,14 @@ async function processManualPayment({
       deviceType
     };
     
-    // Submit the payment data to create an order
-    logger.log("Submitting payment data to create order");
+    // Envia os dados de pagamento para criar um pedido
+    logger.log("Enviando dados para criar pedido");
     
-    // Call onSubmit and await the result
+    // Chama onSubmit e aguarda o resultado
     const result = onSubmit ? await onSubmit(paymentResult) : null;
-    logger.log("Order created successfully");
+    logger.log("Pedido criado com sucesso");
     
-    // Determine where to navigate based on payment status
+    // Determina para onde navegar com base no status do pagamento
     const orderData = result ? {
       orderId: result.id,
       productName: result.productName,
@@ -189,19 +194,19 @@ async function processManualPayment({
       paymentStatus: paymentStatus
     };
     
-    // Helper function to determine redirect path based on status
+    // Função auxiliar para determinar o caminho de redirecionamento com base no status
     const getRedirectPath = () => {
       if (paymentStatus === 'DENIED') {
         return '/payment-failed';
       } else if (paymentStatus === 'APPROVED') {
         return '/payment-success';
       } else {
-        // If status is ANALYSIS or any other, use success page but indicate it's in analysis
+        // Se o status for ANALYSIS ou qualquer outro, usa a página de sucesso mas indica que está em análise
         return '/payment-success';
       }
     };
     
-    // Toast notification based on status
+    // Notificação toast com base no status
     if (paymentStatus !== 'DENIED') {
       toast({
         title: paymentStatus === 'APPROVED' ? "Pagamento Aprovado" : "Pagamento em Análise",
@@ -219,17 +224,17 @@ async function processManualPayment({
       });
     }
     
-    // Navigate to the appropriate page
+    // Navega para a página apropriada
     navigate(getRedirectPath(), { 
       state: { orderData }
     });
     
     return paymentResult;
   } catch (error) {
-    logger.error('Error processing manual payment:', error);
+    logger.error('Erro no processamento manual:', error);
     setError('Ocorreu um erro ao processar seu pagamento. Por favor, tente novamente.');
     
-    // Show error toast
+    // Mostrar toast de erro
     toast({
       title: "Erro no processamento",
       description: "Ocorreu um erro ao processar seu pagamento. Tente novamente.",
@@ -237,11 +242,11 @@ async function processManualPayment({
       duration: 5000,
     });
     
-    // Return a properly typed error result
+    // Retorna um resultado de erro corretamente tipado
     return {
       success: false,
       method: 'card',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Erro desconhecido',
       status: 'FAILED',
       timestamp: new Date().toISOString()
     };
@@ -259,11 +264,14 @@ interface ProcessAutomaticPaymentParams {
   setPaymentStatus?: (status: string) => void;
   setIsSubmitting: (isSubmitting: boolean) => void;
   setError: (error: string) => void;
-  navigate: ReturnType<typeof useNavigate>;
-  toast: ReturnType<typeof useToast>['toast'];
+  navigate: (path: string, state?: any) => void;
+  toast: (config: { title: string; description: string; variant?: string; duration?: number }) => void;
   onSubmit?: (data: any) => Promise<any> | any;
 }
 
+/**
+ * Processa pagamento automático de cartão (modo de produção)
+ */
 async function processAutomaticPayment({
   cardData,
   formState,
@@ -278,24 +286,20 @@ async function processAutomaticPayment({
   onSubmit
 }: ProcessAutomaticPaymentParams): Promise<PaymentResult> {
   try {
-    logger.log("Processing automatic card payment with device type:", deviceType);
+    logger.log("Processando pagamento automático de cartão");
     
-    // Detect card brand
+    // Detecta bandeira do cartão
     const brand = detectCardBrand(cardData.cardNumber);
     
-    // Simulate successful API payment processing
-    const paymentId = `automatic_${uuidv4()}`;
-    const success = true;
-    
-    if (!success) {
-      throw new Error('Falha no processamento do pagamento');
-    }
+    // Simula processamento bem-sucedido de pagamento via API
+    const simulationResult = await simulateCardPayment(true);
+    const paymentId = simulationResult.paymentId;
     
     setPaymentStatus('CONFIRMED');
     
-    // Format the data for creating the order
+    // Formata os dados para criar o pedido
     const orderData = {
-      customer: formState.personalInfo,
+      customer: formState.customerInfo,
       productId: formState.productId,
       productName: formState.productName,
       productPrice: formState.productPrice,
@@ -314,19 +318,19 @@ async function processAutomaticPayment({
       isDigitalProduct: formState.isDigitalProduct
     };
     
-    // Call the onSubmit function if provided (to create the order)
+    // Chama a função onSubmit se fornecida (para criar o pedido)
     if (onSubmit) {
       await onSubmit(orderData);
     }
     
-    // Show success message
+    // Mostra mensagem de sucesso
     toast({
       title: "Pagamento aprovado!",
       description: "Seu pagamento foi processado com sucesso.",
       duration: 5000,
     });
     
-    // Navigate to the success page
+    // Navega para a página de sucesso
     setTimeout(() => {
       navigate('/payment-success', { 
         state: { 
@@ -345,11 +349,11 @@ async function processAutomaticPayment({
       timestamp: new Date().toISOString() 
     };
   } catch (error) {
-    logger.error("Error in automatic card processing:", error);
+    logger.error("Erro no processamento automático de cartão:", error);
     setError(error instanceof Error ? error.message : 'Falha ao processar pagamento');
     setIsSubmitting(false);
     
-    // Navigate to failure page for persistent errors
+    // Navega para página de falha para erros persistentes
     navigate('/payment-failed', { 
       state: { 
         productName: formState.productName,

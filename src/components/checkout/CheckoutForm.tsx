@@ -47,7 +47,7 @@ const CheckoutForm = ({
     getAlertStyles
   } = useCardPaymentStatus({
     isSandbox,
-    settings,
+    settings: settings as AsaasSettings,
     useCustomProcessing,
     manualCardStatus
   });
@@ -76,13 +76,10 @@ const CheckoutForm = ({
       
       const defaultSettings: AsaasSettings = {
         isEnabled: false,
-        apiKey: '',
         allowCreditCard: true,
         allowPix: true,
         manualCreditCard: false,
         sandboxMode: true,
-        sandboxApiKey: '',
-        productionApiKey: '',
         manualCardProcessing: false,
         manualPixPage: false,
         manualPaymentConfig: false,

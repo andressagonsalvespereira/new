@@ -1,32 +1,65 @@
 
 /**
- * Utility functions for card brand detection
- */
-
-/**
- * Detecta a bandeira do cartão com base nos primeiros dígitos
+ * Detecta a bandeira do cartão baseado no número
+ * @param cardNumber Número do cartão (com ou sem espaços)
+ * @returns Nome da bandeira do cartão
  */
 export const detectCardBrand = (cardNumber: string): string => {
+  // Remove todos os espaços e caracteres não-numéricos
   const cleanNumber = cardNumber.replace(/\D/g, '');
   
-  // More detailed card brand detection
-  if (cleanNumber.startsWith('4')) {
-    return 'VISA';
-  } else if (/^5[1-5]/.test(cleanNumber)) {
-    return 'MASTERCARD';
-  } else if (/^3[47]/.test(cleanNumber)) {
-    return 'AMEX';
-  } else if (/^6(?:011|5)/.test(cleanNumber)) {
-    return 'DISCOVER';
-  } else if (/^(36|38|30[0-5])/.test(cleanNumber)) {
-    return 'DINERS';
-  } else if (/^(606282|3841)/.test(cleanNumber)) {
-    return 'HIPERCARD';
-  } else if (/^50[0-9]/.test(cleanNumber)) {
-    return 'AURA';
-  } else if (/^(4011|431274|438935|451416|457393|4576|457631|457632|504175|627780|636297|636368|636369|(6503[1-3])|(6500(3[5-9]|4[0-9]|5[0-1]))|(6504(0[5-9]|1[0-9]|2[0-9]|3[0-9]))|(650(48[5-9]|49[0-9]|50[0-9]|51[1-9]|52[0-9]|53[0-7]))|(6505(4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-8]))|(6507(0[0-9]|1[0-8]))|(6507(2[0-7]))|(650(90[1-9]|91[0-9]|920))|(6516(5[2-9]|6[0-9]|7[0-9]))|(6550(0[0-9]|1[1-9]))|(6550(2[1-9]|3[0-9]|4[0-9]|5[0-8])))/.test(cleanNumber)) {
-    return 'ELO';
-  } else {
-    return 'DESCONHECIDA';
+  // Regex para detecção de bandeiras comuns
+  const cardPatterns = {
+    visa: /^4/,
+    mastercard: /^5[1-5]/,
+    amex: /^3[47]/,
+    elo: /^(4011|4312|4514|5067|5090|5041|5082|5096|509[7-9]|6500|6504|6505|6507|6509|6516|6550|4576|4011)/,
+    hipercard: /^(606282|637095|637568|637599|637609|637612)/,
+    dinersclub: /^3(?:0[0-5]|[68][0-9])/,
+    discover: /^6(?:011|5[0-9]{2})/,
+    jcb: /^(?:2131|1800|35\d{3})/,
+  };
+  
+  // Verifica qual padrão corresponde ao número do cartão
+  for (const [brand, pattern] of Object.entries(cardPatterns)) {
+    if (pattern.test(cleanNumber)) {
+      return brand;
+    }
+  }
+  
+  return 'unknown';
+};
+
+/**
+ * Formata o número do cartão inserindo espaços a cada 4 dígitos
+ * @param cardNumber Número do cartão sem formatação
+ * @returns Número do cartão formatado com espaços
+ */
+export const formatCardNumber = (cardNumber: string): string => {
+  const digits = cardNumber.replace(/\D/g, '');
+  const groups = [];
+  
+  for (let i = 0; i < digits.length; i += 4) {
+    groups.push(digits.slice(i, i + 4));
+  }
+  
+  return groups.join(' ');
+};
+
+/**
+ * Limita o comprimento do número de cartão baseado na bandeira
+ * @param cardNumber Número do cartão
+ * @returns Número máximo de dígitos permitidos
+ */
+export const getCardNumberMaxLength = (cardNumber: string): number => {
+  const brand = detectCardBrand(cardNumber);
+  
+  switch (brand) {
+    case 'amex':
+      return 15;
+    case 'dinersclub':
+      return 14;
+    default:
+      return 16;
   }
 };

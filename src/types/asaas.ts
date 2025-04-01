@@ -1,32 +1,87 @@
 
 export interface AsaasSettings {
   isEnabled: boolean;
-  apiKey: string;
-  allowPix: boolean;
+  apiKey?: string;
   allowCreditCard: boolean;
+  allowPix: boolean;
   manualCreditCard: boolean;
   sandboxMode: boolean;
-  sandboxApiKey: string;
-  productionApiKey: string;
+  sandboxApiKey?: string;
+  productionApiKey?: string;
   manualCardProcessing: boolean;
   manualPixPage: boolean;
   manualPaymentConfig: boolean;
-  manualCardStatus: 'APPROVED' | 'DENIED' | 'ANALYSIS';
+  manualCardStatus: string;
 }
 
-export interface AsaasContextType {
-  settings: AsaasSettings;
-  loading: boolean;
-  saveSettings: (settings: AsaasSettings) => Promise<void>;
-  updateSettings: (settings: AsaasSettings) => Promise<void>;
+export interface AsaasApiResponse {
+  id?: string;
+  status?: string;
+  invoiceUrl?: string;
+  bankSlipUrl?: string;
+  dueDate?: string;
+  value?: number;
+  netValue?: number;
+  billingType?: string;
+  canBePaidAfterDueDate?: boolean;
+  description?: string;
+  externalReference?: string;
+  paymentDate?: string;
+  clientId?: string;
+  subscription?: string;
+  installment?: string;
+  creditCard?: AsaasCreditCard;
+  fine?: AsaasFine;
+  interest?: AsaasInterest;
+  deleted?: boolean;
+  postalService?: boolean;
+  anticipated?: boolean;
+  dateCreated?: string;
+  lastInvoiceViewedDate?: string;
+  lastBankSlipViewedDate?: string;
+  pixQrCodeImage?: string;
+  pixKey?: string;
+  pixCopiaECola?: string;
+  confirmedDate?: string;
+  paymentLink?: string;
+  hidden?: boolean;
+  originalValue?: number;
+  interestValue?: number;
+  originalDueDate?: string;
+  paymentMethods?: string[];
+  error?: string;
+  errors?: AsaasError[];
 }
 
-// Customer types
+export interface AsaasError {
+  code?: string;
+  description?: string;
+  field?: string;
+}
+
+export interface AsaasFine {
+  value?: number;
+  type?: string;
+}
+
+export interface AsaasInterest {
+  value?: number;
+  type?: string;
+}
+
+export interface AsaasCreditCard {
+  creditCardNumber?: string;
+  creditCardBrand?: string;
+  creditCardToken?: string;
+}
+
 export interface AsaasCustomer {
+  id?: string;
   name: string;
   email: string;
-  phone?: string;
-  cpfCnpj?: string;
+  phone: string;
+  mobilePhone?: string;
+  cpfCnpj: string;
   postalCode?: string;
   address?: string;
   addressNumber?: string;
@@ -38,57 +93,27 @@ export interface AsaasCustomer {
   municipalInscription?: string;
   stateInscription?: string;
   observations?: string;
+  groupName?: string;
+  company?: string;
+  dateCreated?: string;
 }
 
-// Payment types
+export interface AsaasConfig {
+  id?: number;
+  sandbox_api_key?: string;
+  production_api_key?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface AsaasPayment {
-  customer: string;
-  billingType: 'BOLETO' | 'CREDIT_CARD' | 'PIX' | 'UNDEFINED';
-  value: number;
-  dueDate: string;
-  description?: string;
-  externalReference?: string;
-  creditCard?: {
-    holderName: string;
-    number: string;
-    expiryMonth: string;
-    expiryYear: string;
-    ccv: string;
-  };
-  creditCardHolderInfo?: {
-    name: string;
-    email: string;
-    cpfCnpj: string;
-    postalCode: string;
-    addressNumber: string;
-    addressComplement?: string;
-    phone?: string;
-  };
-  creditCardToken?: string;
-  remoteIp?: string;
-}
-
-export interface AsaasPaymentResponse {
-  id: string;
-  dateCreated: string;
-  customer: string;
-  value: number;
-  netValue: number;
-  status: string;
-  billingType: string;
-  dueDate: string;
-  originalValue?: number;
-  interestValue?: number;
-  description?: string;
-  externalReference?: string;
-  pixQrCodeId?: string;
-  canBePaidAfterDueDate?: boolean;
-}
-
-export interface AsaasPixQrCodeResponse {
-  encodedImage: string;
-  payload: string;
-  expirationDate: string;
-  success?: boolean;
-  id?: string;
+  id?: number;
+  order_id?: number;
+  payment_id: string;
+  method?: string;
+  status?: string;
+  qr_code?: string;
+  qr_code_image?: string;
+  created_at?: string;
+  updated_at?: string;
 }

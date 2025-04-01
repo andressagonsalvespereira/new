@@ -1,6 +1,7 @@
 
 import { PaymentProcessorProps, PaymentResult } from '../shared/types';
 import { simulatePixQrCodeGeneration } from '../shared/paymentSimulator';
+import { logger } from '@/utils/logger';
 
 /**
  * Processa pagamento via PIX
@@ -25,6 +26,15 @@ export const processPixPayment = async (
       }
     }
     
+    logger.log('Processando pagamento PIX', { 
+      isSandbox, 
+      isDigitalProduct: formState.isDigitalProduct, 
+      customerInfo: customerInfo ? {
+        name: customerInfo.name,
+        email: customerInfo.email
+      } : 'Sem informações de cliente'
+    });
+    
     // Em uma implementação real, isso chamaria a API do Asaas
     // 1. Criar cliente
     // 2. Criar cobrança PIX
@@ -46,12 +56,14 @@ export const processPixPayment = async (
     };
     
     // Enviar dados para processamento
-    onSubmit(paymentData);
+    if (onSubmit) {
+      await onSubmit(paymentData);
+    }
     
     // Chamar callback de sucesso
     onSuccess(paymentData);
   } catch (error) {
-    console.error('Erro ao processar pagamento PIX:', error);
+    logger.error('Erro ao processar pagamento PIX:', error);
     onError(error instanceof Error ? error.message : 'Erro ao gerar QR Code PIX. Por favor, tente novamente.');
   }
 };

@@ -2,9 +2,9 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAsaas } from '@/contexts/AsaasContext';
-import { simulatePixQrCodeGeneration } from '@/components/checkout/payment/shared/paymentSimulator';
-import { PaymentResult } from '@/components/checkout/payment/shared/types';
-import { CustomerData } from '@/components/checkout/payment/shared/types';
+import { processPixPayment } from '@/components/checkout/payment/pix/pixProcessor';
+import { PaymentResult, CustomerData } from '@/components/checkout/payment/shared/types';
+import { logger } from '@/utils/logger';
 
 interface UsePixPaymentProps {
   onSubmit: (data: PaymentResult) => Promise<any>;
@@ -37,43 +37,55 @@ export const usePixPayment = ({
     setError(null);
     
     try {
-      console.log("Generating PIX QR code with settings:", { 
+      if (!settings) {
+        throw new Error("Configurações de pagamento não disponíveis");
+      }
+      
+      logger.log("Gerando QR Code PIX", { 
         isSandbox, 
         isDigitalProduct,
         hasCustomerData: !!customerData
       });
       
-      const pixResult = await simulatePixQrCodeGeneration();
-      
-      // Prepare payment result
-      const paymentResult: PaymentResult = {
-        success: true,
-        method: 'pix',
-        paymentId: pixResult.paymentId,
-        status: 'PENDING',
-        timestamp: new Date().toISOString(),
-        qrCode: pixResult.qrCode,
-        qrCodeImage: pixResult.qrCodeImage,
-        expirationDate: pixResult.expirationDate
-      };
-      
-      // Call onSubmit with the generated PIX data
-      await onSubmit(paymentResult);
-      
-      // Store PIX data for display
-      setPixData({
-        qrCode: pixResult.qrCode,
-        qrCodeImage: pixResult.qrCodeImage,
-        expirationDate: pixResult.expirationDate,
-        paymentId: pixResult.paymentId
-      });
-      
-      toast({
-        title: "QR Code PIX gerado com sucesso",
-        description: "Escaneie o QR code ou copie o código para realizar o pagamento",
-      });
+      await processPixPayment(
+        {
+          formState: { 
+            customerInfo: customerData,
+            isDigitalProduct
+          },
+          settings,
+          isSandbox,
+          onSubmit
+        },
+        (paymentResult: PaymentResult) => {
+          // Store PIX data for display
+          if (paymentResult.qrCode && paymentResult.qrCodeImage && paymentResult.expirationDate) {
+            setPixData({
+              qrCode: paymentResult.qrCode,
+              qrCodeImage: paymentResult.qrCodeImage,
+              expirationDate: paymentResult.expirationDate,
+              paymentId: paymentResult.paymentId || `pix_${Date.now()}`
+            });
+            
+            toast({
+              title: "QR Code PIX gerado com sucesso",
+              description: "Escaneie o QR code ou copie o código para realizar o pagamento",
+            });
+          } else {
+            throw new Error("Dados de PIX incompletos retornados");
+          }
+        },
+        (errorMessage: string) => {
+          setError(errorMessage);
+          toast({
+            title: "Erro ao gerar PIX",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        }
+      );
     } catch (error) {
-      console.error("Erro ao gerar QR Code PIX:", error);
+      logger.error("Erro ao gerar QR Code PIX:", error);
       setError("Não foi possível gerar o código PIX. Por favor, tente novamente.");
       
       toast({
@@ -84,7 +96,7 @@ export const usePixPayment = ({
     } finally {
       setIsLoading(false);
     }
-  }, [onSubmit, isSandbox, isDigitalProduct, customerData, toast]);
+  }, [onSubmit, isSandbox, isDigitalProduct, customerData, toast, settings]);
   
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -103,10 +115,12 @@ export const usePixPayment = ({
       });
   };
   
-  // Auto-generate PIX on mount
-  useCallback(() => {
-    generatePixQrCode();
-  }, [generatePixQrCode]);
+  // Auto-generate PIX on hook initialization if needed
+  useEffect(() => {
+    if (!pixData && !error && !isLoading && customerData) {
+      generatePixQrCode();
+    }
+  }, [pixData, error, isLoading, customerData, generatePixQrCode]);
   
   return {
     isLoading,
