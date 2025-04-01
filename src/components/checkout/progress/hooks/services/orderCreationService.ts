@@ -1,4 +1,3 @@
-
 import { Order, PaymentStatus, PaymentMethod, DeviceType, CardDetails, PixDetails } from '@/types/order';
 import { ProductDetailsType } from '@/components/checkout/ProductDetails';
 import { CustomerData } from '@/components/checkout/payment/shared/types';
