@@ -1,4 +1,3 @@
-
 /**
  * Utilitário de logging para centralizar e padronizar logs da aplicação
  * Controla exibição de logs baseado em ambiente de desenvolvimento
@@ -8,24 +7,33 @@ const isDev = import.meta.env.MODE === 'development';
 
 export const logger = {
   /**
-   * Log informativo (só exibido em desenvolvimento)
-   * @param message Mensagem a ser logada
-   * @param data Dados adicionais (opcional)
+   * Log genérico (também pode ser usado como info)
    */
   log: (message: string, data?: any) => {
     if (isDev) {
       if (data) {
-        console.log(`[INFO] ${message}`, data);
+        console.log(`[LOG] ${message}`, data);
       } else {
-        console.log(`[INFO] ${message}`);
+        console.log(`[LOG] ${message}`);
       }
     }
   },
-  
+
   /**
-   * Log de aviso (só exibido em desenvolvimento)
-   * @param message Mensagem de aviso
-   * @param data Dados adicionais (opcional)
+   * Log informativo (alias do log, para manter semântica)
+   */
+  info: (message: string, data?: any) => {
+    if (isDev) {
+      if (data) {
+        console.info(`[INFO] ${message}`, data);
+      } else {
+        console.info(`[INFO] ${message}`);
+      }
+    }
+  },
+
+  /**
+   * Log de aviso
    */
   warn: (message: string, data?: any) => {
     if (isDev) {
@@ -36,11 +44,9 @@ export const logger = {
       }
     }
   },
-  
+
   /**
-   * Log de erro (exibido em todos os ambientes)
-   * @param message Mensagem de erro
-   * @param error Objeto de erro ou dados adicionais
+   * Log de erro (exibido mesmo fora do dev)
    */
   error: (message: string, error?: any) => {
     if (error) {

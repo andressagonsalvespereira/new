@@ -1,4 +1,4 @@
-
+// ✅ checkout/payment/PaymentMethodContent.tsx
 import React from 'react';
 import PaymentOptions from '@/components/checkout/payment-methods/PaymentOptions';
 import PaymentError from '@/components/checkout/payment-methods/PaymentError';
@@ -43,12 +43,10 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
   showPixPayment,
   setShowPixPayment
 }) => {
-  // Adapt callback functions for different payment components
   const cardFormCallback = async (data: PaymentResult): Promise<any> => {
     if (!createOrder) return null;
-    
     logger.log("Card form callback triggered");
-    
+
     return await createOrder(
       data.paymentId || `card_${Date.now()}`,
       data.status === 'confirmed' ? 'confirmed' : 'pending',
@@ -62,12 +60,11 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
       undefined
     );
   };
-  
+
   const pixFormCallback = async (data: PaymentResult): Promise<any> => {
     if (!createOrder) return null;
-    
     logger.log("PIX form callback triggered");
-    
+
     return await createOrder(
       data.paymentId || `pix_${Date.now()}`,
       'pending',
@@ -80,7 +77,6 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
     );
   };
 
-  // Function to handle PIX button click
   const handleShowPixPayment = (): Promise<PaymentResult> => {
     setShowPixPayment(true);
     return Promise.resolve({
@@ -91,50 +87,49 @@ const PaymentMethodContent: React.FC<PaymentMethodContentProps> = ({
     });
   };
 
-  // Check if the product is digital
   const isDigitalProduct = productDetails?.isDigital || false;
 
   return (
     <div>
       {pixEnabled && cardEnabled && (
         <PaymentOptions 
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          settings={settings}
+          paymentMethod={paymentMethod} 
+          setPaymentMethod={setPaymentMethod} 
+          settings={settings} 
         />
       )}
-      
+
       <PaymentError error={error} />
-      
+
       {cardEnabled && paymentMethod === 'card' && (
         <CheckoutForm 
-          onSubmit={cardFormCallback}
-          isSandbox={settings.sandboxMode}
-          isDigitalProduct={isDigitalProduct}
+          onSubmit={cardFormCallback} 
+          isSandbox={settings.sandboxMode} 
+          isDigitalProduct={isDigitalProduct} 
         />
       )}
-      
+
       {pixEnabled && paymentMethod === 'pix' && !showPixPayment && (
         <SimplifiedPixOption 
-          onSubmit={handleShowPixPayment}
-          isProcessing={isProcessing}
+          onSubmit={handleShowPixPayment} 
+          isProcessing={isProcessing} 
           productData={productDetails ? {
             productId: productDetails.id,
             productName: productDetails.name,
             productPrice: productDetails.price
           } : undefined}
-          customerData={customerData}
-          isSandbox={settings.sandboxMode || true}
-          isDigitalProduct={isDigitalProduct}
+          customerData={customerData} 
+          isSandbox={settings.sandboxMode || true} 
+          isDigitalProduct={isDigitalProduct} 
         />
       )}
-      
+
       {pixEnabled && paymentMethod === 'pix' && showPixPayment && (
         <PixPayment 
-          onSubmit={pixFormCallback}
-          isSandbox={settings.sandboxMode || true}
-          isDigitalProduct={isDigitalProduct}
-          customerData={customerData}
+          onSubmit={pixFormCallback} 
+          isSandbox={settings.sandboxMode || true} 
+          isDigitalProduct={isDigitalProduct} 
+          customerData={customerData} 
         />
       )}
     </div>

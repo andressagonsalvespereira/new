@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { AsaasSettings } from '@/types/asaas';
 

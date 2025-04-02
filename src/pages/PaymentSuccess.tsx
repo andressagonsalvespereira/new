@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,78 +5,61 @@ import { Button } from '@/components/ui/button';
 import { Check, Clock } from 'lucide-react';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
 import { usePixel } from '@/contexts/PixelContext';
+import { logger } from '@/utils/logger';
 
 const PaymentSuccess = () => {
-  const location = useLocation();
+  const { state } = useLocation();
   const navigate = useNavigate();
-  const { state } = location;
   const { trackPurchase } = usePixel();
 
-  console.log("PaymentSuccess - State received:", state);
+  const order = state?.orderData || null;
 
-  // Log mount
+  const paymentStatus: string = order?.paymentStatus?.toUpperCase?.() || 'CONFIRMED';
+  const isStatusUnderReview = ['PENDING', 'ANALYSIS', 'AGUARDANDO'].includes(paymentStatus);
+  const isDenied = paymentStatus === 'DENIED';
+
   useEffect(() => {
-    console.log("PaymentSuccess component mounted");
-    console.log("State data available:", !!state);
-    console.log("Full state:", state);
-  }, [state]);
+    logger.info('📦 Pedido recebido na tela de sucesso:', order);
+    logger.info('🔎 Status de pagamento:', paymentStatus);
 
-  // Default purchase data for when state is missing
-  const defaultPurchaseData = {
-    value: 0,
-    transactionId: `success-${Date.now()}`,
-    products: [{
-      id: "unknown",
-      name: "Unknown product",
-      price: 0,
-      quantity: 1
-    }]
-  };
-
-  // Track successful purchase
-  useEffect(() => {
-    if (state?.orderData?.productPrice) {
-      console.log("Tracking purchase event with data:", {
-        price: state.orderData.productPrice,
-        productId: state.orderData.productId || "unknown",
-        productName: state.orderData.productName || "Unknown product"
-      });
-      
-      trackPurchase({
-        value: state.orderData.productPrice,
-        transactionId: `success-${Date.now()}`,
-        products: [{
-          id: state.orderData.productId || "unknown",
-          name: state.orderData.productName || "Unknown product",
-          price: state.orderData.productPrice,
-          quantity: 1
-        }]
-      });
-    } else {
-      console.log("No product data available, using default purchase data");
-      trackPurchase(defaultPurchaseData);
+    if (isDenied) {
+      logger.warn('❌ Pagamento negado - redirecionando para /payment-failed');
+      navigate('/payment-failed', { state: { orderData: order } });
     }
-  }, [state, trackPurchase]);
-  
-  // Determine payment status checking multiple possible locations
-  const paymentStatus = 
-    state?.orderData?.paymentStatus || 
-    state?.paymentStatus || 
-    (state?.order?.paymentStatus) || 
-    'CONFIRMED';
-  
-  console.log("Detected payment status:", paymentStatus);
-  
-  const isAnalysis = 
-    paymentStatus === 'PENDING' || 
-    paymentStatus === 'ANALYSIS' || 
-    paymentStatus === 'AGUARDANDO' ||
-    paymentStatus === 'Aguardando';
-  
-  console.log("Payment status:", paymentStatus, "isAnalysis:", isAnalysis);
-  
-  // If status is "in analysis", show specific information
-  if (isAnalysis) {
+  }, [isDenied, navigate, order, paymentStatus]);
+
+  useEffect(() => {
+    const transactionId = `success-${Date.now()}`;
+    const purchase = {
+      value: order?.productPrice || 0,
+      transactionId,
+      products: [
+        {
+          id: order?.productId || 'unknown',
+          name: order?.productName || 'Unknown product',
+          price: order?.productPrice || 0,
+          quantity: 1,
+        },
+      ],
+    };
+
+    logger.info('🧠 Enviando evento para pixel (trackPurchase):', purchase);
+    trackPurchase(purchase);
+  }, [order, trackPurchase]);
+
+  if (!order) {
+    logger.error('🚫 Nenhum dado de pedido disponível no estado.');
+    return (
+      <CheckoutContainer>
+        <div className="text-center text-red-500 font-semibold py-10">
+          Dados do pedido não encontrados.
+        </div>
+      </CheckoutContainer>
+    );
+  }
+
+  if (isStatusUnderReview) {
+    logger.info('⏳ Pagamento está em análise - exibindo mensagem de análise.');
     return (
       <CheckoutContainer>
         <Card className="border-amber-200 bg-amber-50 shadow-sm">
@@ -86,34 +68,15 @@ const PaymentSuccess = () => {
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
                 <Clock className="h-8 w-8 text-amber-600" />
               </div>
-              
               <h2 className="text-xl font-semibold text-amber-700 mb-2">
                 Pagamento em Análise
               </h2>
-              
               <p className="text-amber-600 mb-4">
                 Seu pagamento foi recebido e está em análise. Você receberá uma confirmação assim que for processado.
               </p>
-              
-              <div className="w-full max-w-md bg-white rounded-lg p-4 mb-4 shadow-sm">
-                <h3 className="font-medium mb-2">Detalhes do pedido:</h3>
-                {state?.orderData ? (
-                  <div className="text-sm text-gray-600 text-left space-y-1">
-                    <p><strong>Produto:</strong> {state.orderData.productName || 'Produto'}</p>
-                    <p><strong>Valor:</strong> R$ {(state.orderData.productPrice || 0).toFixed(2)}</p>
-                    <p><strong>Forma de pagamento:</strong> {state.orderData.paymentMethod === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'PIX'}</p>
-                    <p><strong>Status:</strong> Em análise</p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600">Detalhes do pedido não disponíveis</p>
-                )}
-              </div>
-              
+              <OrderDetails order={order} statusLabel="Em análise" />
               <div className="space-y-3 w-full">
-                <Button 
-                  onClick={() => navigate('/')}
-                  className="w-full bg-amber-600 hover:bg-amber-700"
-                >
+                <Button onClick={() => navigate('/')} className="w-full bg-amber-600 hover:bg-amber-700">
                   Voltar para a página inicial
                 </Button>
               </div>
@@ -124,7 +87,8 @@ const PaymentSuccess = () => {
     );
   }
 
-  // Display normal success page (approved payment)
+  logger.info('✅ Pagamento aprovado - exibindo mensagem de sucesso.');
+
   return (
     <CheckoutContainer>
       <Card className="border-green-200 bg-green-50 shadow-sm">
@@ -133,33 +97,15 @@ const PaymentSuccess = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            
             <h2 className="text-xl font-semibold text-green-700 mb-2">
               Pagamento Aprovado
             </h2>
-            
             <p className="text-green-600 mb-4">
               Seu pagamento foi processado com sucesso! Obrigado pela sua compra.
             </p>
-            
-            <div className="w-full max-w-md bg-white rounded-lg p-4 mb-4 shadow-sm">
-              <h3 className="font-medium mb-2">Detalhes do pedido:</h3>
-              {state?.orderData ? (
-                <div className="text-sm text-gray-600 text-left space-y-1">
-                  <p><strong>Produto:</strong> {state.orderData.productName || 'Produto'}</p>
-                  <p><strong>Valor:</strong> R$ {(state.orderData.productPrice || 0).toFixed(2)}</p>
-                  <p><strong>Forma de pagamento:</strong> {state.orderData.paymentMethod === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'PIX'}</p>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-600">Detalhes do pedido não disponíveis</p>
-              )}
-            </div>
-            
+            <OrderDetails order={order} />
             <div className="space-y-3 w-full">
-              <Button 
-                onClick={() => navigate('/')}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
+              <Button onClick={() => navigate('/')} className="w-full bg-green-600 hover:bg-green-700">
                 Voltar para a página inicial
               </Button>
             </div>
@@ -167,6 +113,20 @@ const PaymentSuccess = () => {
         </CardContent>
       </Card>
     </CheckoutContainer>
+  );
+};
+
+const OrderDetails = ({ order, statusLabel = 'Aprovado' }: { order: any; statusLabel?: string }) => {
+  return (
+    <div className="w-full max-w-md bg-white rounded-lg p-4 mb-4 shadow-sm">
+      <h3 className="font-medium mb-2">Detalhes do pedido:</h3>
+      <div className="text-sm text-gray-600 text-left space-y-1">
+        <p><strong>Produto:</strong> {order.productName || 'Produto'}</p>
+        <p><strong>Valor:</strong> R$ {(order.productPrice || 0).toFixed(2)}</p>
+        <p><strong>Forma de pagamento:</strong> {order.paymentMethod === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'PIX'}</p>
+        <p><strong>Status:</strong> {statusLabel}</p>
+      </div>
+    </div>
   );
 };
 

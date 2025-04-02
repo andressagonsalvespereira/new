@@ -1,12 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useProducts } from '@/contexts/ProductContext';
-import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import { useAsaas } from '@/contexts/AsaasContext';
 import { useOrders } from '@/contexts/OrderContext';
 import CheckoutContainer from '@/components/checkout/CheckoutContainer';
@@ -31,19 +28,15 @@ const Checkout: React.FC = () => {
       setLoading(true);
       try {
         let product = null;
-        
         if (productSlug) {
           product = await getProductBySlug(productSlug);
-        } 
-        else if (products && products.length > 0) {
+        } else if (products && products.length > 0) {
           product = products[0];
         }
-        
+
         if (product) {
-          console.log("Produto encontrado:", product);
           setSelectedProduct(product);
         } else {
-          console.log("Produto não encontrado");
           toast({
             title: "Produto não encontrado",
             description: productSlug 
@@ -69,30 +62,22 @@ const Checkout: React.FC = () => {
 
   useEffect(() => {
     if (settings) {
-      if (paymentMethod === 'card' && !settings.allowCreditCard) {
-        if (settings.allowPix) {
-          setPaymentMethod('pix');
-        }
-      } else if (paymentMethod === 'pix' && !settings.allowPix) {
-        if (settings.allowCreditCard) {
-          setPaymentMethod('card');
-        }
+      if (paymentMethod === 'card' && !settings.allowCreditCard && settings.allowPix) {
+        setPaymentMethod('pix');
+      } else if (paymentMethod === 'pix' && !settings.allowPix && settings.allowCreditCard) {
+        setPaymentMethod('card');
       }
     }
   }, [settings, paymentMethod]);
 
   const handlePayment = async (paymentData: any) => {
-    console.log("Iniciando processamento de pagamento com dados:", paymentData);
     setIsProcessing(true);
-    
     try {
-      if (!selectedProduct) {
-        throw new Error("Produto não disponível para finalizar o pedido");
-      }
-      
+      if (!selectedProduct) throw new Error("Produto não disponível");
+
       const paymentMethodEnum: PaymentMethod = paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX';
       const paymentStatusEnum: PaymentStatus = paymentData.status === 'confirmed' ? 'PAID' : 'PENDING';
-      
+
       const orderData = {
         customer: paymentData.customerData || {
           name: paymentData.customerName || "Cliente",
@@ -104,36 +89,29 @@ const Checkout: React.FC = () => {
         productName: selectedProduct.nome,
         productPrice: selectedProduct.preco,
         paymentMethod: paymentMethodEnum,
-        paymentStatus: paymentStatusEnum,
+        paymentStatus: paymentData.status === 'denied' ? 'DENIED' : paymentStatusEnum,
         isDigitalProduct: selectedProduct.digital,
-        cardDetails: paymentMethod === 'card' && paymentData.cardDetails ? {
-          number: paymentData.cardDetails.number,
-          expiryMonth: paymentData.cardDetails.expiryMonth,
-          expiryYear: paymentData.cardDetails.expiryYear,
-          cvv: paymentData.cardDetails.cvv,
-          brand: paymentData.cardDetails.brand || 'Desconhecida'
-        } : undefined,
-        pixDetails: paymentMethod === 'pix' && paymentData.pixDetails ? {
-          qrCode: paymentData.pixDetails.qrCode,
-          qrCodeImage: paymentData.pixDetails.qrCodeImage,
-          expirationDate: paymentData.pixDetails.expirationDate
-        } : undefined
+        cardDetails: paymentMethod === 'card' ? paymentData.cardDetails : undefined,
+        pixDetails: paymentMethod === 'pix' ? paymentData.pixDetails : undefined
       };
-      
-      console.log("Criando pedido com dados:", orderData);
-      
-      const newOrder = await addOrder(orderData);
-      console.log("Pedido criado com sucesso:", newOrder);
-      
+
+      const createdOrder = await addOrder(orderData);
+
       toast({
         title: "Pedido realizado com sucesso!",
-        description: paymentMethod === 'pix' 
-          ? "Utilize o QR code PIX para finalizar o pagamento." 
+        description: paymentMethod === 'pix'
+          ? "Utilize o QR code PIX para finalizar o pagamento."
           : "Seu pagamento foi processado.",
         duration: 5000,
       });
-      
-      navigate('/payment-success');
+
+      // ✅ Redirecionamento com `state` do pedido completo
+      if (orderData.paymentStatus === 'DENIED') {
+        navigate('/payment-failed', { state: { orderData: createdOrder } });
+      } else {
+        navigate('/payment-success', { state: { orderData: createdOrder } });
+      }
+
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       toast({
